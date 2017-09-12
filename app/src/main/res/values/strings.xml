@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">GXMusicPlayer</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="Song_Title">Song Title</string>
+    <string name="Song_Artist">Artist name</string>
+
+    <!--fonts-->
+    <string name="font_family_light">sans-serif-light</string>
+    <string name="font_family_medium">sans-serif-medium</string>
+    <string name="font_family_regular">sans-serif</string>
+    <string name="font_family_condensed">sans-serif-condensed</string>
+    <string name="font_family_black">sans-serif-black</string>
+    <string name="font_family_thin">sans-serif-thin</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="permission_denied">Permission Denied.</string>
+    <string name="Song_Duration">Duration</string>
+    <string name="Album_thumb">Album_thumbnail</string>
+    <string name="App_icon">App Icon</string>
+    <string name="previousButton">previousButton</string>
+    <string name="play_pauseButton">play_pauseButton</string>
+    <string name="nextButton">nextButton</string>
+    <string name="optionButton">optionButton</string>
+    <string name="exit">Exit</string>
+    <string name="website_name">santoshkumarsingh.com</string>
+
+</resources>
