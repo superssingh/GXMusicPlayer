@@ -2,6 +2,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.jakewharton.butterknife'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'mykey'
+            keyPassword 'superuser'
+            storeFile file("$rootDir/GXMusicPlayerKey.jks")
+            storePassword 'super24user'
+        }
+    }
     compileSdkVersion 26
     buildToolsVersion "26.0.0"
     defaultConfig {
@@ -9,7 +17,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
-        versionName "a.0"
+        versionName '1.0'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -18,17 +26,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    productFlavors {
+    }
 }
 final APPCOMPAT_VERSION = '26.0.0'
 final BUTTERKNIFE_VERSION = '8.8.1'
-//final EXO_PLAYER_VERSION = 'r2.4.0'
 final GLIDE_VERSION = '4.0.0'
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+    testCompile 'junit:junit:4.12'
     compile "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"
     compile "com.android.support:design:$APPCOMPAT_VERSION"
     compile "com.android.support:support-v4:$APPCOMPAT_VERSION"
@@ -39,11 +49,6 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
     annotationProcessor "com.jakewharton:butterknife-compiler:$BUTTERKNIFE_VERSION"
     annotationProcessor "com.github.bumptech.glide:compiler:$GLIDE_VERSION"
-    compile group: 'com.google.code.gson', name: 'gson', version: '2.7', changing: true
-//    compile "com.google.android.exoplayer:exoplayer:$EXO_PLAYER_VERSION"
-//    compile "com.google.android.exoplayer:exoplayer-core:$EXO_PLAYER_VERSION"
-//    compile "com.google.android.exoplayer:exoplayer-ui:$EXO_PLAYER_VERSION"
+    compile 'com.google.code.gson:gson:2.7'
 
-
-    testCompile 'junit:junit:4.12'
 }

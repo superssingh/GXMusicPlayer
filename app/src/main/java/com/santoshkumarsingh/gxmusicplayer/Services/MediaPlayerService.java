@@ -23,7 +23,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.santoshkumarsingh.gxmusicplayer.Activities.MainActivity;
-import com.santoshkumarsingh.gxmusicplayer.Classes.StorageUtil;
+import com.santoshkumarsingh.gxmusicplayer.Database.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;

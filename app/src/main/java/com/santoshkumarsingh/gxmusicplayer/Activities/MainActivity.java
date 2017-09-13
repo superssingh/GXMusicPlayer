@@ -35,7 +35,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.santoshkumarsingh.gxmusicplayer.Adapters.AudioAdapter;
-import com.santoshkumarsingh.gxmusicplayer.Classes.StorageUtil;
+import com.santoshkumarsingh.gxmusicplayer.Database.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 import com.santoshkumarsingh.gxmusicplayer.Services.MediaPlayerService;
@@ -85,61 +85,20 @@ public class MainActivity extends AppCompatActivity
     private MediaPlayerService playerService;
     private boolean serviceBound = false;
     private Intent playerIntent;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         ButterKnife.bind(this);
         audioList = new ArrayList<>();
         playerService = new MediaPlayerService();
-
-//        AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
-//        am.requestAudioFocus(mOnAudioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-
-        //************----------------------************
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        //noinspection deprecation
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        //*******--------------------------------------------******
         checkPermission();
         configRecycleView();
-
-        // end audio focus ---------
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (repeat == 0) {
-                    repeat = 1;
-                    playerService.setRepeat(1);
-                    fab.setImageResource(R.drawable.ic_repeat_one);
-                } else if (repeat == 1) {
-                    repeat = 2;
-                    playerService.setRepeat(2);
-                    fab.setImageResource(R.drawable.ic_repeat_all);
-                } else if (repeat==2){
-                    repeat = 3;
-                    playerService.setRepeat(3);
-                    fab.setImageResource(R.drawable.ic_shuffle);
-                }else{
-                    repeat=0;
-                    playerService.setRepeat(0);
-                    fab.setImageResource(R.drawable.ic_foward_stop);
-                }
-            }
-        });
-
-        playerService.setAudioList(audioList);
 
         if (!serviceBound){
             StorageUtil storageUtil=new StorageUtil(getApplicationContext());
@@ -148,8 +107,23 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
+        NavigationDrawerSetup();
+
     }
 
+
+    private void NavigationDrawerSetup(){
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        //noinspection deprecation
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+    }
 
     //---------------------------
     private void configRecycleView() {
@@ -176,20 +150,37 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (repeat == 0) {
+                    repeat = 1;
+                    playerService.setRepeat(1);
+                    fab.setImageResource(R.drawable.ic_repeat_one);
+                } else if (repeat == 1) {
+                    repeat = 2;
+                    playerService.setRepeat(2);
+                    fab.setImageResource(R.drawable.ic_repeat_all);
+                } else if (repeat==2){
+                    repeat = 3;
+                    playerService.setRepeat(3);
+                    fab.setImageResource(R.drawable.ic_shuffle);
+                }else{
+                    repeat=0;
+                    playerService.setRepeat(0);
+                    fab.setImageResource(R.drawable.ic_foward_stop);
+                }
+            }
+        });
+
         play_pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (trackPosition == 0) {
-                    play_pause.setBackgroundResource(R.drawable.ic_pause);
-                    playAudio(0);
-//                } else if () {
-//                    Log.i("playing", "play");
-////                    mediaPlayer.stop();
-//
-//                    play_pause.setBackgroundResource(R.drawable.ic_play);
+                    Log.i("playing", "play");
+                    play_pause.setBackgroundResource(R.drawable.ic_play);
                 } else {
                     Log.i("pause", "pause");
-//                    mediaPlayer.start();
                     play_pause.setBackgroundResource(R.drawable.ic_pause);
                 }
             }
@@ -199,7 +190,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 int i = trackPosition == 0 ? audioList.size() - 1 : trackPosition - 1;
-//                playSong(i);
             }
         });
 
@@ -207,7 +197,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 int i = trackPosition == audioList.size() - 1 ? 0 : trackPosition + 1;
-//                playSong(i);
             }
         });
 
@@ -322,12 +311,13 @@ public class MainActivity extends AppCompatActivity
             cursor.close();
         }
 
+        playerService.setAudioList(audioList);
     }
 
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -365,14 +355,13 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_exit) {
             stopService(playerIntent);
-            playerService.stopSelf();
-
+            playerService.onDestroy();
             audioList.clear();
             System.exit(0);
             finish();
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
