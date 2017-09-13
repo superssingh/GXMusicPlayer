@@ -1,2 +1,2 @@
 # GXMusicPlayer
-An awesome music player app. 
+I'm working on an awesome music player app. 
