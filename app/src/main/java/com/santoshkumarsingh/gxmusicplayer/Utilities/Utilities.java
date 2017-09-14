@@ -11,6 +11,7 @@ import java.util.Random;
  */
 
 public class Utilities {
+
     public Bitmap getTrackThumbnail(String URL){
         try {
             MediaMetadataRetriever metaRetriver;

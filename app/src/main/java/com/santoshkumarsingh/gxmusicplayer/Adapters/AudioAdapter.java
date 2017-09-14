@@ -87,7 +87,7 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder>{
     }
 
     public interface SongOnClickListener {
-        void OnClick(ImageButton button, View view, Bitmap bitmap, String URL, int position);
+        void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position);
     }
 
     public void setOnClickListener(SongOnClickListener SongOnClickListener){

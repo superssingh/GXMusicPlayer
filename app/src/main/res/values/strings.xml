@@ -27,5 +27,9 @@
     <string name="optionButton">optionButton</string>
     <string name="exit">Exit</string>
     <string name="website_name">santoshkumarsingh.com</string>
+    <string name="PLAY">1</string>
+    <string name="PAUSE">2</string>
+    <string name="NEXT">3</string>
+    <string name="PREVIOUS">4</string>
 
 </resources>
