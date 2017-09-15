@@ -4,9 +4,10 @@
 
     <gradient
         android:angle="90"
-        android:centerColor="#a4ac0431"
-        android:endColor="#a5930338"
-        android:startColor="#a5a3042c"
+        android:centerColor="#a4060606"
+        android:centerX="@android:integer/config_longAnimTime"
+        android:endColor="#a50a0909"
+        android:startColor="#f4c40343"
         android:type="linear" />
 
 </shape>

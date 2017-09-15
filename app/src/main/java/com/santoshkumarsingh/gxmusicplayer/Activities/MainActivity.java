@@ -51,14 +51,13 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-import static android.R.attr.duration;
 import static android.widget.Toast.LENGTH_LONG;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback {
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.santoshkumarsingh.gxmusicplayer.PlayNewAudio";
-
+    private static MediaPlayerService playerService;
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     @BindView(R.id.play_pause)
@@ -79,21 +78,35 @@ public class MainActivity extends AppCompatActivity
     AppCompatSeekBar seekBar;
     @BindView(R.id.fab)
     FloatingActionButton fab;
-
-    private int trackPosition = 0, repeat = 0;
+    Utilities utilities;
+    private int trackPosition = 0, repeat = 0, mediaPlayerState = 0;
     private List<Audio> audioList;
     private LinearLayoutManager linearLayoutManager;
     private AudioAdapter audioAdapter;
-
-    private MediaPlayerService playerService;
     private boolean serviceBound = false;
     private Intent playerIntent;
     private Toolbar toolbar;
     private Handler handler;
     private Runnable runnable;
     private DecimalFormat decimalFormat = new DecimalFormat("#.##");
-    Utilities utilities;
-    private Bitmap bitmap;
+    //Binding this Client to the AudioPlayer Service
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
+            playerService = binder.getService();
+            playerService.setCallback(MainActivity.this);
+            serviceBound = true;
+            Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
+            Toast.makeText(MainActivity.this, "Service Unbound", Toast.LENGTH_SHORT).show();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,28 +114,18 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         ButterKnife.bind(this);
         audioList = new ArrayList<>();
-        playerService = new MediaPlayerService();
         utilities = new Utilities();
         handler = new Handler();
         seekBar.setClickable(true);
+
         checkPermission();
         configRecycleView();
         NavigationDrawerSetup();
-        if (!serviceBound) {
-            StorageUtil storageUtil = new StorageUtil(getApplicationContext());
-            if (storageUtil.loadAudioIndex() >= 0) {
-                trackPosition = storageUtil.loadAudioIndex();
-//                    playAudio(storageUtil.loadAudioIndex());
-            }
-            return;
-        } else {
-            return;
-        }
-    }
 
+
+    }
 
     private void NavigationDrawerSetup() {
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -151,7 +154,7 @@ public class MainActivity extends AppCompatActivity
         audioAdapter.setOnClickListener(new AudioAdapter.SongOnClickListener() {
             @Override
             public void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position) {
-
+                trackPosition = position;
                 playAudio(position);
                 play_pause.setBackgroundResource(R.drawable.ic_pause);
                 optionButton.setOnClickListener(new View.OnClickListener() {
@@ -185,21 +188,35 @@ public class MainActivity extends AppCompatActivity
         play_pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int i = playerService.getMediaPlayerStatus();
-                switch (i) {
-                    case 0:
-                        playAudio(trackPosition);
-                        play_pause.setBackgroundResource(R.drawable.ic_pause);
-                        break;
-                    case 1:
-                        playerService.pauseMedia();
-                        play_pause.setBackgroundResource(R.drawable.ic_play);
-                        break;
-                    case 2:
-                        playerService.resumeMedia();
-                        play_pause.setBackgroundResource(R.drawable.ic_pause);
-                        break;
+                if (playerService == null) {
+                    playerService = MediaPlayerService.getInstance(getApplicationContext());
+                    playerService.setAudioList(audioList);
+                    playAudio(trackPosition);
+                    Toast.makeText(getApplicationContext(), "Please select a song", LENGTH_LONG).show();
+                } else if (playerService.mediaPlayer != null && playerService.mediaPlayer.isPlaying()) {
+                    playerService.pauseMedia();
+                    play_pause.setBackgroundResource(R.drawable.ic_play);
+                } else {
+                    playerService.resumeMedia();
+                    play_pause.setBackgroundResource(R.drawable.ic_pause);
                 }
+
+//                int i = playerService.getMediaPlayerStatus();
+
+//                switch (i) {
+//                    case 0:
+//                        playAudio(trackPosition);
+//                        play_pause.setBackgroundResource(R.drawable.ic_pause);
+//                        break;
+//                    case 1:
+//                        playerService.pauseMedia();
+//                        play_pause.setBackgroundResource(R.drawable.ic_play);
+//                        break;
+//                    case 2:
+//                        playerService.resumeMedia();
+//                        play_pause.setBackgroundResource(R.drawable.ic_pause);
+//                        break;
+//                }
 
             }
         });
@@ -233,27 +250,8 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    //Binding this Client to the AudioPlayer Service
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
-            playerService = binder.getService();
-            serviceBound = true;
-            playerService.setCallback(MainActivity.this);
-
-            Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-            Toast.makeText(MainActivity.this, "Service Unbound", Toast.LENGTH_SHORT).show();
-        }
-    };
-
     private void playAudio(int audioIndex) {
+
         //Check is service is active
         if (!serviceBound) {
             //Store Serializable audioList to SharedPreferences
@@ -265,7 +263,7 @@ public class MainActivity extends AppCompatActivity
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
-            updateUI(audioIndex, utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()));
+//            updateUI(audioIndex, utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()));
 
         } else {
 
@@ -280,6 +278,8 @@ public class MainActivity extends AppCompatActivity
         }
 
         trackPosition = audioIndex;
+        mediaPlayerState = 2;
+        play_pause.setBackgroundResource(R.drawable.ic_pause);
 //        updatePlayer();
     }
 
@@ -346,7 +346,7 @@ public class MainActivity extends AppCompatActivity
             cursor.close();
         }
 
-        playerService.setAudioList(audioList);
+//        playerService.setAudioList(audioList);
     }
 
 
@@ -407,6 +407,7 @@ public class MainActivity extends AppCompatActivity
             unbindService(serviceConnection);
         }
 
+        playerService.stop();
         handler.removeCallbacks(runnable);
     }
 
@@ -428,63 +429,67 @@ public class MainActivity extends AppCompatActivity
         songArtist.setText(audioList.get(position).getARTIST());
         songDuration.setText(decimalFormat.format(((float) duration / 1000) / 60) + "");
         seekBar.setMax(duration);
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if (b) {
+                    if (playerService.mediaPlayer.isPlaying()) {
+                        playerService.mediaPlayer.seekTo(i);
+                    }
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
         seekBarCycle();
 
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (b) {
-                    if (playerService.mediaPlayer.isPlaying()) {
-                        playerService.mediaPlayer.seekTo(i);
-                    }
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
     }
 
-    private void updateUI(int position, Bitmap bitmap) {
-        songTitle.setText(audioList.get(position).getTITLE());
-        songArtist.setText(audioList.get(position).getARTIST());
-        songDuration.setText(decimalFormat.format(((float) (Integer.parseInt(audioList.get(position).getDURATION())) / 1000) / 60) + "");
-        if (bitmap==null){
-            return;
-        }else{
-            songThumbnail.setImageBitmap(bitmap);
-        }
+//    public void updateUI(int position) {
+//        Bitmap bitmap= utilities.getTrackThumbnail(audioList.get(position).getURL()).equals(null)
+//                ?utilities.getTrackThumbnail(audioList.get(position).getURL())
+//                : BitmapFactory.decodeResource(getResources(), R.drawable.sound_thumb);
+//
+//        songThumbnail.setImageBitmap(bitmap);
+//        songTitle.setText(audioList.get(position).getTITLE());
+//        songArtist.setText(audioList.get(position).getARTIST());
+//        songDuration.setText(decimalFormat.format(
+//                ((float) Integer.parseInt(audioList.get(position).getDURATION())/ 1000) / 60) + "");
+//        seekBar.setMax(Integer.parseInt(audioList.get(position).getDURATION()));
+//
+//        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//            @Override
+//            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+//                if (b) {
+//                    if (playerService.mediaPlayer.isPlaying()) {
+//                        playerService.mediaPlayer.seekTo(i);
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onStartTrackingTouch(SeekBar seekBar) {
+//
+//            }
+//
+//            @Override
+//            public void onStopTrackingTouch(SeekBar seekBar) {
+//
+//            }
+//        });
+//
+//        seekBarCycle();
+//
+//    }
 
-        seekBar.setMax(duration);
-
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (b) {
-                    if (playerService.mediaPlayer.isPlaying()) {
-                        playerService.mediaPlayer.seekTo(i);
-                    }
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
-    }
 }
