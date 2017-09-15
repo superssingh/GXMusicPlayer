@@ -200,24 +200,6 @@ public class MainActivity extends AppCompatActivity
                     playerService.resumeMedia();
                     play_pause.setBackgroundResource(R.drawable.ic_pause);
                 }
-
-//                int i = playerService.getMediaPlayerStatus();
-
-//                switch (i) {
-//                    case 0:
-//                        playAudio(trackPosition);
-//                        play_pause.setBackgroundResource(R.drawable.ic_pause);
-//                        break;
-//                    case 1:
-//                        playerService.pauseMedia();
-//                        play_pause.setBackgroundResource(R.drawable.ic_play);
-//                        break;
-//                    case 2:
-//                        playerService.resumeMedia();
-//                        play_pause.setBackgroundResource(R.drawable.ic_pause);
-//                        break;
-//                }
-
             }
         });
 
@@ -263,10 +245,7 @@ public class MainActivity extends AppCompatActivity
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
-//            updateUI(audioIndex, utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()));
-
         } else {
-
             //Store the new audioIndex to SharedPreferences
             StorageUtil storage = new StorageUtil(getApplicationContext());
             storage.storeAudioIndex(audioIndex);
@@ -280,7 +259,6 @@ public class MainActivity extends AppCompatActivity
         trackPosition = audioIndex;
         mediaPlayerState = 2;
         play_pause.setBackgroundResource(R.drawable.ic_pause);
-//        updatePlayer();
     }
 
     @Override
@@ -345,8 +323,6 @@ public class MainActivity extends AppCompatActivity
             }
             cursor.close();
         }
-
-//        playerService.setAudioList(audioList);
     }
 
 
