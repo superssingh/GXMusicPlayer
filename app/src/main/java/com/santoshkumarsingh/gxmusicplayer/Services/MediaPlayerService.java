@@ -613,6 +613,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 if (mediaPlayer == null) initMediaPlayer();
                 else if (!mediaPlayer.isPlaying()) mediaPlayer.start();
                 mediaPlayer.setVolume(1.0f, 1.0f);
+                mediaSession.setActive(true);
                 break;
             case AudioManager.AUDIOFOCUS_LOSS:
                 // Lost focus for an unbounded amount of time: stop playback and release media player

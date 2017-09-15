@@ -51,6 +51,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import static android.R.attr.duration;
 import static android.widget.Toast.LENGTH_LONG;
 
 public class MainActivity extends AppCompatActivity
@@ -92,6 +93,7 @@ public class MainActivity extends AppCompatActivity
     private Runnable runnable;
     private DecimalFormat decimalFormat = new DecimalFormat("#.##");
     Utilities utilities;
+    private Bitmap bitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,23 +105,22 @@ public class MainActivity extends AppCompatActivity
         ButterKnife.bind(this);
         audioList = new ArrayList<>();
         playerService = new MediaPlayerService();
+        utilities = new Utilities();
         handler = new Handler();
         seekBar.setClickable(true);
         checkPermission();
         configRecycleView();
         NavigationDrawerSetup();
-
         if (!serviceBound) {
             StorageUtil storageUtil = new StorageUtil(getApplicationContext());
             if (storageUtil.loadAudioIndex() >= 0) {
                 trackPosition = storageUtil.loadAudioIndex();
-//                playAudio(storageUtil.loadAudioIndex());
-                return;
-            } else {
-                return;
+//                    playAudio(storageUtil.loadAudioIndex());
             }
+            return;
+        } else {
+            return;
         }
-
     }
 
 
@@ -263,6 +264,9 @@ public class MainActivity extends AppCompatActivity
             playerIntent = new Intent(this, MediaPlayerService.class);
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+
+            updateUI(audioIndex, utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()));
+
         } else {
 
             //Store the new audioIndex to SharedPreferences
@@ -408,25 +412,58 @@ public class MainActivity extends AppCompatActivity
 
     public void seekBarCycle() {
         seekBar.setProgress(playerService.mediaPlayer.getCurrentPosition());
-        runnable =new Runnable() {
+        runnable = new Runnable() {
             @Override
             public void run() {
                 seekBarCycle();
             }
         };
-        handler.postDelayed(runnable, 500);
-
+        handler.postDelayed(runnable, 1000);
     }
 
     @Override
     public void doSomething(int position, int duration, int currentTime, Bitmap bitmap) {
-
+        songThumbnail.setImageBitmap(bitmap);
         songTitle.setText(audioList.get(position).getTITLE());
         songArtist.setText(audioList.get(position).getARTIST());
         songDuration.setText(decimalFormat.format(((float) duration / 1000) / 60) + "");
         seekBar.setMax(duration);
-
         seekBarCycle();
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if (b) {
+                    if (playerService.mediaPlayer.isPlaying()) {
+                        playerService.mediaPlayer.seekTo(i);
+                    }
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+    }
+
+    private void updateUI(int position, Bitmap bitmap) {
+        songTitle.setText(audioList.get(position).getTITLE());
+        songArtist.setText(audioList.get(position).getARTIST());
+        songDuration.setText(decimalFormat.format(((float) (Integer.parseInt(audioList.get(position).getDURATION())) / 1000) / 60) + "");
+        if (bitmap==null){
+            return;
+        }else{
+            songThumbnail.setImageBitmap(bitmap);
+        }
+
+        seekBar.setMax(duration);
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
