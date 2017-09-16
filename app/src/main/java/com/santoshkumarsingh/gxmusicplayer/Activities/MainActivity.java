@@ -124,6 +124,13 @@ public class MainActivity extends AppCompatActivity
         configRecycleView();
         NavigationDrawerSetup();
 
+        playerService = MediaPlayerService.getInstance(getApplicationContext());
+        playerService.setAudioList(audioList);
+
+        StorageUtil storageUtil = new StorageUtil(this);
+        if (storageUtil.loadAudioIndex() != -1) {
+            trackPosition = storageUtil.loadAudioIndex();
+        }
 
     }
 
@@ -156,7 +163,7 @@ public class MainActivity extends AppCompatActivity
             public void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position) {
                 trackPosition = position;
                 playAudio(position);
-                play_pause.setBackgroundResource(R.drawable.ic_pause);
+                play_pause.setBackgroundResource(R.drawable.ic_play);
                 optionButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -165,6 +172,7 @@ public class MainActivity extends AppCompatActivity
                 });
             }
         });
+
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -188,17 +196,18 @@ public class MainActivity extends AppCompatActivity
         play_pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (playerService == null) {
-                    playerService = MediaPlayerService.getInstance(getApplicationContext());
-                    playerService.setAudioList(audioList);
-                    playAudio(trackPosition);
-                    Toast.makeText(getApplicationContext(), "Please select a song", LENGTH_LONG).show();
-                } else if (playerService.mediaPlayer != null && playerService.mediaPlayer.isPlaying()) {
-                    playerService.pauseMedia();
-                    play_pause.setBackgroundResource(R.drawable.ic_play);
-                } else {
-                    playerService.resumeMedia();
-                    play_pause.setBackgroundResource(R.drawable.ic_pause);
+                switch (mediaPlayerState) {
+                    case 1:
+                        playerService.pause();
+                        play_pause.setBackgroundResource(R.drawable.ic_play);
+                        mediaPlayerState = 2;
+                        break;
+                    case 2:
+                        playerService.resume();
+                        play_pause.setBackgroundResource(R.drawable.ic_pause);
+                        mediaPlayerState = 1;
+                        break;
+
                 }
             }
         });
@@ -211,6 +220,7 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 playerService.skipToPrevious();
+                playerService.playMedia();
                 play_pause.setBackgroundResource(R.drawable.ic_pause);
                 trackPosition = playerService.getAudioIndex();
 
@@ -225,6 +235,7 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 playerService.skipToNext();
+                playerService.playMedia();
                 play_pause.setBackgroundResource(R.drawable.ic_pause);
                 trackPosition = playerService.getAudioIndex();
             }
@@ -363,11 +374,11 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_exit) {
             if (serviceBound) {
                 stopService(playerIntent);
-                playerService.onDestroy();
-                audioList.clear();
                 System.exit(0);
             }
 
+            audioList.clear();
+            playerService.onDestroy();
             finish();
         }
 
@@ -383,19 +394,23 @@ public class MainActivity extends AppCompatActivity
             unbindService(serviceConnection);
         }
 
-        playerService.stop();
         handler.removeCallbacks(runnable);
     }
 
     public void seekBarCycle() {
-        seekBar.setProgress(playerService.mediaPlayer.getCurrentPosition());
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-                seekBarCycle();
-            }
-        };
-        handler.postDelayed(runnable, 1000);
+        if (playerService.mediaPlayer == null || playerService.mediaPlayer.getCurrentPosition() < 0) {
+            return;
+        } else {
+            seekBar.setProgress(playerService.mediaPlayer.getCurrentPosition());
+            runnable = new Runnable() {
+                @Override
+                public void run() {
+                    seekBarCycle();
+                }
+            };
+            handler.postDelayed(runnable, 1000);
+        }
+
     }
 
     @Override
@@ -431,41 +446,5 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-//    public void updateUI(int position) {
-//        Bitmap bitmap= utilities.getTrackThumbnail(audioList.get(position).getURL()).equals(null)
-//                ?utilities.getTrackThumbnail(audioList.get(position).getURL())
-//                : BitmapFactory.decodeResource(getResources(), R.drawable.sound_thumb);
-//
-//        songThumbnail.setImageBitmap(bitmap);
-//        songTitle.setText(audioList.get(position).getTITLE());
-//        songArtist.setText(audioList.get(position).getARTIST());
-//        songDuration.setText(decimalFormat.format(
-//                ((float) Integer.parseInt(audioList.get(position).getDURATION())/ 1000) / 60) + "");
-//        seekBar.setMax(Integer.parseInt(audioList.get(position).getDURATION()));
-//
-//        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-//            @Override
-//            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-//                if (b) {
-//                    if (playerService.mediaPlayer.isPlaying()) {
-//                        playerService.mediaPlayer.seekTo(i);
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            public void onStartTrackingTouch(SeekBar seekBar) {
-//
-//            }
-//
-//            @Override
-//            public void onStopTrackingTouch(SeekBar seekBar) {
-//
-//            }
-//        });
-//
-//        seekBarCycle();
-//
-//    }
 
 }

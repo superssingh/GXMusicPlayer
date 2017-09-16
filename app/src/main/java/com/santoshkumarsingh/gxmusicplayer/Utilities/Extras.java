@@ -1,12 +1,14 @@
-package com.santoshkumarsingh.gxmusicplayer.Utilities;
-
-/**
- * Created by santoshsingh on 16/09/17.
- */
-
-public class Extras {
-
-
+//package com.santoshkumarsingh.gxmusicplayer.Utilities;
+//
+//import android.media.AudioManager;
+//
+///**
+// * Created by santoshsingh on 16/09/17.
+// */
+//
+//public class Extras {
+//
+//
 //    @Override
 //    public void onAudioFocusChange(int focusChange) {
 //        switch (focusChange) {
@@ -40,4 +42,46 @@ public class Extras {
 //                break;
 //        }
 //    }
-}
+//
+//    //------------------------------------------
+//
+//
+////    public void updateUI(int position) {
+////        Bitmap bitmap= utilities.getTrackThumbnail(audioList.get(position).getURL()).equals(null)
+////                ?utilities.getTrackThumbnail(audioList.get(position).getURL())
+////                : BitmapFactory.decodeResource(getResources(), R.drawable.sound_thumb);
+////
+////        songThumbnail.setImageBitmap(bitmap);
+////        songTitle.setText(audioList.get(position).getTITLE());
+////        songArtist.setText(audioList.get(position).getARTIST());
+////        songDuration.setText(decimalFormat.format(
+////                ((float) Integer.parseInt(audioList.get(position).getDURATION())/ 1000) / 60) + "");
+////        seekBar.setMax(Integer.parseInt(audioList.get(position).getDURATION()));
+////
+////        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+////            @Override
+////            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+////                if (b) {
+////                    if (playerService.mediaPlayer.isPlaying()) {
+////                        playerService.mediaPlayer.seekTo(i);
+////                    }
+////                }
+////            }
+////
+////            @Override
+////            public void onStartTrackingTouch(SeekBar seekBar) {
+////
+////            }
+////
+////            @Override
+////            public void onStopTrackingTouch(SeekBar seekBar) {
+////
+////            }
+////        });
+////
+////        seekBarCycle();
+////
+////    }
+//
+//
+//}

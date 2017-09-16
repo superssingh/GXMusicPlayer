@@ -63,7 +63,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     //Used to pause/resume MediaPlayer
     private int resumePosition;
     private int repeat = 0;
-    private int mediaPlayerStatus = 0;
     //Handle incoming phone calls
     private boolean ongoingCall = false;
     private PhoneStateListener phoneStateListener;
@@ -91,8 +90,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         @Override
         public void onReceive(Context context, Intent intent) {
             //pause audio on ACTION_AUDIO_BECOMING_NOISY
-            pauseMedia();
-            buildNotification(PlaybackStatus.PAUSED);
+            pause();
         }
     };
     //----------BroadcastReceiver to play new audio
@@ -112,10 +110,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
             //A PLAY_NEW_AUDIO action received
             //reset mediaPlayer to play the new Audio
-            stopMedia();
+            mediaPlayer.stop();
+            mediaPlayer.reset();
             initMediaPlayer();
             updateMetaData();
-            buildNotification(PlaybackStatus.PLAYING);
+            buildNotification(PlaybackStatus.PAUSED);
         }
     };
 
@@ -134,7 +133,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 switch (focusChange) {
                     case AudioManager.AUDIOFOCUS_GAIN:
                         Log.i(TAG, "AUDIOFOCUS_GAIN");
-                        play();
+                        playMedia();
+                        mediaSession.setActive(true);
                         break;
                     case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
                         Log.i(TAG, "AUDIOFOCUS_GAIN_TRANSIENT");
@@ -144,17 +144,23 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS:
                         Log.e(TAG, "AUDIOFOCUS_LOSS");
-                        pause();
+                        if (mediaPlayer.isPlaying()) mediaPlayer.stop();
+                        mediaPlayer.release();
+                        mediaPlayer = null;
+                        mAudioFocusGranted = false;
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                         Log.e(TAG, "AUDIOFOCUS_LOSS_TRANSIENT");
-                        pause();
+                        mediaPlayer.start();
+                        mAudioFocusGranted = true;
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                         Log.e(TAG, "AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK");
                         break;
                     case AudioManager.AUDIOFOCUS_REQUEST_FAILED:
                         Log.e(TAG, "AUDIOFOCUS_REQUEST_FAILED");
+                        if (mediaPlayer.isPlaying()) mediaPlayer.setVolume(0.1f, 0.1f);
+                        mAudioFocusGranted = true;
                         break;
                     default:
                         //
@@ -177,6 +183,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         audioList = new ArrayList<>();
         activeAudio = new Audio();
         utilities = new Utilities();
+        mediaPlayer = new MediaPlayer();
         // Perform one-time setup procedures
 
         // Manage incoming phone calls during playback.
@@ -190,6 +197,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     private void initMediaPlayer() {
+        resumePosition = 0;
         mediaPlayer = new MediaPlayer();
         //Set up MediaPlayer event listeners
         mediaPlayer.setOnCompletionListener(this);
@@ -217,20 +225,20 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     public void playMedia() {
-        if (mediaPlayer == null) initMediaPlayer();
-        else if (!mediaPlayer.isPlaying()) mediaPlayer.start();
+        if (mediaPlayer == null) {
+            initMediaPlayer();
+            mediaPlayer.setVolume(1.0f, 1.0f);
+        }
 
-        mediaPlayer.setVolume(1.0f, 1.0f);
-        mediaPlayerStatus = 1;
-        buildNotification(PlaybackStatus.PLAYING);
+        mediaPlayer.start();
+        buildNotification(PlaybackStatus.PAUSED);
+        mAudioIsPlaying = true;
     }
 
     public void play() {
         if (!mAudioIsPlaying) {
             if (mediaPlayer == null) {
                 initMediaPlayer();
-                mediaPlayer.setVolume(1.0f, 1.0f);
-                mediaPlayer.setLooping(true);
             }
 
             // 1. Acquire audio focus
@@ -242,54 +250,39 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             }
             // 4. Play music
             mediaPlayer.start();
+            buildNotification(PlaybackStatus.PAUSED);
             mAudioIsPlaying = true;
         }
     }
 
-    public void pause() {
-        // 1. Suspend play back
-        if (mAudioFocusGranted && mAudioIsPlaying) {
-            mediaPlayer.pause();
-            mAudioIsPlaying = false;
-        }
-    }
-
-    public void stop() {
+    public void stopMedia() {
         // 1. Stop play back
-        if (mAudioFocusGranted && mAudioIsPlaying) {
+        if (mediaPlayer.isPlaying() || mediaPlayer != null) {
             mediaPlayer.stop();
-            mediaPlayer = null;
             mAudioIsPlaying = false;
             // 2. Give up audio focus
             abandonAudioFocus();
-        }
-    }
-
-    public void stopMedia() {
-        if (mediaPlayer == null) return;
-        if (mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();
-            mediaPlayerStatus = 0;
+            removeNotification();
+            forceMusicStop();
         }
 
-        removeNotification();
     }
 
-    public void pauseMedia() {
+    public void pause() {
+        // 1. Suspend play back
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
             resumePosition = mediaPlayer.getCurrentPosition();
-            mediaPlayerStatus = 2;
-            buildNotification(PlaybackStatus.PAUSED);
+            mAudioIsPlaying = false;
+            buildNotification(PlaybackStatus.PLAYING);
         }
     }
 
-    public void resumeMedia() {
+    public void resume() {
         if (!mediaPlayer.isPlaying()) {
             mediaPlayer.seekTo(resumePosition);
             mediaPlayer.start();
-            mediaPlayerStatus = 1;
-            buildNotification(PlaybackStatus.PLAYING);
+            buildNotification(PlaybackStatus.PAUSED);
         }
     }
 
@@ -319,13 +312,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             @Override
             public void onPlay() {
                 super.onPlay();
-                resumeMedia();
+                resume();
             }
 
             @Override
             public void onPause() {
                 super.onPause();
-                pauseMedia();
+                pause();
             }
 
             @Override
@@ -343,7 +336,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             @Override
             public void onStop() {
                 super.onStop();
-                removeNotification();
+                stopMedia();
                 //Stop the service
                 stopSelf();
             }
@@ -373,32 +366,31 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public void skipToNext() {
         audioIndex = (audioIndex == audioList.size() - 1 ? 0 : ++audioIndex);
         activeAudio = audioList.get(audioIndex);
+        resumePosition = 0;
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(audioIndex);
 
-        stopMedia();
+        mediaPlayer.stop();
         //reset mediaPlayer
         mediaPlayer.reset();
         initMediaPlayer();
         //update notification
-        mediaPlayer.start();
         updateMetaData();
         buildNotification(PlaybackStatus.PLAYING);
     }
 
-
     public void skipToPrevious() {
         audioIndex = (audioIndex == 0 ? audioList.size() - 1 : --audioIndex);
         activeAudio = audioList.get(audioIndex);
+        resumePosition = 0;
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(audioIndex);
 
-        stopMedia();
+        mediaPlayer.stop();
         //reset mediaPlayer
         mediaPlayer.reset();
         initMediaPlayer();
         //update notification
-        mediaPlayer.start();
         updateMetaData();
         buildNotification(PlaybackStatus.PLAYING);
     }
@@ -406,10 +398,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private void randomSelection() {
         audioIndex = utilities.randomSelection(audioIndex, audioList.size());
         activeAudio = audioList.get(audioIndex);
+        resumePosition = 0;
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(audioIndex);
 
-        stopMedia();
+        mediaPlayer.stop();
         //reset mediaPlayer
         mediaPlayer.reset();
         initMediaPlayer();
@@ -470,7 +463,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     private PendingIntent playbackAction(int actionNumber) {
-        Intent playbackAction = new Intent(this, MediaPlayerService.class);
+        Intent playbackAction = new Intent(getApplicationContext(), MediaPlayerService.class);
         switch (actionNumber) {
             case 0:
                 // Play
@@ -546,30 +539,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         handleIncomingActions(intent);
         return super.onStartCommand(intent, flags, startId);
     }
+
 //---------------
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mediaPlayer != null) {
-            stopMedia();
-            mediaPlayer.release();
-        }
-        removeAudioFocus();
-        //Disable the PhoneStateListener
-        if (phoneStateListener != null) {
-            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
-        }
-
-        removeNotification();
-
-        //unregister BroadcastReceivers
-        unregisterReceiver(becomingNoisyReceiver);
-        unregisterReceiver(playNewAudio);
-
-        //clear cached playlist
-        new StorageUtil(getApplicationContext()).clearCachedAudioPlaylist();
-    }
 
     private void registerBecomingNoisyReceiver() {
         //register after getting audio focus
@@ -591,7 +562,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                     case TelephonyManager.CALL_STATE_OFFHOOK:
                     case TelephonyManager.CALL_STATE_RINGING:
                         if (mediaPlayer != null) {
-                            pauseMedia();
+                            pause();
                             ongoingCall = true;
                         }
                         break;
@@ -600,7 +571,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         if (mediaPlayer != null) {
                             if (ongoingCall) {
                                 ongoingCall = false;
-                                resumeMedia();
+                                resume();
                             }
                         }
                         break;
@@ -636,18 +607,19 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public void onCompletion(MediaPlayer mp) {
         //Invoked when playback of a media source has completed.
         switch (repeat) {
-
             case 0:
                 skipToNext();
+                mp.start();
                 //stop the service
                 break;
             case 1:
                 // for repeat one song
-                playMedia();
+                mp.start();
                 break;
             case 2:
                 // for next method
                 randomSelection();
+                mp.start();
                 break;
         }
     }
@@ -683,7 +655,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         if (serviceCallback != null) {
             serviceCallback.doSomething(audioIndex, mp.getDuration(), mp.getCurrentPosition(), albumArt);
         }
-
     }
 
     @Override
@@ -696,51 +667,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 audioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
     }
 
-//    @Override
-//    public void onAudioFocusChange(int focusChange) {
-//        //Invoked when the audio focus of the system is updated.
-//        switch (focusChange) {
-//            case AudioManager.AUDIOFOCUS_GAIN:
-//                // resume playback
-//                if (mediaPlayer == null) initMediaPlayer();
-//                else if (!mediaPlayer.isPlaying()) mediaPlayer.start();
-//                mediaPlayer.setVolume(1.0f, 1.0f);
-//                mediaSession.setActive(true);
-//                break;
-//            case AudioManager.AUDIOFOCUS_LOSS:
-//                // Lost focus for an unbounded amount of time: stop playback and release media player
-//                if (mediaPlayer.isPlaying()) mediaPlayer.stop();
-//                mediaPlayer.release();
-//                mediaPlayer = null;
-//                break;
-//            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-//                // Lost focus for a short time, but we have to stop
-//                // playback. We don't release the media player because playback
-//                // is likely to resume
-//                if (mediaPlayer.isPlaying()) mediaPlayer.pause();
-//                break;
-//            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-//                // Lost focus for a short time, but it's ok to keep playing
-//                // at an attenuated level
-//                if (mediaPlayer.isPlaying()) mediaPlayer.setVolume(0.1f, 0.1f);
-//                break;
-//        }
-//    }
-
     public int getRepeat() {
         return repeat;
     }
 
     public void setRepeat(int repeat) {
         this.repeat = repeat;
-    }
-
-    public int getMediaPlayerStatus() {
-        return mediaPlayerStatus;
-    }
-
-    public void setMediaPlayerStatus(int mediaPlayerStatus) {
-        this.mediaPlayerStatus = mediaPlayerStatus;
     }
 
     public int getAudioIndex() {
@@ -798,8 +730,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mAudioFocusGranted = false;
         } else {
             // FAILED
-            Log.e(TAG,
-                    "AUDIO FOCUS ABANDONED");
+            Log.e(TAG, "AUDIO FOCUS ABANDONED");
         }
         mOnAudioFocusChangeListener = null;
     }
@@ -813,7 +744,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 String cmd = intent.getStringExtra(CMD_NAME);
                 Log.i(TAG, "mIntentReceiver.onReceive " + action + " / " + cmd);
 
-                if (ACTION_PLAY.equals(action)
+                if (ACTION_PAUSE.equals(action)
                         || (SERVICE_CMD.equals(action) && ACTION_PAUSE.equals(cmd))) {
                     play();
                 }
@@ -836,24 +767,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
-//---------------
-
-
-//    private boolean requestAudioFocus() {
-//        if (!mAudioFocusGranted) {
-//           AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-//            int result = audioManager.requestAudioFocus(mOnAudioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-//            if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-//                //Focus gained
-//                mAudioFocusGranted=true;
-//            }else{
-//                Log.i(TAG,"AutoFocus_Failed");
-//            }
-//        }
-//        //Could not gain focus
-//        return mAudioFocusGranted;
-//    }
-
     private void forceMusicStop() {
         AudioManager am = (AudioManager) mContext
                 .getSystemService(Context.AUDIO_SERVICE);
@@ -864,15 +777,42 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null || mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            stopMedia();
+            audioList.clear();
+            activeAudio = null;
+        }
+
+        mediaPlayer.release();
+        removeAudioFocus();
+        //Disable the PhoneStateListener
+        if (phoneStateListener != null) {
+            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+        }
+
+        removeNotification();
+        //unregister BroadcastReceivers
+        unregisterReceiver(becomingNoisyReceiver);
+        unregisterReceiver(playNewAudio);
+
+        //clear cached playlist
+        new StorageUtil(getApplicationContext()).clearCachedAudioPlaylist();
+
+        //Forced Stop any mediaplayer
+        forceMusicStop();
+    }
+
     public enum PlaybackStatus {
         PLAYING,
         PAUSED
     }
 
-
     public interface PlayerServiceListener {
         void OnClick(int songDuration, int currentTime);
-
     }
 
     public class LocalBinder extends Binder {
@@ -880,6 +820,5 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             return MediaPlayerService.this;
         }
     }
-
 
 }
