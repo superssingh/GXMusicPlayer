@@ -124,14 +124,20 @@ public class MainActivity extends AppCompatActivity
         configRecycleView();
         NavigationDrawerSetup();
 
-        playerService = MediaPlayerService.getInstance(getApplicationContext());
-        playerService.setAudioList(audioList);
-
         StorageUtil storageUtil = new StorageUtil(this);
         if (storageUtil.loadAudioIndex() != -1) {
             trackPosition = storageUtil.loadAudioIndex();
         }
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (playerService == null) {
+            playerService = MediaPlayerService.getInstance(getApplicationContext());
+            playerService.setAudioList(audioList);
+        }
     }
 
     private void NavigationDrawerSetup() {
@@ -372,13 +378,13 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_exit) {
-            if (serviceBound) {
+            if (serviceBound || playerService.mediaPlayer != null) {
                 stopService(playerIntent);
                 System.exit(0);
+                playerService.onDestroy();
             }
 
             audioList.clear();
-            playerService.onDestroy();
             finish();
         }
 

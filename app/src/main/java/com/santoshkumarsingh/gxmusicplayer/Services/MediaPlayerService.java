@@ -780,30 +780,26 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mediaPlayer != null || mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();
-            stopMedia();
-            audioList.clear();
-            activeAudio = null;
-        }
-
+        stopMedia();
+        forceMusicStop();
         mediaPlayer.release();
+        audioList.clear();
+        activeAudio = null;
         removeAudioFocus();
         //Disable the PhoneStateListener
         if (phoneStateListener != null) {
             telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
         }
 
-        removeNotification();
         //unregister BroadcastReceivers
         unregisterReceiver(becomingNoisyReceiver);
         unregisterReceiver(playNewAudio);
+        removeNotification();
 
         //clear cached playlist
         new StorageUtil(getApplicationContext()).clearCachedAudioPlaylist();
 
         //Forced Stop any mediaplayer
-        forceMusicStop();
     }
 
     public enum PlaybackStatus {
