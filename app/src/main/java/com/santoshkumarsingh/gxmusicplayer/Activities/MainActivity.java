@@ -50,6 +50,12 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 import static android.widget.Toast.LENGTH_LONG;
 
@@ -78,7 +84,11 @@ public class MainActivity extends AppCompatActivity
     AppCompatSeekBar seekBar;
     @BindView(R.id.fab)
     FloatingActionButton fab;
-    Utilities utilities;
+
+    private Observable<String> stringObservable;
+    private Observer<String> stringObserver;
+
+    private Utilities utilities;
     private int trackPosition = 0, repeat = 0, mediaPlayerState = 0;
     private List<Audio> audioList;
     private LinearLayoutManager linearLayoutManager;
@@ -124,12 +134,36 @@ public class MainActivity extends AppCompatActivity
         configRecycleView();
         NavigationDrawerSetup();
 
-        StorageUtil storageUtil = new StorageUtil(this);
+        StorageUtil storageUtil = new StorageUtil(MainActivity.this);
         if (storageUtil.loadAudioIndex() != -1) {
             trackPosition = storageUtil.loadAudioIndex();
         }
 
+
     }
+
+    private void ConnectMediaPlayer() {
+        observable()
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
+    }
+
+    private Observable<String> observable() {
+        return Observable.create(new ObservableOnSubscribe<String>() {
+            @Override
+            public void subscribe(@io.reactivex.annotations.NonNull ObservableEmitter<String> e) throws Exception {
+                do {
+                    if (playerService == null) {
+                        playerService = MediaPlayerService.getInstance(getApplicationContext());
+                        playerService.setAudioList(audioList);
+                    }
+                } while (playerService != null);
+            }
+        });
+    }
+
 
     @Override
     protected void onStart() {
