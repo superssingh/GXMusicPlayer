@@ -8,6 +8,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -47,6 +49,7 @@ import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -55,6 +58,8 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 import static android.widget.Toast.LENGTH_LONG;
@@ -99,6 +104,9 @@ public class MainActivity extends AppCompatActivity
     private Handler handler;
     private Runnable runnable;
     private DecimalFormat decimalFormat = new DecimalFormat("#.##");
+    private Bitmap bitmap;
+    private Disposable disposable;
+
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -117,6 +125,7 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(MainActivity.this, "Service Unbound", Toast.LENGTH_SHORT).show();
         }
     };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,10 +153,44 @@ public class MainActivity extends AppCompatActivity
 
     private void ConnectMediaPlayer() {
         observable()
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
+                .doOnNext(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) throws Exception {
+                        bitmap = (utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
+                                ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())
+                                : BitmapFactory.decodeResource(getResources(), R.drawable.audio_image));
+                    }
+                })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull String s) {
+                        Toast.makeText(MainActivity.this, "Connection : " + s, LENGTH_LONG).show();
+                        UI_update(trackPosition);
+//                        songTitle.setText(audioList.get(trackPosition).getTITLE());
+//                        songArtist.setText(audioList.get(trackPosition).getARTIST());
+//                        songDuration.setText(audioList.get(trackPosition).getDURATION());
+//                        songThumbnail.setImageBitmap(bitmap);
+                        playAudio(trackPosition);
+
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        Log.e("Service_bound_Error-", e.toString());
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     private Observable<String> observable() {
@@ -159,19 +202,48 @@ public class MainActivity extends AppCompatActivity
                         playerService = MediaPlayerService.getInstance(getApplicationContext());
                         playerService.setAudioList(audioList);
                     }
-                } while (playerService != null);
+                    e.onNext(getString(R.string.SERVICE_CONNECTED));
+                } while (playerService == null);
+
+                e.onComplete();
             }
         });
     }
 
+    //-------
+    private void update_seekBar() {
+        Observable.interval(1, TimeUnit.SECONDS).subscribe(new Observer<Long>() {
+            @Override
+            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
+                if (playerService.mediaPlayer.isPlaying()) {
+                    seekBarCycle();
+                }
+            }
+
+            @Override
+            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                Log.e("SeekBar_Error: ", e.toString());
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
+    }
+
+    //-------
 
     @Override
     protected void onStart() {
         super.onStart();
-        if (playerService == null) {
-            playerService = MediaPlayerService.getInstance(getApplicationContext());
-            playerService.setAudioList(audioList);
-        }
+        ConnectMediaPlayer();
     }
 
     private void NavigationDrawerSetup() {
@@ -203,7 +275,6 @@ public class MainActivity extends AppCompatActivity
             public void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position) {
                 trackPosition = position;
                 playAudio(position);
-                play_pause.setBackgroundResource(R.drawable.ic_play);
                 optionButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -308,7 +379,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         trackPosition = audioIndex;
-        mediaPlayerState = 2;
+        mediaPlayerState = 1;
         play_pause.setBackgroundResource(R.drawable.ic_pause);
     }
 
@@ -434,23 +505,11 @@ public class MainActivity extends AppCompatActivity
             unbindService(serviceConnection);
         }
 
-        handler.removeCallbacks(runnable);
     }
 
     public void seekBarCycle() {
-        if (playerService.mediaPlayer == null || playerService.mediaPlayer.getCurrentPosition() < 0) {
-            return;
-        } else {
-            seekBar.setProgress(playerService.mediaPlayer.getCurrentPosition());
-            runnable = new Runnable() {
-                @Override
-                public void run() {
-                    seekBarCycle();
-                }
-            };
-            handler.postDelayed(runnable, 1000);
-        }
-
+        int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
+        seekBar.setProgress(i);
     }
 
     @Override
@@ -459,7 +518,8 @@ public class MainActivity extends AppCompatActivity
         songTitle.setText(audioList.get(position).getTITLE());
         songArtist.setText(audioList.get(position).getARTIST());
         songDuration.setText(decimalFormat.format(((float) duration / 1000) / 60) + "");
-        seekBar.setMax(duration);
+
+        seekBar.setMax(Integer.parseInt(audioList.get(trackPosition).getDURATION()));
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -482,8 +542,40 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        seekBarCycle();
+        update_seekBar();
+    }
 
+    public void UI_update(int trackPosition) {
+
+        songThumbnail.setImageBitmap(bitmap);
+        songTitle.setText(audioList.get(trackPosition).getTITLE());
+        songArtist.setText(audioList.get(trackPosition).getARTIST());
+        songDuration.setText(decimalFormat.format(((float)
+                Integer.parseInt(audioList.get(trackPosition).getDURATION()) / 1000) / 60) + "");
+
+        seekBar.setMax(Integer.parseInt(audioList.get(trackPosition).getDURATION()));
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if (b) {
+                    if (playerService.mediaPlayer.isPlaying()) {
+                        playerService.mediaPlayer.seekTo(i);
+                    }
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        update_seekBar();
     }
 
 

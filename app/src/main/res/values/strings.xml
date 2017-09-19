@@ -31,5 +31,6 @@
     <string name="PAUSE">2</string>
     <string name="NEXT">3</string>
     <string name="PREVIOUS">4</string>
+    <string name="SERVICE_CONNECTED">CONNECTED</string>
 
 </resources>
