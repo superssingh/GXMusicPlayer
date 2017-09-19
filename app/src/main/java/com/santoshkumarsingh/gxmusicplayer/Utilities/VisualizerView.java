@@ -9,7 +9,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 /**
- * Created by santoshsingh on 14/09/17.
+ * Created by santoshsingh (santoshkumarsingh.com) on 14/09/17.
  */
 
 public class VisualizerView extends View {

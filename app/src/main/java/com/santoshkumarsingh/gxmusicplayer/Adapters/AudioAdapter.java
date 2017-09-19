@@ -20,15 +20,15 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
- * Created by santoshsingh on 17/08/17.
+ * Created by santoshsingh (santoshkumarsingh.com) on 17/08/17.
  */
 
 public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder>{
 
     private final Context context;
+    private final Utilities utilities;
     private List<Audio> audioList;
     private SongOnClickListener SongOnClickListener;
-    private final Utilities utilities;
 
     public AudioAdapter(Context context ) {
         this.context=context;
@@ -69,6 +69,19 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder>{
         return audioList.size();
     }
 
+    public void addSongs(List<Audio> audioList) {
+        this.audioList = audioList;
+        notifyDataSetChanged();
+    }
+
+    public void setOnClickListener(SongOnClickListener SongOnClickListener) {
+        this.SongOnClickListener = SongOnClickListener;
+    }
+
+    public interface SongOnClickListener {
+        void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position);
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder{
         @BindView(R.id.song_Title) TextView mTitle;
         @BindView(R.id.song_Artist) TextView  mArtist;
@@ -79,18 +92,5 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder>{
             super(itemView);
             ButterKnife.bind(this,itemView);
         }
-    }
-
-    public void addSongs(List<Audio> audioList){
-        this.audioList = audioList;
-        notifyDataSetChanged();
-    }
-
-    public interface SongOnClickListener {
-        void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position);
-    }
-
-    public void setOnClickListener(SongOnClickListener SongOnClickListener){
-        this.SongOnClickListener=SongOnClickListener;
     }
 }

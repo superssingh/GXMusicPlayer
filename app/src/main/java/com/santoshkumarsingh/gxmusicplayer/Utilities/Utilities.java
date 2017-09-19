@@ -7,7 +7,7 @@ import android.media.MediaMetadataRetriever;
 import java.util.Random;
 
 /**
- * Created by santoshsingh on 31/08/17.
+ * Created by santoshsingh (santoshkumarsingh.com) on 31/08/17.
  */
 
 public class Utilities {

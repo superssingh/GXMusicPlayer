@@ -3,7 +3,7 @@ package com.santoshkumarsingh.gxmusicplayer.Services;
 import android.graphics.Bitmap;
 
 /**
- * Created by santoshsingh on 15/09/17.
+ * Created by santoshsingh (santoshkumarsingh.com) on 15/09/17.
  */
 
 public interface ServiceCallback {

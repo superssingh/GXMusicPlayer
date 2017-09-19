@@ -12,14 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by santoshsingh on 08/09/17.
+ * Created by santoshsingh (santoshkumarsingh.com) on 08/09/17.
  */
 
 public class StorageUtil {
 
     private final String STORAGE = "com.santoshkumarsingh.gxmusicplayer.STORAGE";
-    private SharedPreferences preferences;
     private final Context context;
+    private SharedPreferences preferences;
 
     public StorageUtil(Context context) {
         this.context = context;

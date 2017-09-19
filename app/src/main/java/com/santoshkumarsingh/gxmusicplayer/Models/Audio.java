@@ -1,7 +1,7 @@
 package com.santoshkumarsingh.gxmusicplayer.Models;
 
 /**
- * Created by santoshsingh on 17/08/17.
+ * Created by santoshsingh (santoshkumarsingh.com) on 17/08/17.
  */
 
 public class Audio {
