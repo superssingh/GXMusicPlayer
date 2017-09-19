@@ -54,5 +54,4 @@ dependencies {
     annotationProcessor "com.jakewharton:butterknife-compiler:$BUTTERKNIFE_VERSION"
     annotationProcessor "com.github.bumptech.glide:compiler:$GLIDE_VERSION"
 
-//    compile 'com.squareup.picasso:picasso:2.5.2'
 }
