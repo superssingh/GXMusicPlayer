@@ -173,10 +173,6 @@ public class MainActivity extends AppCompatActivity
                     public void onNext(@io.reactivex.annotations.NonNull String s) {
                         Toast.makeText(MainActivity.this, "Connection : " + s, LENGTH_LONG).show();
                         UI_update(trackPosition);
-//                        songTitle.setText(audioList.get(trackPosition).getTITLE());
-//                        songArtist.setText(audioList.get(trackPosition).getARTIST());
-//                        songDuration.setText(audioList.get(trackPosition).getDURATION());
-//                        songThumbnail.setImageBitmap(bitmap);
                         playAudio(trackPosition);
 
                     }
@@ -220,7 +216,7 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
-                if (playerService.mediaPlayer.isPlaying()) {
+                if (playerService.mediaPlayer != null) {
                     seekBarCycle();
                 }
             }
@@ -576,6 +572,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         update_seekBar();
+
     }
 
 
