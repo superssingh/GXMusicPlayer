@@ -659,10 +659,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 audioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
     }
 
-    public void setRepeat(int repeat) {
-        this.repeat = repeat;
-    }
-
     public int getAudioIndex() {
         return audioIndex;
     }
@@ -779,15 +775,22 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         forceMusicStop();
     }
 
+    public int getRepeat() {
+        return repeat;
+    }
+
+    public void setRepeat(int repeat) {
+        this.repeat = repeat;
+    }
+
     public enum PlaybackStatus {
         PLAYING,
         PAUSED
     }
-    
+
     public class LocalBinder extends Binder {
         public MediaPlayerService getService() {
             return MediaPlayerService.this;
         }
     }
-
 }

@@ -542,7 +542,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void UI_update(int trackPosition) {
-
+        setRepeatButton(playerService.getRepeat());
         songThumbnail.setImageBitmap(bitmap);
         songTitle.setText(audioList.get(trackPosition).getTITLE());
         songArtist.setText(audioList.get(trackPosition).getARTIST());
@@ -573,6 +573,17 @@ public class MainActivity extends AppCompatActivity
 
         update_seekBar();
 
+    }
+
+    private void setRepeatButton(int repeat) {
+        this.repeat = repeat;
+        if (repeat == 1) {
+            fab.setImageResource(R.drawable.ic_repeat_one);
+        } else if (repeat == 2) {
+            fab.setImageResource(R.drawable.ic_shuffle);
+        } else {
+            fab.setImageResource(R.drawable.ic_repeat_all);
+        }
     }
 
 
