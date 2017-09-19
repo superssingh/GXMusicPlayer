@@ -77,14 +77,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private MediaControllerCompat.TransportControls transportControls;
     private Utilities utilities;
     private Bitmap albumArt;
-    private PlayerServiceListener playerServiceListener;
     private ServiceCallback serviceCallback;
     private boolean mAudioIsPlaying = false;
     private boolean mAudioFocusGranted = false;
     private BroadcastReceiver mIntentReceiver;
     private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener;
     private boolean mReceiverRegistered = false;
-    private String SERVICE_TAG = "MediaPlayerService";
 
     //BroadcastReceiver for Becoming noisy (any other interruption)
     private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
@@ -785,11 +783,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         PLAYING,
         PAUSED
     }
-
-    public interface PlayerServiceListener {
-        void OnClick(int songDuration, int currentTime);
-    }
-
+    
     public class LocalBinder extends Binder {
         public MediaPlayerService getService() {
             return MediaPlayerService.this;
