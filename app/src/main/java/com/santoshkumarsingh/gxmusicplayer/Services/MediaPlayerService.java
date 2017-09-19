@@ -85,6 +85,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener;
     private boolean mReceiverRegistered = false;
     private String SERVICE_TAG = "MediaPlayerService";
+
     //BroadcastReceiver for Becoming noisy (any other interruption)
     private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
         @Override
@@ -124,7 +125,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     private MediaPlayerService(Context context) {
         mContext = context;
-
         mOnAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
 
             @SuppressLint("LongLogTag")
@@ -185,7 +185,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         utilities = new Utilities();
         mediaPlayer = new MediaPlayer();
         // Perform one-time setup procedures
-
         // Manage incoming phone calls during playback.
         // Pause MediaPlayer on incoming call,
         // Resume on hangup.
@@ -540,8 +539,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         return super.onStartCommand(intent, flags, startId);
     }
 
-//---------------
-
     private void registerBecomingNoisyReceiver() {
         //register after getting audio focus
         IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
@@ -610,14 +607,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             case 0:
                 skipToNext();
                 mp.start();
-                //stop the service
                 break;
             case 1:
-                // for repeat one song
                 mp.start();
                 break;
             case 2:
-                // for next method
                 randomSelection();
                 mp.start();
                 break;
@@ -667,24 +661,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 audioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
     }
 
-    public int getRepeat() {
-        return repeat;
-    }
-
     public void setRepeat(int repeat) {
         this.repeat = repeat;
     }
 
     public int getAudioIndex() {
         return audioIndex;
-    }
-
-    public void setOnClickListener(PlayerServiceListener playerServiceListener) {
-        this.playerServiceListener = playerServiceListener;
-    }
-
-    public Bitmap getAlbumArt() {
-        return albumArt;
     }
 
     public void setCallback(ServiceCallback callback) {
@@ -729,7 +711,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             mAudioFocusGranted = false;
         } else {
-            // FAILED
             Log.e(TAG, "AUDIO FOCUS ABANDONED");
         }
         mOnAudioFocusChangeListener = null;
