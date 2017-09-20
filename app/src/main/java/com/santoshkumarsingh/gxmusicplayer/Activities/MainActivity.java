@@ -587,4 +587,11 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+
+//    public void startService(View v) {
+//        Intent serviceIntent = new Intent(MainActivity.this, CustomNotification.class);
+//        serviceIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
+//        startService(serviceIntent);
+//    }
+
 }
