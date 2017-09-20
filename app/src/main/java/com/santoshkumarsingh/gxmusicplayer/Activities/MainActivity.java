@@ -485,6 +485,7 @@ public class MainActivity extends AppCompatActivity
                 playerService.onDestroy();
             }
 
+            stopService(playerIntent);
             audioList.clear();
             finish();
         }

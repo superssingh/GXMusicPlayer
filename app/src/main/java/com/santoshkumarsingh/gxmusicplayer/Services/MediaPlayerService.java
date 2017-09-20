@@ -54,15 +54,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     //AudioPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
     private static MediaPlayerService sInstance = null;
-    private static String SERVICE_CMD = "com.sec.android.app.music.musicservicecommand";
+    private static String SERVICE_CMD = "com.santoshkumarsingh.gxmusicplayer.ACTION_SERVICE_COMMAND";
+    //    private static String SERVICE_CMD = "com.sec.android.app.music.musicservicecommand";
     private final IBinder iBinder = new LocalBinder();
     // global variable
     public MediaPlayer mediaPlayer;
     private Context mContext;
     private AudioManager audioManager;
     //Used to pause/resume MediaPlayer
-    private int resumePosition;
-    private int repeat = 0;
+    private int resumePosition, repeat = 0;
     //Handle incoming phone calls
     private boolean ongoingCall = false;
     private PhoneStateListener phoneStateListener;
@@ -322,12 +322,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             public void onSkipToNext() {
                 super.onSkipToNext();
                 skipToNext();
+                buildNotification(PlaybackStatus.PAUSED);
             }
 
             @Override
             public void onSkipToPrevious() {
                 super.onSkipToPrevious();
                 skipToPrevious();
+                buildNotification(PlaybackStatus.PAUSED);
             }
 
             @Override
@@ -412,13 +414,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
         int notificationAction = android.R.drawable.ic_media_pause;//needs to be initialized
         PendingIntent play_pauseAction = null;
-
         //Build a new notification according to the current state of the MediaPlayer
-        if (playbackStatus == PlaybackStatus.PLAYING) {
+        if (playbackStatus.equals(PlaybackStatus.PLAYING)) {
             notificationAction = android.R.drawable.ic_media_pause;
             //create the pause action
             play_pauseAction = playbackAction(1);
-        } else if (playbackStatus == PlaybackStatus.PAUSED) {
+        } else {
             notificationAction = android.R.drawable.ic_media_play;
             //create the play action
             play_pauseAction = playbackAction(0);
@@ -452,6 +453,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2));
 
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notificationBuilder.build());
+
     }
 
     private void removeNotification() {
@@ -741,7 +743,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     private void forceMusicStop() {
-        AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (am.isMusicActive()) {
             Intent intentToStop = new Intent(SERVICE_CMD);
             intentToStop.putExtra(CMD_NAME, ACTION_STOP);
