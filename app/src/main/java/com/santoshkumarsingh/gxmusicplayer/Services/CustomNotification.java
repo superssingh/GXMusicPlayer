@@ -5,4 +5,5 @@ package com.santoshkumarsingh.gxmusicplayer.Services;
  */
 
 public class CustomNotification {
+
 }
