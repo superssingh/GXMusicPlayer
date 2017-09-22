@@ -61,6 +61,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 import static android.widget.Toast.LENGTH_LONG;
 
@@ -133,6 +135,16 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        // Realm Initialization
+        Realm.init(this);
+        RealmConfiguration config = new RealmConfiguration.Builder()
+                .name(getString(R.string.RealmDatabaseName))
+                .schemaVersion(Integer.parseInt(getString(R.string.VERSION)))
+                .deleteRealmIfMigrationNeeded()
+                .build();
+        Realm.setDefaultConfiguration(config);
+
         ButterKnife.bind(this);
         audioList = new ArrayList<>();
         utilities = new Utilities();
@@ -147,7 +159,6 @@ public class MainActivity extends AppCompatActivity
         if (storageUtil.loadAudioIndex() != -1) {
             trackPosition = storageUtil.loadAudioIndex();
         }
-
 
     }
 

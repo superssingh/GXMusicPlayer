@@ -32,5 +32,9 @@
     <string name="NEXT">3</string>
     <string name="PREVIOUS">4</string>
     <string name="SERVICE_CONNECTED">CONNECTED</string>
+    <string name="RealmDatabaseName">favorite.realm</string>
+    <string name="VERSION">1</string>
+    <string name="FavoriteMarked">Marked as favorite</string>
+    <string name="Already_exists">Already marked as favorite</string>
 
 </resources>
