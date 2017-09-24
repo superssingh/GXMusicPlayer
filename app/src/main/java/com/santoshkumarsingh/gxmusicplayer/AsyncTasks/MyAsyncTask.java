@@ -25,6 +25,7 @@ public class MyAsyncTask extends AsyncTask<String, Void, List<Audio>> {
     @Override
     protected List<Audio> doInBackground(String... urls) {
         try {
+            //noinspection LoopStatementThatDoesntLoop
             while (isCancelled()) {
                 return null;
             }

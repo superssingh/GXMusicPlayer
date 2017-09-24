@@ -1,6 +1,5 @@
 package com.santoshkumarsingh.gxmusicplayer.Adapters;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -27,19 +26,18 @@ import static com.santoshkumarsingh.gxmusicplayer.R.drawable.ic_favorite_24dp;
  * Created by santoshsingh (santoshkumarsingh.com) on 17/08/17.
  */
 
+@SuppressWarnings("ObjectEqualsNull")
 public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> {
 
-    private final Context context;
-    private final Utilities utilities;
+    private Utilities utilities;
     private List<Audio> audioList;
     private SongOnClickListener SongOnClickListener;
-    private RealmContentProvider realmContentProvider;
 
-    public AudioAdapter(Context context) {
-        this.context = context;
+    public AudioAdapter(SongOnClickListener listener) {
+        setOnClickListener(listener);
         audioList = new ArrayList<>();
         utilities = new Utilities();
-        realmContentProvider = new RealmContentProvider();
+        RealmContentProvider realmContentProvider = new RealmContentProvider();
     }
 
     @Override
@@ -64,7 +62,7 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!SongOnClickListener.equals(null)) {
+                if (SongOnClickListener != null) {
                     SongOnClickListener.OnClick(holder.favorite, holder.itemView, trackImage, audio.getURL(), position);
                 }
             }

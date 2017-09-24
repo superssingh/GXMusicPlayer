@@ -25,13 +25,13 @@
 
     </LinearLayout>
 
-    <!--<ProgressBar-->
-    <!--android:id="@+id/Progress_bar"-->
-    <!--style="@android:style/Widget.ProgressBar.Inverse"-->
-    <!--android:layout_width="50dp"-->
-    <!--android:layout_height="match_parent"-->
-    <!--android:layout_gravity="center_horizontal"-->
-    <!--android:visibility="gone" />-->
+    <ProgressBar
+        android:id="@+id/Progress_bar"
+        style="@android:style/Widget.ProgressBar.Inverse"
+        android:layout_width="50dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
 
     <!--<RelativeLayout-->
     <!--android:layout_width="match_parent"-->

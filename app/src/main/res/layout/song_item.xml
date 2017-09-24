@@ -23,7 +23,7 @@
         android:gravity="center"
         android:orientation="vertical"
         android:padding="10dp"
-        android:paddingRight="0dp">
+        android:paddingEnd="0dp">
 
         <TextView
             android:id="@+id/song_Title"
@@ -49,7 +49,7 @@
         android:id="@+id/option"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center|right"
+        android:layout_gravity="center|end"
         android:background="@drawable/ic_favorite_border_24dp"
         android:contentDescription="@string/optionButton" />
 

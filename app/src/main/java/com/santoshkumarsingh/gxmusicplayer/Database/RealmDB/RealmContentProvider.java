@@ -1,6 +1,7 @@
 package com.santoshkumarsingh.gxmusicplayer.Database.RealmDB;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -27,7 +28,7 @@ public class RealmContentProvider {
                 .findAllAsync();
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
-            public void execute(Realm realm1) {
+            public void execute(@NonNull Realm realm1) {
                 FavoriteAudio favoriteBook = realm1.createObject(FavoriteAudio.class, audio.getURL());
                 favoriteBook.setTITLE(audio.getTITLE());
                 favoriteBook.setARTIST(audio.getARTIST());
@@ -43,7 +44,7 @@ public class RealmContentProvider {
             }
         }, new Realm.Transaction.OnError() {
             @Override
-            public void onError(Throwable error) {
+            public void onError(@NonNull Throwable error) {
                 //delete method (for un-favorite) when it already exists--------------------------
                 Log.e("Error: ", error.toString());
                 Toast.makeText(context, R.string.Already_exists, Toast.LENGTH_SHORT)

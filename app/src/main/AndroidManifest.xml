@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.santoshkumarsingh.gxmusicplayer">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -33,10 +34,16 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".Services.MediaPlayerService" />
+        <service
+            android:name=".Services.MediaPlayerService"
+            tools:ignore="InnerclassSeparator" />
 
-        <activity android:name=".Activities.DetailActivity" />
-        <activity android:name=".Activities.FavoriteActivity"></activity>
+        <activity
+            android:name=".Activities.DetailActivity"
+            tools:ignore="InnerclassSeparator" />
+        <activity
+            android:name=".Activities.FavoriteActivity"
+            tools:ignore="InnerclassSeparator"></activity>
     </application>
 
 </manifest>

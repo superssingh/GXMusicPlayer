@@ -67,8 +67,9 @@ import io.reactivex.schedulers.Schedulers;
 
 import static android.widget.Toast.LENGTH_LONG;
 
+@SuppressWarnings("WeakerAccess")
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, AudioAdapter.SongOnClickListener {
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.santoshkumarsingh.gxmusicplayer.PlayNewAudio";
     private static MediaPlayerService playerService;
@@ -96,7 +97,6 @@ public class MainActivity extends AppCompatActivity
     private Utilities utilities;
     private int trackPosition = 0, repeat = 0, mediaPlayerState = 0;
     private List<Audio> audioList;
-    private LinearLayoutManager linearLayoutManager;
     private AudioAdapter audioAdapter;
     private boolean serviceBound = false;
     private Intent playerIntent;
@@ -151,9 +151,11 @@ public class MainActivity extends AppCompatActivity
         NavigationDrawerSetup();
 
         StorageUtil storageUtil = new StorageUtil(MainActivity.this);
-        if (storageUtil.loadAudioIndex() != -1) {
-            trackPosition = storageUtil.loadAudioIndex();
-        }
+        trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
+
+//        if (storageUtil.loadAudioIndex() != -1) {
+//            trackPosition = storageUtil.loadAudioIndex();
+//        }
 
     }
 
@@ -164,7 +166,7 @@ public class MainActivity extends AppCompatActivity
                 .subscribeWith(new DisposableObserver<List<Audio>>() {
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull List<Audio> audios) {
-                        Toast.makeText(getApplicationContext(), "Completed: " + audios.get(0).getTITLE(), LENGTH_LONG);
+//                        Toast.makeText(getApplicationContext(), "Completed: " + audios.get(0).getTITLE(), LENGTH_LONG).show();
                         audioList = audios;
                         audioAdapter.addSongs(audioList);
                         audioAdapter.notifyDataSetChanged();
@@ -177,6 +179,7 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onComplete() {
+                        Log.e("OnComplete:: ", "Completed");
                         ConnectMediaPlayer();
                     }
                 }));
@@ -292,7 +295,7 @@ public class MainActivity extends AppCompatActivity
 
     //---------------------------
     private void configRecycleView() {
-        linearLayoutManager = new LinearLayoutManager(this);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
         audioAdapter = new AudioAdapter(this);
         audioAdapter.addSongs(audioList);
@@ -300,21 +303,6 @@ public class MainActivity extends AppCompatActivity
         recyclerView.setAdapter(audioAdapter);
         final DividerItemDecoration itemDecoration = new DividerItemDecoration(recyclerView.getContext(), linearLayoutManager.getOrientation());
         recyclerView.addItemDecoration(itemDecoration);
-
-        audioAdapter.setOnClickListener(new AudioAdapter.SongOnClickListener() {
-            @Override
-            public void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position) {
-                trackPosition = position;
-                playAudio(position);
-                optionButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
-                    }
-                });
-            }
-        });
-
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -623,4 +611,15 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position) {
+        trackPosition = position;
+        playAudio(position);
+        optionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+    }
 }

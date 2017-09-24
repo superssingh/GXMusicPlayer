@@ -39,7 +39,7 @@ import static android.content.ContentValues.TAG;
  * Created by santoshsingh (santoshkumarsingh.com) on 07/09/17.
  */
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "WeakerAccess"})
 public class MediaPlayerService extends Service implements MediaPlayer.OnCompletionListener,
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener,
         MediaPlayer.OnSeekCompleteListener, MediaPlayer.OnInfoListener,
@@ -80,7 +80,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private ServiceCallback serviceCallback;
     private boolean mAudioIsPlaying = false;
     private boolean mAudioFocusGranted = false;
-    private BroadcastReceiver mIntentReceiver;
     private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener;
     private boolean mReceiverRegistered = false;
 
@@ -137,6 +136,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         break;
                     case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
                         Log.i(TAG, "AUDIOFOCUS_GAIN_TRANSIENT");
+                        resume();
                         break;
                     case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
                         Log.i(TAG, "AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK");
@@ -418,8 +418,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     private void buildNotification(PlaybackStatus playbackStatus) {
 
-        int notificationAction = android.R.drawable.ic_media_pause;//needs to be initialized
-        PendingIntent play_pauseAction = null;
+        int notificationAction;//needs to be initialized
+        PendingIntent play_pauseAction;
         //Build a new notification according to the current state of the MediaPlayer
         if (playbackStatus.equals(PlaybackStatus.PLAYING)) {
             notificationAction = android.R.drawable.ic_media_pause;
@@ -683,7 +683,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             }
 
             audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-            if (!audioManager.equals(null)) {
+            if (audioManager != null) {
                 // Request audio focus for play back
                 int result = audioManager.requestAudioFocus(mOnAudioFocusChangeListener,
                         // Use the music stream.
@@ -719,7 +719,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     private void setupBroadcastReceiver() {
-        mIntentReceiver = new BroadcastReceiver() {
+        BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
             @SuppressLint("LongLogTag")
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -761,7 +761,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public void onDestroy() {
         super.onDestroy();
         if (mediaPlayer == null) {
-            return;
         } else {
             stopMedia();
             mediaPlayer.release();
