@@ -24,7 +24,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.santoshkumarsingh.gxmusicplayer.Activities.MainActivity;
-import com.santoshkumarsingh.gxmusicplayer.Database.StorageUtil;
+import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
@@ -92,6 +92,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             pause();
         }
     };
+
     //----------BroadcastReceiver to play new audio
     private BroadcastReceiver playNewAudio = new BroadcastReceiver() {
         @Override
@@ -227,6 +228,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.setVolume(1.0f, 1.0f);
         }
 
+        if (!mAudioFocusGranted && requestAudioFocus()) {
+            // 2. Kill off any other play back sources
+            forceMusicStop();
+            // 3. Register broadcast receiver for player intents
+            setupBroadcastReceiver();
+        }
+
         mediaPlayer.start();
         buildNotification(PlaybackStatus.PAUSED);
         mAudioIsPlaying = true;
@@ -259,8 +267,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mAudioIsPlaying = false;
             // 2. Give up audio focus
             abandonAudioFocus();
-            removeNotification();
-            forceMusicStop();
         }
 
     }
@@ -375,7 +381,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         initMediaPlayer();
         //update notification
         updateMetaData();
-        buildNotification(PlaybackStatus.PLAYING);
+        buildNotification(PlaybackStatus.PAUSED);
     }
 
     public void skipToPrevious() {
@@ -391,7 +397,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         initMediaPlayer();
         //update notification
         updateMetaData();
-        buildNotification(PlaybackStatus.PLAYING);
+        buildNotification(PlaybackStatus.PAUSED);
     }
 
     private void randomSelection() {
@@ -407,7 +413,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         initMediaPlayer();
         //update notification
         updateMetaData();
-        buildNotification(PlaybackStatus.PLAYING);
+        buildNotification(PlaybackStatus.PAUSED);
     }
 
     private void buildNotification(PlaybackStatus playbackStatus) {
@@ -754,27 +760,30 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopMedia();
-        forceMusicStop();
-        mediaPlayer.release();
-        audioList.clear();
-        activeAudio = null;
-        removeAudioFocus();
-        //Disable the PhoneStateListener
-        if (phoneStateListener != null) {
-            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+        if (mediaPlayer == null) {
+            return;
+        } else {
+            stopMedia();
+            mediaPlayer.release();
+            audioList.clear();
+            activeAudio = null;
+            removeAudioFocus();
+            //Disable the PhoneStateListener
+            if (phoneStateListener != null) {
+                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+            }
+
+            //unregister BroadcastReceivers
+            unregisterReceiver(becomingNoisyReceiver);
+            unregisterReceiver(playNewAudio);
+            removeNotification();
+
+            //clear cached playlist
+            new StorageUtil(getApplicationContext()).clearCachedAudioPlaylist();
+
+            //Forced Stop any mediaplayer
+            forceMusicStop();
         }
-
-        //unregister BroadcastReceivers
-        unregisterReceiver(becomingNoisyReceiver);
-        unregisterReceiver(playNewAudio);
-        removeNotification();
-
-        //clear cached playlist
-        new StorageUtil(getApplicationContext()).clearCachedAudioPlaylist();
-
-        //Forced Stop any mediaplayer
-        forceMusicStop();
     }
 
     public int getRepeat() {

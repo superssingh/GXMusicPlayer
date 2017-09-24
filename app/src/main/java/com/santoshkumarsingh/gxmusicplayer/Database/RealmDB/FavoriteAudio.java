@@ -1,23 +1,28 @@
-package com.santoshkumarsingh.gxmusicplayer.Models.RealmDB;
+package com.santoshkumarsingh.gxmusicplayer.Database.RealmDB;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by santoshsingh (santoshkumarsingh.com) on 17/08/17.
  */
 
 public class FavoriteAudio extends RealmObject {
-    private String TITLE, ARTIST, URL, ALBUM, DURATION;
 
-    public FavoriteAudio() {
+    @PrimaryKey
+    private String id;
+    private String TITLE;
+    private String ARTIST;
+    private String URL;
+    private String ALBUM;
+    private String DURATION;
+
+    public String getId() {
+        return id;
     }
 
-    public FavoriteAudio(String TITLE, String ARTIST, String URL, String ALBUM, String DURATION) {
-        this.TITLE = TITLE;
-        this.ARTIST = ARTIST;
-        this.URL = URL;
-        this.ALBUM = ALBUM;
-        this.DURATION = DURATION;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getTITLE() {

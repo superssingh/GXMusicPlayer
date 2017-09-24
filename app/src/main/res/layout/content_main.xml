@@ -1,24 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:background="@drawable/black_red"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.santoshkumarsingh.gxmusicplayer.Activities.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
-    <include layout="@layout/play_layout"/>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:background="@drawable/background"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        >
-    </android.support.v7.widget.RecyclerView>
+        android:background="@drawable/black_red"
+        android:gravity="center"
+        android:orientation="vertical">
 
-</LinearLayout>
+        <include layout="@layout/play_layout" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/background"></android.support.v7.widget.RecyclerView>
+
+    </LinearLayout>
+
+    <!--<ProgressBar-->
+    <!--android:id="@+id/Progress_bar"-->
+    <!--style="@android:style/Widget.ProgressBar.Inverse"-->
+    <!--android:layout_width="50dp"-->
+    <!--android:layout_height="match_parent"-->
+    <!--android:layout_gravity="center_horizontal"-->
+    <!--android:visibility="gone" />-->
+
+    <!--<RelativeLayout-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent"-->
+    <!--android:id="@+id/progressBarFrame"-->
+    <!--android:gravity="center"-->
+    <!--android:visibility="visible"-->
+    <!--android:background="@drawable/black_red">-->
+
+    <!--<com.wang.avi.AVLoadingIndicatorView-->
+    <!--android:id="@+id/avi"-->
+    <!--style="@style/AVLoadingIndicatorView"-->
+    <!--android:layout_gravity="center"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--app:indicatorName="LineScalePartyIndicator" />-->
+
+    <!--</RelativeLayout>-->
+
+
+</FrameLayout>

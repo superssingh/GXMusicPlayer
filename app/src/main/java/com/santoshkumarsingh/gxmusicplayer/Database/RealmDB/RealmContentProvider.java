@@ -1,9 +1,10 @@
-package com.santoshkumarsingh.gxmusicplayer.Database;
+package com.santoshkumarsingh.gxmusicplayer.Database.RealmDB;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
-import com.santoshkumarsingh.gxmusicplayer.Models.RealmDB.FavoriteAudio;
+import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 
 import io.realm.Realm;
@@ -15,24 +16,24 @@ import io.realm.RealmResults;
 
 public class RealmContentProvider {
     Context context;
-    FavoriteAudio favoriteList;
 
     // adding selected movie info which comes from ArratList (Tablet view)
-    public void addFavorite(final Context context, final FavoriteAudio favoriteAudio) {
+    public void addFavorite(final Context context, final Audio audio) {
         this.context = context;
+
         final Realm realm = Realm.getDefaultInstance();
-        final RealmResults<FavoriteAudio> Fav_Book = realm.where(FavoriteAudio.class)
-                .equalTo("URL", favoriteAudio.getURL())
+        final RealmResults<FavoriteAudio> favoriteAudios = realm.where(FavoriteAudio.class)
+                .equalTo("id", audio.getURL())
                 .findAllAsync();
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
-            public void execute(Realm bgRealm) {
-                FavoriteAudio favoriteBook = bgRealm.createObject(FavoriteAudio.class, favoriteAudio.getURL());
-                favoriteBook.setTITLE(favoriteAudio.getTITLE());
-                favoriteBook.setARTIST(favoriteAudio.getARTIST());
-                favoriteBook.setURL(favoriteAudio.getURL());
-                favoriteBook.setALBUM(favoriteAudio.getALBUM());
-                favoriteBook.setDURATION(favoriteAudio.getDURATION());
+            public void execute(Realm realm1) {
+                FavoriteAudio favoriteBook = realm1.createObject(FavoriteAudio.class, audio.getURL());
+                favoriteBook.setTITLE(audio.getTITLE());
+                favoriteBook.setARTIST(audio.getARTIST());
+                favoriteBook.setURL(audio.getURL());
+                favoriteBook.setALBUM(audio.getALBUM());
+                favoriteBook.setDURATION(audio.getDURATION());
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override
@@ -44,11 +45,20 @@ public class RealmContentProvider {
             @Override
             public void onError(Throwable error) {
                 //delete method (for un-favorite) when it already exists--------------------------
+                Log.e("Error: ", error.toString());
                 Toast.makeText(context, R.string.Already_exists, Toast.LENGTH_SHORT)
                         .show();
             }
         });
         realm.close();
     }
+
+    public RealmResults<FavoriteAudio> getFavorites() {
+        final Realm realm = Realm.getDefaultInstance();
+        final RealmResults<FavoriteAudio> favoriteAudios = realm.where(FavoriteAudio.class).findAllAsync();
+        realm.close();
+        return favoriteAudios;
+    }
+
 
 }

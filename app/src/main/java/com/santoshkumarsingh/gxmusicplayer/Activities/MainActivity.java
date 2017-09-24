@@ -12,7 +12,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -39,7 +38,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.santoshkumarsingh.gxmusicplayer.Adapters.AudioAdapter;
-import com.santoshkumarsingh.gxmusicplayer.Database.StorageUtil;
+import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 import com.santoshkumarsingh.gxmusicplayer.Services.MediaPlayerService;
@@ -49,6 +48,7 @@ import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -56,13 +56,14 @@ import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 
 import static android.widget.Toast.LENGTH_LONG;
 
@@ -92,9 +93,6 @@ public class MainActivity extends AppCompatActivity
     @BindView(R.id.fab)
     FloatingActionButton fab;
 
-    private Observable<String> stringObservable;
-    private Observer<String> stringObserver;
-
     private Utilities utilities;
     private int trackPosition = 0, repeat = 0, mediaPlayerState = 0;
     private List<Audio> audioList;
@@ -103,11 +101,9 @@ public class MainActivity extends AppCompatActivity
     private boolean serviceBound = false;
     private Intent playerIntent;
     private Toolbar toolbar;
-    private Handler handler;
-    private Runnable runnable;
     private DecimalFormat decimalFormat = new DecimalFormat("#.##");
     private Bitmap bitmap;
-    private Disposable disposable;
+    private CompositeDisposable disposable;
 
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -137,21 +133,20 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         // Realm Initialization
-        Realm.init(this);
-        RealmConfiguration config = new RealmConfiguration.Builder()
-                .name(getString(R.string.RealmDatabaseName))
-                .schemaVersion(Integer.parseInt(getString(R.string.VERSION)))
-                .deleteRealmIfMigrationNeeded()
-                .build();
-        Realm.setDefaultConfiguration(config);
+//        Realm.init(this);
+//        RealmConfiguration config = new RealmConfiguration.Builder()
+//                .name(getString(R.string.RealmDatabaseName))
+//                .schemaVersion(Integer.parseInt(getString(R.string.VERSION)))
+//                .deleteRealmIfMigrationNeeded()
+//                .build();
+//        Realm.setDefaultConfiguration(config);
 
         ButterKnife.bind(this);
         audioList = new ArrayList<>();
         utilities = new Utilities();
-        handler = new Handler();
         seekBar.setClickable(true);
-
-        checkPermission();
+        disposable = new CompositeDisposable();
+        Load_Audio_Data();
         configRecycleView();
         NavigationDrawerSetup();
 
@@ -162,9 +157,46 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    private void Load_Audio_Data() {
+        disposable.add(getAudio()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<List<Audio>>() {
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull List<Audio> audios) {
+                        Toast.makeText(getApplicationContext(), "Completed: " + audios.get(0).getTITLE(), LENGTH_LONG);
+                        audioList = audios;
+                        audioAdapter.addSongs(audioList);
+                        audioAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        Log.e("Error:: ", e.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        ConnectMediaPlayer();
+                    }
+                }));
+
+    }
+
+    private Observable<List<Audio>> getAudio() {
+        return Observable.defer(new Callable<ObservableSource<? extends List<Audio>>>() {
+            @Override
+            public ObservableSource<? extends List<Audio>> call() throws Exception {
+                checkPermission();
+                return Observable.just(audioList);
+            }
+        });
+    }
+
+
     private void ConnectMediaPlayer() {
-        observable()
-                .subscribeOn(Schedulers.io())
+        disposable.add(observable()
+                .subscribeOn(Schedulers.newThread())
                 .doOnNext(new Consumer<String>() {
                     @Override
                     public void accept(String s) throws Exception {
@@ -174,18 +206,12 @@ public class MainActivity extends AppCompatActivity
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
-
-                    }
-
+                .subscribeWith(new DisposableObserver<String>() {
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull String s) {
                         Toast.makeText(MainActivity.this, "Connection : " + s, LENGTH_LONG).show();
                         UI_update(trackPosition);
                         playAudio(trackPosition);
-
                     }
 
                     @Override
@@ -197,7 +223,7 @@ public class MainActivity extends AppCompatActivity
                     public void onComplete() {
 
                     }
-                });
+                }));
     }
 
     private Observable<String> observable() {
@@ -245,12 +271,10 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    //-------
-
     @Override
     protected void onStart() {
         super.onStart();
-        ConnectMediaPlayer();
+//        ConnectMediaPlayer();
     }
 
     private void NavigationDrawerSetup() {
@@ -492,11 +516,10 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_exit) {
             if (serviceBound || playerService.mediaPlayer != null) {
                 stopService(playerIntent);
-                System.exit(0);
                 playerService.onDestroy();
+                System.exit(0);
             }
 
-            stopService(playerIntent);
             audioList.clear();
             finish();
         }
@@ -512,6 +535,8 @@ public class MainActivity extends AppCompatActivity
         if (serviceBound) {
             unbindService(serviceConnection);
         }
+
+        disposable.dispose();
 
     }
 
@@ -597,12 +622,5 @@ public class MainActivity extends AppCompatActivity
             fab.setImageResource(R.drawable.ic_repeat_all);
         }
     }
-
-
-//    public void startService(View v) {
-//        Intent serviceIntent = new Intent(MainActivity.this, CustomNotification.class);
-//        serviceIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
-//        startService(serviceIntent);
-//    }
 
 }

@@ -1,4 +1,4 @@
-package com.santoshkumarsingh.gxmusicplayer.Database;
+package com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB;
 
 import android.content.Context;
 import android.content.SharedPreferences;
