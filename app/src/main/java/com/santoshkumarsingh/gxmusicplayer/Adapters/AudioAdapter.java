@@ -48,8 +48,9 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(final AudioAdapter.ViewHolder holder, final int position) {
+    public void onBindViewHolder(final AudioAdapter.ViewHolder holder, int position) {
         final Audio audio = audioList.get(position);
+        final int audioPosition = position;
         holder.mTitle.setText(audio.getTITLE());
         holder.mArtist.setText(audio.getARTIST());
 
@@ -63,7 +64,7 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
             @Override
             public void onClick(View v) {
                 if (SongOnClickListener != null) {
-                    SongOnClickListener.OnClick(holder.favorite, holder.itemView, trackImage, audio.getURL(), position);
+                    SongOnClickListener.OnClick(holder.favorite, holder.itemView, trackImage, audio.getURL(), audioPosition);
                 }
             }
         });

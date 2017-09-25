@@ -6,14 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -33,11 +30,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.santoshkumarsingh.gxmusicplayer.Adapters.AudioAdapter;
+import com.santoshkumarsingh.gxmusicplayer.Utilities.LoadAudio;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
@@ -56,7 +55,6 @@ import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -64,6 +62,8 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 import static android.widget.Toast.LENGTH_LONG;
 
@@ -93,6 +93,8 @@ public class MainActivity extends AppCompatActivity
     AppCompatSeekBar seekBar;
     @BindView(R.id.fab)
     FloatingActionButton fab;
+    @BindView(R.id.Progress_bar)
+    ProgressBar progressBar;
 
     private Utilities utilities;
     private int trackPosition = 0, repeat = 0, mediaPlayerState = 0;
@@ -103,7 +105,8 @@ public class MainActivity extends AppCompatActivity
     private Toolbar toolbar;
     private DecimalFormat decimalFormat = new DecimalFormat("#.##");
     private Bitmap bitmap;
-    private CompositeDisposable disposable;
+    private CompositeDisposable disposable, disposable1;
+    private LoadAudio loadAudio;
 
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -124,7 +127,6 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -133,43 +135,56 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         // Realm Initialization
-//        Realm.init(this);
-//        RealmConfiguration config = new RealmConfiguration.Builder()
-//                .name(getString(R.string.RealmDatabaseName))
-//                .schemaVersion(Integer.parseInt(getString(R.string.VERSION)))
-//                .deleteRealmIfMigrationNeeded()
-//                .build();
-//        Realm.setDefaultConfiguration(config);
+        Realm.init(this);
+        RealmConfiguration config = new RealmConfiguration.Builder()
+                .name(getString(R.string.RealmDatabaseName))
+                .schemaVersion(Integer.parseInt(getString(R.string.VERSION)))
+                .deleteRealmIfMigrationNeeded()
+                .build();
+        Realm.setDefaultConfiguration(config);
 
         ButterKnife.bind(this);
+        disposable = new CompositeDisposable();
+        disposable1 = new CompositeDisposable();
+        loadAudio = new LoadAudio(this);
         audioList = new ArrayList<>();
         utilities = new Utilities();
         seekBar.setClickable(true);
-        disposable = new CompositeDisposable();
-        Load_Audio_Data();
-        configRecycleView();
-        NavigationDrawerSetup();
 
         StorageUtil storageUtil = new StorageUtil(MainActivity.this);
-        trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
+        if (storageUtil.loadAudioIndex() == -1) {
+            checkPermission();
+        } else {
+            trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
+            Load_Audio_Data();
+        }
 
-//        if (storageUtil.loadAudioIndex() != -1) {
-//            trackPosition = storageUtil.loadAudioIndex();
-//        }
-
+        NavigationDrawerSetup();
     }
 
     private void Load_Audio_Data() {
         disposable.add(getAudio()
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<List<Audio>>() {
+                    @Override
+                    public void accept(List<Audio> audios) throws Exception {
+                        showProgressbar();
+                    }
+                })
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<List<Audio>>() {
+                    @Override
+                    public void accept(List<Audio> audios) throws Exception {
+
+                    }
+                })
                 .subscribeWith(new DisposableObserver<List<Audio>>() {
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull List<Audio> audios) {
-//                        Toast.makeText(getApplicationContext(), "Completed: " + audios.get(0).getTITLE(), LENGTH_LONG).show();
                         audioList = audios;
-                        audioAdapter.addSongs(audioList);
-                        audioAdapter.notifyDataSetChanged();
+                        hideProgressbar();
+                        configRecycleView();
                     }
 
                     @Override
@@ -181,25 +196,31 @@ public class MainActivity extends AppCompatActivity
                     public void onComplete() {
                         Log.e("OnComplete:: ", "Completed");
                         ConnectMediaPlayer();
+
                     }
                 }));
-
     }
 
     private Observable<List<Audio>> getAudio() {
-        return Observable.defer(new Callable<ObservableSource<? extends List<Audio>>>() {
+        return Observable.fromCallable(new Callable<List<Audio>>() {
             @Override
-            public ObservableSource<? extends List<Audio>> call() throws Exception {
-                checkPermission();
-                return Observable.just(audioList);
+            public List<Audio> call() throws Exception {
+                return getAudioList();
             }
         });
     }
 
+    private void showProgressbar() {
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressbar() {
+        progressBar.setVisibility(View.GONE);
+    }
 
     private void ConnectMediaPlayer() {
-        disposable.add(observable()
-                .subscribeOn(Schedulers.newThread())
+        disposable1.add(observable()
+                .subscribeOn(Schedulers.io())
                 .doOnNext(new Consumer<String>() {
                     @Override
                     public void accept(String s) throws Exception {
@@ -210,9 +231,9 @@ public class MainActivity extends AppCompatActivity
                 })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<String>() {
+
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull String s) {
-                        Toast.makeText(MainActivity.this, "Connection : " + s, LENGTH_LONG).show();
                         UI_update(trackPosition);
                         playAudio(trackPosition);
                     }
@@ -224,7 +245,7 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onComplete() {
-
+                        Log.e("Service_Bound- ", "Completed ");
                     }
                 }));
     }
@@ -238,7 +259,7 @@ public class MainActivity extends AppCompatActivity
                         playerService = MediaPlayerService.getInstance(getApplicationContext());
                         playerService.setAudioList(audioList);
                     }
-                    e.onNext(getString(R.string.SERVICE_CONNECTED));
+                    e.onNext("START");
                 } while (playerService == null);
 
                 e.onComplete();
@@ -277,7 +298,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-//        ConnectMediaPlayer();
     }
 
     private void NavigationDrawerSetup() {
@@ -415,6 +435,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     //-----------
+    private List<Audio> getAudioList() {
+        return loadAudio.loadAudioFiles();
+    }
+
     private void checkPermission() {
         if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -424,7 +448,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        loadAudioFiles();
     }
 
     @Override
@@ -432,7 +455,7 @@ public class MainActivity extends AppCompatActivity
         switch (requestCode) {
             case 24:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    loadAudioFiles();
+                    Load_Audio_Data();
                 } else {
                     Toast.makeText(this, getString(R.string.permission_denied), LENGTH_LONG).show();
                     checkPermission();
@@ -441,31 +464,9 @@ public class MainActivity extends AppCompatActivity
 
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                Load_Audio_Data();
         }
     }
-
-
-    private void loadAudioFiles() {
-        Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Audio.Media.IS_MUSIC + "!=0";
-        Cursor cursor = this.getContentResolver().query(uri, null, selection, null, null);
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                do {
-                    String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
-                    String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                    String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-                    String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                    String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-
-                    Audio audio = new Audio(title, artist, url, album, duration);
-                    audioList.add(audio);
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-        }
-    }
-
 
     @Override
     public void onBackPressed() {
@@ -525,7 +526,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         disposable.dispose();
-
+        disposable1.dispose();
     }
 
     public void seekBarCycle() {
@@ -622,4 +623,5 @@ public class MainActivity extends AppCompatActivity
             }
         });
     }
+
 }

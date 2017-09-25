@@ -1,9 +1,8 @@
-package com.santoshkumarsingh.gxmusicplayer.AsyncTasks;
+package com.santoshkumarsingh.gxmusicplayer.Utilities;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.provider.MediaStore;
 
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
@@ -11,44 +10,20 @@ import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MyAsyncTask extends AsyncTask<String, Void, List<Audio>> {
+/**
+ * Created by santoshsingh on 22/09/17.
+ */
 
-    List<Audio> audios = new ArrayList<>();
+public class LoadAudio {
     private Context context;
-    private AsyncResponse listener = null;
+    private List<Audio> audios;
 
-    public MyAsyncTask(Context context, AsyncResponse listener) {
+    public LoadAudio(Context context) {
         this.context = context;
-        this.listener = listener;
+        audios = new ArrayList<>();
     }
 
-    @Override
-    protected List<Audio> doInBackground(String... urls) {
-        try {
-            //noinspection LoopStatementThatDoesntLoop
-            while (isCancelled()) {
-                return null;
-            }
-
-            return loadAudioFiles();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    @Override
-    protected void onCancelled(List<Audio> audioList) {
-        super.onCancelled(audioList);
-    }
-
-    @Override
-    protected void onPostExecute(List<Audio> audioList) {
-        listener.processFinish(audioList);
-    }
-
-    private List<Audio> loadAudioFiles() {
+    public List<Audio> loadAudioFiles() {
         Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String selection = MediaStore.Audio.Media.IS_MUSIC + "!=0";
         Cursor cursor = context.getContentResolver().query(uri, null, selection, null, null);
@@ -69,4 +44,5 @@ public class MyAsyncTask extends AsyncTask<String, Void, List<Audio>> {
         }
         return audios;
     }
+
 }
