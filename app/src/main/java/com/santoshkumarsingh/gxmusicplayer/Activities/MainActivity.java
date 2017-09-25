@@ -36,12 +36,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.santoshkumarsingh.gxmusicplayer.Adapters.AudioAdapter;
-import com.santoshkumarsingh.gxmusicplayer.Utilities.LoadAudio;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 import com.santoshkumarsingh.gxmusicplayer.Services.MediaPlayerService;
 import com.santoshkumarsingh.gxmusicplayer.Services.ServiceCallback;
+import com.santoshkumarsingh.gxmusicplayer.Utilities.LoadAudio;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 
 import java.text.DecimalFormat;
@@ -151,15 +151,17 @@ public class MainActivity extends AppCompatActivity
         utilities = new Utilities();
         seekBar.setClickable(true);
 
+        NavigationDrawerSetup();
+
+
         StorageUtil storageUtil = new StorageUtil(MainActivity.this);
         if (storageUtil.loadAudioIndex() == -1) {
             checkPermission();
         } else {
             trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
             Load_Audio_Data();
-        }
 
-        NavigationDrawerSetup();
+        }
     }
 
     private void Load_Audio_Data() {
@@ -246,6 +248,9 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onComplete() {
                         Log.e("Service_Bound- ", "Completed ");
+                        if (playerService != null && playerService.mediaPlayer != null) {
+                            setPlayPauseState(playerService.ismAudioIsPlaying());
+                        }
                     }
                 }));
     }
@@ -298,6 +303,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
+        Load_Audio_Data();
     }
 
     private void NavigationDrawerSetup() {
@@ -327,18 +333,19 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (repeat == 0) {
-                    repeat = 1;
-                    playerService.setRepeat(1);
-                    fab.setImageResource(R.drawable.ic_repeat_one);
-                } else if (repeat == 1) {
-                    repeat = 2;
-                    playerService.setRepeat(2);
-                    fab.setImageResource(R.drawable.ic_shuffle);
-                } else {
-                    repeat = 0;
-                    playerService.setRepeat(0);
-                    fab.setImageResource(R.drawable.ic_repeat_all);
+                switch (playerService.getRepeat()) {
+                    case 0:
+                        playerService.setRepeat(1);
+                        fab.setImageResource(R.drawable.ic_repeat_one);
+                        break;
+                    case 1:
+                        playerService.setRepeat(2);
+                        fab.setImageResource(R.drawable.ic_shuffle);
+                        break;
+                    case 2:
+                        playerService.setRepeat(0);
+                        fab.setImageResource(R.drawable.ic_repeat_all);
+                        break;
                 }
             }
         });
@@ -346,18 +353,12 @@ public class MainActivity extends AppCompatActivity
         play_pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch (mediaPlayerState) {
-                    case 1:
-                        playerService.pause();
-                        play_pause.setBackgroundResource(R.drawable.ic_play);
-                        mediaPlayerState = 2;
-                        break;
-                    case 2:
-                        playerService.resume();
-                        play_pause.setBackgroundResource(R.drawable.ic_pause);
-                        mediaPlayerState = 1;
-                        break;
-
+                if (playerService.ismAudioIsPlaying()) {
+                    playerService.pause();
+                    play_pause.setBackgroundResource(R.drawable.ic_play);
+                } else {
+                    playerService.resume();
+                    play_pause.setBackgroundResource(R.drawable.ic_pause);
                 }
             }
         });
@@ -418,8 +419,8 @@ public class MainActivity extends AppCompatActivity
         }
 
         trackPosition = audioIndex;
-        mediaPlayerState = 1;
         play_pause.setBackgroundResource(R.drawable.ic_pause);
+
     }
 
     @Override
@@ -565,10 +566,23 @@ public class MainActivity extends AppCompatActivity
         });
 
         update_seekBar();
+
+//        if (!playerService.mediaPlayer.isPlaying()) {
+//            play_pause.setBackgroundResource(R.drawable.ic_play);
+//            mediaPlayerState = 2;
+//        } else if (playerService.ismAudioIsPlaying()==true){
+//            play_pause.setBackgroundResource(R.drawable.ic_pause);
+//            mediaPlayerState = 1;
+//        }else {
+//            play_pause.setBackgroundResource(R.drawable.ic_play);
+//            mediaPlayerState = 2;
+//        }
+
     }
 
     public void UI_update(int trackPosition) {
         setRepeatButton(playerService.getRepeat());
+        setPlayPauseState(playerService.ismAudioIsPlaying());
         songThumbnail.setImageBitmap(bitmap);
         songTitle.setText(audioList.get(trackPosition).getTITLE());
         songArtist.setText(audioList.get(trackPosition).getARTIST());
@@ -622,6 +636,18 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+    }
+
+    private void setPlayPauseState(boolean playPauseState) {
+        if (playerService == null || playerService.mediaPlayer == null) {
+            return;
+        } else if (playerService.mediaPlayer != null) {
+            if (playPauseState == false) {
+                play_pause.setBackgroundResource(R.drawable.ic_play);
+            } else {
+                play_pause.setBackgroundResource(R.drawable.ic_pause);
+            }
+        }
     }
 
 }

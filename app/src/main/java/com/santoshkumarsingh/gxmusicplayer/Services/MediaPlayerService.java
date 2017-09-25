@@ -209,6 +209,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.reset();
             try {
                 // Set the data source to the mediaFile location
+                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 mediaPlayer.setDataSource(activeAudio.getURL());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -228,16 +229,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.setVolume(1.0f, 1.0f);
         }
 
-        if (!mAudioFocusGranted && requestAudioFocus()) {
-            // 2. Kill off any other play back sources
-            forceMusicStop();
-            // 3. Register broadcast receiver for player intents
-            setupBroadcastReceiver();
-        }
+//        if (!mAudioFocusGranted && requestAudioFocus()) {
+//            // 2. Kill off any other play back sources
+//            forceMusicStop();
+//            // 3. Register broadcast receiver for player intents
+//            setupBroadcastReceiver();
+//        }
 
         mediaPlayer.start();
-        buildNotification(PlaybackStatus.PAUSED);
         mAudioIsPlaying = true;
+        buildNotification(PlaybackStatus.PAUSED);
+
     }
 
     public void play() {
@@ -285,7 +287,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         if (!mediaPlayer.isPlaying()) {
             mediaPlayer.seekTo(resumePosition);
             mediaPlayer.start();
+            mAudioIsPlaying = true;
             buildNotification(PlaybackStatus.PAUSED);
+
         }
     }
 
@@ -328,14 +332,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             public void onSkipToNext() {
                 super.onSkipToNext();
                 skipToNext();
-                buildNotification(PlaybackStatus.PAUSED);
             }
 
             @Override
             public void onSkipToPrevious() {
                 super.onSkipToPrevious();
                 skipToPrevious();
-                buildNotification(PlaybackStatus.PAUSED);
             }
 
             @Override
@@ -369,7 +371,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     public void skipToNext() {
-        audioIndex = (audioIndex == audioList.size() - 1 ? 0 : ++audioIndex);
+        audioIndex = (audioIndex == audioList.size() - 1 ? 0 : audioIndex + 1);
         activeAudio = audioList.get(audioIndex);
         resumePosition = 0;
         //Update stored index
@@ -385,7 +387,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     public void skipToPrevious() {
-        audioIndex = (audioIndex == 0 ? audioList.size() - 1 : --audioIndex);
+        audioIndex = (audioIndex == 0 ? audioList.size() - 1 : audioIndex - 1);
         activeAudio = audioList.get(audioIndex);
         resumePosition = 0;
         //Update stored index
@@ -611,8 +613,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         //Invoked when playback of a media source has completed.
         switch (repeat) {
             case 0:
+//                stopMedia();
                 skipToNext();
-                mp.start();
+//                playMedia();
+//                mp.start();
                 break;
             case 1:
                 mp.start();
@@ -791,6 +795,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     public void setRepeat(int repeat) {
         this.repeat = repeat;
+    }
+
+    public boolean ismAudioIsPlaying() {
+        return mAudioIsPlaying;
     }
 
     public enum PlaybackStatus {

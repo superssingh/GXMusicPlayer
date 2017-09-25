@@ -29,6 +29,7 @@ import static com.santoshkumarsingh.gxmusicplayer.R.drawable.ic_favorite_24dp;
 @SuppressWarnings("ObjectEqualsNull")
 public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> {
 
+    private RealmContentProvider realmContentProvider;
     private Utilities utilities;
     private List<Audio> audioList;
     private SongOnClickListener SongOnClickListener;
@@ -37,7 +38,7 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
         setOnClickListener(listener);
         audioList = new ArrayList<>();
         utilities = new Utilities();
-        RealmContentProvider realmContentProvider = new RealmContentProvider();
+        realmContentProvider = new RealmContentProvider();
     }
 
     @Override
@@ -60,6 +61,7 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
         } else {
             holder.thumbnail.setImageResource(R.drawable.ic_audiotrack);
         }
+
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -68,11 +70,11 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
                 }
             }
         });
+
         holder.favorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-//              realmContentProvider.addFavorite(view.getContext(),audioList.get(position));
+                realmContentProvider.addFavorite(view.getContext(), audioList.get(audioPosition));
                 holder.favorite.setBackgroundResource(ic_favorite_24dp);
             }
         });
