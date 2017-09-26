@@ -1,13 +1,13 @@
 package com.santoshkumarsingh.gxmusicplayer.Database.RealmDB;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 
+import io.reactivex.annotations.NonNull;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
@@ -30,11 +30,11 @@ public class RealmContentProvider {
             @Override
             public void execute(@NonNull Realm realm1) {
                 FavoriteAudio favoriteBook = realm1.createObject(FavoriteAudio.class, audio.getURL());
-                favoriteBook.setTITLE(audio.getTITLE());
-                favoriteBook.setARTIST(audio.getARTIST());
-                favoriteBook.setURL(audio.getURL());
-                favoriteBook.setALBUM(audio.getALBUM());
-                favoriteBook.setDURATION(audio.getDURATION());
+                favoriteBook.setSongTITLE(audio.getTITLE());
+                favoriteBook.setSongARTIST(audio.getARTIST());
+                favoriteBook.setSongURL(audio.getURL());
+                favoriteBook.setSongALBUM(audio.getALBUM());
+                favoriteBook.setSongDURATION(audio.getDURATION());
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override
@@ -49,6 +49,7 @@ public class RealmContentProvider {
                 Log.e("Error: ", error.toString());
                 Toast.makeText(context, R.string.Already_exists, Toast.LENGTH_SHORT)
                         .show();
+                return;
             }
         });
         realm.close();
@@ -61,5 +62,20 @@ public class RealmContentProvider {
         return favoriteAudios;
     }
 
+    public void deleteAll() {
+        final Realm realm = Realm.getDefaultInstance();
+        realm.deleteAll();
+        realm.close();
+    }
+
+    private void delete(int position) {
+        Realm realm = Realm.getDefaultInstance();
+        RealmResults<FavoriteAudio> favoriteAudios = realm.where(FavoriteAudio.class).findAll();
+        realm.beginTransaction();
+        FavoriteAudio fm = favoriteAudios.get(position);
+        fm.deleteFromRealm();
+        realm.commitTransaction();
+        realm.close();
+    }
 
 }

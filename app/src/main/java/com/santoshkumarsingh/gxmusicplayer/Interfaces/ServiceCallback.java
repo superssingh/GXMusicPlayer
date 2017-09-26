@@ -1,4 +1,4 @@
-package com.santoshkumarsingh.gxmusicplayer.Services;
+package com.santoshkumarsingh.gxmusicplayer.Interfaces;
 
 import android.graphics.Bitmap;
 

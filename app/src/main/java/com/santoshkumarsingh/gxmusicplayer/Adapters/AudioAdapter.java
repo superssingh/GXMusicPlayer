@@ -9,7 +9,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.RealmContentProvider;
+import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
@@ -19,6 +19,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.realm.RealmResults;
 
 import static com.santoshkumarsingh.gxmusicplayer.R.drawable.ic_favorite_24dp;
 
@@ -29,16 +30,17 @@ import static com.santoshkumarsingh.gxmusicplayer.R.drawable.ic_favorite_24dp;
 @SuppressWarnings("ObjectEqualsNull")
 public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> {
 
-    private RealmContentProvider realmContentProvider;
+    RealmResults<FavoriteAudio> favoriteAudios;
     private Utilities utilities;
     private List<Audio> audioList;
     private SongOnClickListener SongOnClickListener;
+    private FavoriteAudioListener favoriteAudioListener;
 
-    public AudioAdapter(SongOnClickListener listener) {
+    public AudioAdapter(SongOnClickListener listener, FavoriteAudioListener favoriteAudioListener) {
         setOnClickListener(listener);
+        this.favoriteAudioListener = favoriteAudioListener;
         audioList = new ArrayList<>();
         utilities = new Utilities();
-        realmContentProvider = new RealmContentProvider();
     }
 
     @Override
@@ -74,10 +76,13 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
         holder.favorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                realmContentProvider.addFavorite(view.getContext(), audioList.get(audioPosition));
+                if (favoriteAudioListener != null) {
+                    favoriteAudioListener.onFavoriteClicked(audio);
+                }
                 holder.favorite.setBackgroundResource(ic_favorite_24dp);
             }
         });
+
     }
 
     @Override
@@ -94,9 +99,18 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
         this.SongOnClickListener = SongOnClickListener;
     }
 
+    public void setOnFavListener(FavoriteAudioListener favoriteAudioListenter) {
+        this.favoriteAudioListener = favoriteAudioListenter;
+    }
+
     public interface SongOnClickListener {
         void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position);
     }
+
+    public interface FavoriteAudioListener {
+        void onFavoriteClicked(Audio audio);
+    }
+
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.song_Title)
@@ -113,4 +127,5 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
             ButterKnife.bind(this, itemView);
         }
     }
+
 }

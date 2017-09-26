@@ -36,11 +36,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.santoshkumarsingh.gxmusicplayer.Adapters.AudioAdapter;
+import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.RealmContentProvider;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
+import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 import com.santoshkumarsingh.gxmusicplayer.Services.MediaPlayerService;
-import com.santoshkumarsingh.gxmusicplayer.Services.ServiceCallback;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.LoadAudio;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 
@@ -69,7 +70,7 @@ import static android.widget.Toast.LENGTH_LONG;
 
 @SuppressWarnings("WeakerAccess")
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, AudioAdapter.SongOnClickListener {
+        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, AudioAdapter.SongOnClickListener, AudioAdapter.FavoriteAudioListener {
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.santoshkumarsingh.gxmusicplayer.PlayNewAudio";
     private static MediaPlayerService playerService;
@@ -107,6 +108,7 @@ public class MainActivity extends AppCompatActivity
     private Bitmap bitmap;
     private CompositeDisposable disposable, disposable1;
     private LoadAudio loadAudio;
+    private RealmConfiguration config;
 
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -127,6 +129,7 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,14 +139,17 @@ public class MainActivity extends AppCompatActivity
 
         // Realm Initialization
         Realm.init(this);
-        RealmConfiguration config = new RealmConfiguration.Builder()
+        config = new RealmConfiguration.Builder()
                 .name(getString(R.string.RealmDatabaseName))
                 .schemaVersion(Integer.parseInt(getString(R.string.VERSION)))
                 .deleteRealmIfMigrationNeeded()
                 .build();
         Realm.setDefaultConfiguration(config);
 
+        Log.i("DIR : ", config.getRealmDirectory() + " / " + config.getRealmFileName());
+
         ButterKnife.bind(this);
+
         disposable = new CompositeDisposable();
         disposable1 = new CompositeDisposable();
         loadAudio = new LoadAudio(this);
@@ -162,6 +168,7 @@ public class MainActivity extends AppCompatActivity
             Load_Audio_Data();
 
         }
+
     }
 
     private void Load_Audio_Data() {
@@ -251,6 +258,7 @@ public class MainActivity extends AppCompatActivity
                         if (playerService != null && playerService.mediaPlayer != null) {
                             setPlayPauseState(playerService.ismAudioIsPlaying());
                         }
+
                     }
                 }));
     }
@@ -323,7 +331,7 @@ public class MainActivity extends AppCompatActivity
     private void configRecycleView() {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
-        audioAdapter = new AudioAdapter(this);
+        audioAdapter = new AudioAdapter(this, this);
         audioAdapter.addSongs(audioList);
         audioAdapter.notifyDataSetChanged();
         recyclerView.setAdapter(audioAdapter);
@@ -333,6 +341,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 switch (playerService.getRepeat()) {
                     case 0:
                         playerService.setRepeat(1);
@@ -503,7 +512,11 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_exit) {
+        if (id == R.id.nav_favorite) {
+            Intent intent = new Intent(MainActivity.this, FavoriteActivity.class);
+            startActivity(intent);
+
+        } else if (id == R.id.nav_exit) {
             if (serviceBound || playerService.mediaPlayer != null) {
                 stopService(playerIntent);
                 playerService.onDestroy();
@@ -526,7 +539,10 @@ public class MainActivity extends AppCompatActivity
             unbindService(serviceConnection);
         }
 
-        disposable.dispose();
+        if (!disposable.isDisposed()) {
+            disposable.dispose();
+        }
+
         disposable1.dispose();
     }
 
@@ -566,17 +582,6 @@ public class MainActivity extends AppCompatActivity
         });
 
         update_seekBar();
-
-//        if (!playerService.mediaPlayer.isPlaying()) {
-//            play_pause.setBackgroundResource(R.drawable.ic_play);
-//            mediaPlayerState = 2;
-//        } else if (playerService.ismAudioIsPlaying()==true){
-//            play_pause.setBackgroundResource(R.drawable.ic_pause);
-//            mediaPlayerState = 1;
-//        }else {
-//            play_pause.setBackgroundResource(R.drawable.ic_play);
-//            mediaPlayerState = 2;
-//        }
 
     }
 
@@ -650,4 +655,10 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onFavoriteClicked(Audio audio) {
+        RealmContentProvider contentProvider = new RealmContentProvider();
+        contentProvider.addFavorite(getApplicationContext(), audio);
+
+    }
 }

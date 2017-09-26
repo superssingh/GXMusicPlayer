@@ -11,11 +11,11 @@ public class FavoriteAudio extends RealmObject {
 
     @PrimaryKey
     private String id;
-    private String TITLE;
-    private String ARTIST;
-    private String URL;
-    private String ALBUM;
-    private String DURATION;
+    private String songTITLE;
+    private String songARTIST;
+    private String songURL;
+    private String songALBUM;
+    private String songDURATION;
 
     public String getId() {
         return id;
@@ -25,43 +25,43 @@ public class FavoriteAudio extends RealmObject {
         this.id = id;
     }
 
-    public String getTITLE() {
-        return TITLE;
+    public String getSongTITLE() {
+        return songTITLE;
     }
 
-    public void setTITLE(String TITLE) {
-        this.TITLE = TITLE;
+    public void setSongTITLE(String songTITLE) {
+        this.songTITLE = songTITLE;
     }
 
-    public String getARTIST() {
-        return ARTIST;
+    public String getSongARTIST() {
+        return songARTIST;
     }
 
-    public void setARTIST(String ARTIST) {
-        this.ARTIST = ARTIST;
+    public void setSongARTIST(String songARTIST) {
+        this.songARTIST = songARTIST;
     }
 
-    public String getURL() {
-        return URL;
+    public String getSongURL() {
+        return songURL;
     }
 
-    public void setURL(String URL) {
-        this.URL = URL;
+    public void setSongURL(String songURL) {
+        this.songURL = songURL;
     }
 
-    public String getALBUM() {
-        return ALBUM;
+    public String getSongALBUM() {
+        return songALBUM;
     }
 
-    public void setALBUM(String ALBUM) {
-        this.ALBUM = ALBUM;
+    public void setSongALBUM(String songALBUM) {
+        this.songALBUM = songALBUM;
     }
 
-    public String getDURATION() {
-        return DURATION;
+    public String getSongDURATION() {
+        return songDURATION;
     }
 
-    public void setDURATION(String DURATION) {
-        this.DURATION = DURATION;
+    public void setSongDURATION(String songDURATION) {
+        this.songDURATION = songDURATION;
     }
 }
