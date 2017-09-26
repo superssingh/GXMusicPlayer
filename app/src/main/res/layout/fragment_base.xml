@@ -43,20 +43,20 @@
 
 <!--</LinearLayout>-->
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    <!--<android.support.v7.widget.RecyclerView-->
+    <!--android:id="@+id/recyclerView"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent">-->
 
-    </android.support.v7.widget.RecyclerView>
+    <!--</android.support.v7.widget.RecyclerView>-->
 
 
-    <ProgressBar
-        android:id="@+id/Progress_bar"
-        style="@android:style/Widget.ProgressBar.Inverse"
-        android:layout_width="50dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="center_horizontal"
-        android:visibility="gone" />
+    <!--<ProgressBar-->
+    <!--android:id="@+id/Progress_bar"-->
+    <!--style="@android:style/Widget.ProgressBar.Inverse"-->
+    <!--android:layout_width="50dp"-->
+    <!--android:layout_height="match_parent"-->
+    <!--android:layout_gravity="center_horizontal"-->
+    <!--android:visibility="gone" />-->
 
 </LinearLayout>

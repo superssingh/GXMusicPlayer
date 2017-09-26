@@ -11,6 +11,8 @@ import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -98,7 +100,7 @@ public class MainActivity extends AppCompatActivity
     ProgressBar progressBar;
 
     private Utilities utilities;
-    private int trackPosition = 0, repeat = 0, mediaPlayerState = 0;
+    private int trackPosition = 0;
     private List<Audio> audioList;
     private AudioAdapter audioAdapter;
     private boolean serviceBound = false;
@@ -129,7 +131,6 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -146,27 +147,24 @@ public class MainActivity extends AppCompatActivity
                 .build();
         Realm.setDefaultConfiguration(config);
 
-        Log.i("DIR : ", config.getRealmDirectory() + " / " + config.getRealmFileName());
-
         ButterKnife.bind(this);
-
         disposable = new CompositeDisposable();
         disposable1 = new CompositeDisposable();
         loadAudio = new LoadAudio(this);
         audioList = new ArrayList<>();
         utilities = new Utilities();
         seekBar.setClickable(true);
-
         NavigationDrawerSetup();
 
-
         StorageUtil storageUtil = new StorageUtil(MainActivity.this);
-        if (storageUtil.loadAudioIndex() == -1) {
-            checkPermission();
-        } else {
-            trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
-            Load_Audio_Data();
+        trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
 
+        if (savedInstanceState == null) {
+            if (storageUtil.loadAudioIndex() == -1) {
+                checkPermission();
+            } else {
+                Load_Audio_Data();
+            }
         }
 
     }
@@ -311,7 +309,15 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        Load_Audio_Data();
+//        Load_Audio_Data();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        outState.putParcelableArrayList(getString(R.string.AUDIO_STATE), new ArrayList<Parcelable>(audioAdapter.getAudioList()));
+        outState.putInt(getString(R.string.SONG_POSITION), trackPosition);
+
     }
 
     private void NavigationDrawerSetup() {
@@ -532,20 +538,6 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (serviceBound) {
-            unbindService(serviceConnection);
-        }
-
-        if (!disposable.isDisposed()) {
-            disposable.dispose();
-        }
-
-        disposable1.dispose();
-    }
-
     public void seekBarCycle() {
         int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
         seekBar.setProgress(i);
@@ -586,7 +578,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void UI_update(int trackPosition) {
-        setRepeatButton(playerService.getRepeat());
+        setRepeatButtonIcon(playerService.getRepeat());
         setPlayPauseState(playerService.ismAudioIsPlaying());
         songThumbnail.setImageBitmap(bitmap);
         songTitle.setText(audioList.get(trackPosition).getTITLE());
@@ -620,8 +612,7 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private void setRepeatButton(int repeat) {
-        this.repeat = repeat;
+    private void setRepeatButtonIcon(int repeat) {
         if (repeat == 1) {
             fab.setImageResource(R.drawable.ic_repeat_one);
         } else if (repeat == 2) {
@@ -659,6 +650,18 @@ public class MainActivity extends AppCompatActivity
     public void onFavoriteClicked(Audio audio) {
         RealmContentProvider contentProvider = new RealmContentProvider();
         contentProvider.addFavorite(getApplicationContext(), audio);
-
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (serviceBound) {
+            unbindService(serviceConnection);
+        }
+
+        disposable.dispose();
+        disposable1.dispose();
+    }
+
+
 }

@@ -103,14 +103,18 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
         this.favoriteAudioListener = favoriteAudioListenter;
     }
 
+    public List<Audio> getAudioList() {
+        return audioList;
+    }
+
     public interface SongOnClickListener {
         void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position);
     }
 
+
     public interface FavoriteAudioListener {
         void onFavoriteClicked(Audio audio);
     }
-
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.song_Title)
@@ -127,5 +131,4 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
             ButterKnife.bind(this, itemView);
         }
     }
-
 }
