@@ -30,11 +30,12 @@ public class RealmContentProvider {
             @Override
             public void execute(@NonNull Realm realm1) {
                 FavoriteAudio favoriteBook = realm1.createObject(FavoriteAudio.class, audio.getURL());
-                favoriteBook.setSongTITLE(audio.getTITLE());
-                favoriteBook.setSongARTIST(audio.getARTIST());
-                favoriteBook.setSongURL(audio.getURL());
-                favoriteBook.setSongALBUM(audio.getALBUM());
-                favoriteBook.setSongDURATION(audio.getDURATION());
+                favoriteBook.setTITLE(audio.getTITLE());
+                favoriteBook.setARTIST(audio.getARTIST());
+                favoriteBook.setURL(audio.getURL());
+                favoriteBook.setALBUM(audio.getALBUM());
+                favoriteBook.setDURATION(audio.getDURATION());
+                favoriteBook.setGENRES(audio.getGENRES());
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override

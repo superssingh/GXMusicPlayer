@@ -8,6 +8,7 @@ import android.os.Parcelable;
  */
 
 public class Audio implements Parcelable {
+
     public static final Creator<Audio> CREATOR = new Creator<Audio>() {
         @Override
         public Audio createFromParcel(Parcel in) {
@@ -19,17 +20,15 @@ public class Audio implements Parcelable {
             return new Audio[size];
         }
     };
-    private String TITLE, ARTIST, URL, ALBUM, DURATION;
+    private String TITLE, ARTIST, URL, ALBUM, DURATION, GENRES;
 
-    public Audio() {
-    }
-
-    public Audio(String TITLE, String ARTIST, String URL, String ALBUM, String DURATION) {
+    public Audio(String TITLE, String ARTIST, String URL, String ALBUM, String DURATION, String GENRES) {
         this.TITLE = TITLE;
         this.ARTIST = ARTIST;
         this.URL = URL;
         this.ALBUM = ALBUM;
         this.DURATION = DURATION;
+        this.GENRES = GENRES;
     }
 
     protected Audio(Parcel in) {
@@ -38,6 +37,15 @@ public class Audio implements Parcelable {
         URL = in.readString();
         ALBUM = in.readString();
         DURATION = in.readString();
+        GENRES = in.readString();
+    }
+
+    public String getGENRES() {
+        return GENRES;
+    }
+
+    public void setGENRES(String GENRES) {
+        this.GENRES = GENRES;
     }
 
     public String getTITLE() {
