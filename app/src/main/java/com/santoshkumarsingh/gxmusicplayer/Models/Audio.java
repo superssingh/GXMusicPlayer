@@ -22,6 +22,9 @@ public class Audio implements Parcelable {
     };
     private String TITLE, ARTIST, URL, ALBUM, DURATION, GENRES;
 
+    public Audio() {
+    }
+
     public Audio(String TITLE, String ARTIST, String URL, String ALBUM, String DURATION, String GENRES) {
         this.TITLE = TITLE;
         this.ARTIST = ARTIST;

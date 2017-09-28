@@ -6,6 +6,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -13,7 +15,6 @@ import android.widget.TextView;
 import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.FavoriteOnClickListener;
 import com.santoshkumarsingh.gxmusicplayer.R;
-import com.santoshkumarsingh.gxmusicplayer.Utilities.AnimationUtil;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 
 import butterknife.BindView;
@@ -49,10 +50,10 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     @Override
     public void onBindViewHolder(final FavoriteRecyclerAdapter.ViewHolder holder, int position) {
         holder.favoriteAudio = favoriteAudios.get(position);
-        holder.mTitle.setText(holder.favoriteAudio.getSongTITLE());
-        holder.mArtist.setText(holder.favoriteAudio.getSongARTIST());
+        holder.mTitle.setText(holder.favoriteAudio.getTITLE());
+        holder.mArtist.setText(holder.favoriteAudio.getARTIST());
 
-        final Bitmap trackImage = utilities.getTrackThumbnail(holder.favoriteAudio.getSongURL());
+        final Bitmap trackImage = utilities.getTrackThumbnail(holder.favoriteAudio.getURL());
         if (trackImage != null) {
             holder.thumbnail.setImageBitmap(trackImage);
         } else {
@@ -62,8 +63,9 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 if (onClickListener != null) {
-                    onClickListener.OnClick(holder.delete, holder.itemView, trackImage, holder.favoriteAudio.getSongURL(), holder.getAdapterPosition());
+                    onClickListener.OnClick(holder.delete, holder.itemView, trackImage, holder.favoriteAudio.getURL(), holder.getAdapterPosition());
                 }
             }
         });
@@ -78,13 +80,6 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
                 }
             }
         });
-
-        if (position > preposition) {
-            AnimationUtil.animate(holder, true);
-        } else {
-            AnimationUtil.animate(holder, false);
-        }
-        preposition = position;
 
     }
 
@@ -110,9 +105,10 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.F_song_Title)
+        private final Animation animation;
+        @BindView(R.id.F_Title)
         TextView mTitle;
-        @BindView(R.id.F_song_Artist)
+        @BindView(R.id.F_Artist)
         TextView mArtist;
         @BindView(R.id.F_delete)
         ImageButton delete;
@@ -122,6 +118,8 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
 
         public ViewHolder(View itemView) {
             super(itemView);
+            animation = AnimationUtils.loadAnimation(itemView.getContext(), R.anim.fade_in);
+            itemView.setAnimation(animation);
             ButterKnife.bind(this, itemView);
         }
     }

@@ -3,6 +3,8 @@ package com.santoshkumarsingh.gxmusicplayer.Activities;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageButton;
@@ -12,7 +14,6 @@ import com.santoshkumarsingh.gxmusicplayer.Adapters.FavoriteRecyclerAdapter;
 import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.FavoriteOnClickListener;
 import com.santoshkumarsingh.gxmusicplayer.R;
-import com.santoshkumarsingh.gxmusicplayer.Utilities.AutofitGridlayout;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -57,10 +58,14 @@ public class FavoriteActivity extends AppCompatActivity implements FavoriteOnCli
     }
 
     private void configRecycleView(RealmResults<FavoriteAudio> results) {
-        AutofitGridlayout layoutManager = new AutofitGridlayout(this, Integer.parseInt(getString(R.string.Image_Width)));
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(linearLayoutManager);
+//        AutofitGridlayout layoutManager = new AutofitGridlayout(this, Integer.parseInt(getString(R.string.Image_Width)));
         FavoriteRecyclerAdapter recyclerAdapter = new FavoriteRecyclerAdapter(this, results);
-        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(recyclerAdapter);
+        final DividerItemDecoration itemDecoration = new DividerItemDecoration(recyclerView.getContext(), linearLayoutManager.getOrientation());
+        recyclerView.addItemDecoration(itemDecoration);
     }
 
     @Override

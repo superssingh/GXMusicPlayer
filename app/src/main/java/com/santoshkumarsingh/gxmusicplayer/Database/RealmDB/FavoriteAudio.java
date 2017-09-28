@@ -27,6 +27,9 @@ public class FavoriteAudio extends RealmObject implements Parcelable {
     private String id;
     private String TITLE, ARTIST, URL, ALBUM, DURATION, GENRES;
 
+    public FavoriteAudio() {
+    }
+
     public FavoriteAudio(String id, String TITLE, String ARTIST, String URL, String ALBUM, String DURATION, String GENRES) {
         this.id = id;
         this.TITLE = TITLE;

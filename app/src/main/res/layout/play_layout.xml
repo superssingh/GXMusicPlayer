@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/play_layout"
     android:layout_width="match_parent"
     android:layout_height="150sp"
     android:background="@drawable/background">
@@ -31,9 +32,14 @@
             android:id="@+id/trackTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:gravity="center"
-            android:maxLines="2"
+            android:marqueeRepeatLimit="marquee_forever"
             android:padding="10dp"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
             android:textColor="@color/colorWhite" />
 
         <LinearLayout

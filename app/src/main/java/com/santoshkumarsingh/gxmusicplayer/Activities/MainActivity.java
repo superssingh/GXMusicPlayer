@@ -30,6 +30,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -98,6 +101,8 @@ public class MainActivity extends AppCompatActivity
     FloatingActionButton fab;
     @BindView(R.id.Progress_bar)
     ProgressBar progressBar;
+    @BindView(R.id.play_layout)
+    FrameLayout play_layout;
 
     private Utilities utilities;
     private int trackPosition = 0;
@@ -111,6 +116,7 @@ public class MainActivity extends AppCompatActivity
     private CompositeDisposable disposable, disposable1;
     private LoadAudio loadAudio;
     private RealmConfiguration config;
+    private Animation animation;
 
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -407,6 +413,14 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+//        final HorizontalScrollView scrollView = (HorizontalScrollView) findViewById(R.id.scroll);
+
+//        scrollView.postDelayed(new Runnable() {
+//            public void run() {
+//                scrollView.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+//            }
+//        }, 100L);
+
     }
 
     private void playAudio(int audioIndex) {
@@ -450,7 +464,6 @@ public class MainActivity extends AppCompatActivity
         serviceBound = savedInstanceState.getBoolean("ServiceState");
     }
 
-    //-----------
     private List<Audio> getAudioList() {
         return loadAudio.loadAudioFiles();
     }
@@ -626,6 +639,8 @@ public class MainActivity extends AppCompatActivity
     public void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position) {
         trackPosition = position;
         playAudio(position);
+        animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+        play_layout.setAnimation(animation);
         optionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

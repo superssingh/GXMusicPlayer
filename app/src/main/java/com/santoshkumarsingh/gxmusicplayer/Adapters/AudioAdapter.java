@@ -5,6 +5,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -41,12 +43,14 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
         this.favoriteAudioListener = favoriteAudioListener;
         audioList = new ArrayList<>();
         utilities = new Utilities();
+
     }
 
     @Override
     public AudioAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.song_item, parent, false);
+
         return new ViewHolder(view);
     }
 
@@ -79,6 +83,7 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
                 if (favoriteAudioListener != null) {
                     favoriteAudioListener.onFavoriteClicked(audio);
                 }
+
                 holder.favorite.setBackgroundResource(ic_favorite_24dp);
             }
         });
@@ -111,7 +116,6 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
         void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position);
     }
 
-
     public interface FavoriteAudioListener {
         void onFavoriteClicked(Audio audio);
     }
@@ -125,10 +129,15 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
         ImageButton favorite;
         @BindView(R.id.imageView)
         ImageView thumbnail;
+        Animation animation;
 
         public ViewHolder(View itemView) {
             super(itemView);
+            animation = AnimationUtils.loadAnimation(itemView.getContext(), R.anim.fade_in);
+            itemView.setAnimation(animation);
             ButterKnife.bind(this, itemView);
         }
+
     }
+
 }
