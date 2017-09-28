@@ -30,6 +30,7 @@ public class LoadAudio {
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 do {
+                    String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
                     String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
                     String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
                     String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
@@ -37,7 +38,7 @@ public class LoadAudio {
                     String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
                     String genres = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Genres._ID));
 
-                    Audio audio = new Audio(title, artist, url, album, duration, genres);
+                    Audio audio = new Audio(id, title, artist, url, album, duration, genres);
                     audios.add(audio);
                 } while (cursor.moveToNext());
             }

@@ -24,14 +24,14 @@ public class FavoriteAudio extends RealmObject implements Parcelable {
         }
     };
     @PrimaryKey
-    private String id;
+    private String ID;
     private String TITLE, ARTIST, URL, ALBUM, DURATION, GENRES;
 
     public FavoriteAudio() {
     }
 
-    public FavoriteAudio(String id, String TITLE, String ARTIST, String URL, String ALBUM, String DURATION, String GENRES) {
-        this.id = id;
+    public FavoriteAudio(String ID, String TITLE, String ARTIST, String URL, String ALBUM, String DURATION, String GENRES) {
+        this.ID = ID;
         this.TITLE = TITLE;
         this.ARTIST = ARTIST;
         this.URL = URL;
@@ -41,7 +41,7 @@ public class FavoriteAudio extends RealmObject implements Parcelable {
     }
 
     protected FavoriteAudio(Parcel in) {
-        id = in.readString();
+        ID = in.readString();
         TITLE = in.readString();
         ARTIST = in.readString();
         URL = in.readString();
@@ -50,12 +50,28 @@ public class FavoriteAudio extends RealmObject implements Parcelable {
         GENRES = in.readString();
     }
 
-    public String getId() {
-        return id;
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(ID);
+        dest.writeString(TITLE);
+        dest.writeString(ARTIST);
+        dest.writeString(URL);
+        dest.writeString(ALBUM);
+        dest.writeString(DURATION);
+        dest.writeString(GENRES);
     }
 
-    public void setId(String id) {
-        this.id = id;
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public String getID() {
+        return ID;
+    }
+
+    public void setID(String ID) {
+        this.ID = ID;
     }
 
     public String getTITLE() {
@@ -104,21 +120,5 @@ public class FavoriteAudio extends RealmObject implements Parcelable {
 
     public void setGENRES(String GENRES) {
         this.GENRES = GENRES;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(id);
-        parcel.writeString(TITLE);
-        parcel.writeString(ARTIST);
-        parcel.writeString(URL);
-        parcel.writeString(ALBUM);
-        parcel.writeString(DURATION);
-        parcel.writeString(GENRES);
     }
 }

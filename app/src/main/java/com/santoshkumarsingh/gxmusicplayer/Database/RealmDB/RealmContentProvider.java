@@ -24,12 +24,12 @@ public class RealmContentProvider {
 
         final Realm realm = Realm.getDefaultInstance();
         final RealmResults<FavoriteAudio> favoriteAudios = realm.where(FavoriteAudio.class)
-                .equalTo("id", audio.getURL())
+                .equalTo("ID", audio.getID())
                 .findAllAsync();
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(@NonNull Realm realm1) {
-                FavoriteAudio favoriteBook = realm1.createObject(FavoriteAudio.class, audio.getURL());
+                FavoriteAudio favoriteBook = realm1.createObject(FavoriteAudio.class, audio.getID());
                 favoriteBook.setTITLE(audio.getTITLE());
                 favoriteBook.setARTIST(audio.getARTIST());
                 favoriteBook.setURL(audio.getURL());

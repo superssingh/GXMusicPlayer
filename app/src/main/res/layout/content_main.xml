@@ -11,7 +11,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/black_red"
+        android:background="@drawable/pink_red"
         android:gravity="center"
         android:orientation="vertical">
 
@@ -20,9 +20,14 @@
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/background"></android.support.v7.widget.RecyclerView>
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/background"
+            android:scrollIndicators="right"
+            android:scrollbarStyle="insideOverlay"
+            android:scrollbars="vertical"></android.support.v7.widget.RecyclerView>
 
+        <include layout="@layout/current_play" />
     </LinearLayout>
 
     <ProgressBar
@@ -39,7 +44,7 @@
     <!--android:id="@+id/progressBarFrame"-->
     <!--android:gravity="center"-->
     <!--android:visibility="visible"-->
-    <!--android:background="@drawable/black_red">-->
+    <!--android:background="@drawable/pink_red">-->
 
     <!--<com.wang.avi.AVLoadingIndicatorView-->
     <!--android:id="@+id/avi"-->

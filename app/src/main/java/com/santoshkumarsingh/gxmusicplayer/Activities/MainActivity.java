@@ -31,7 +31,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -41,7 +40,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.santoshkumarsingh.gxmusicplayer.Adapters.AudioAdapter;
-import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.RealmContentProvider;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
@@ -75,10 +73,11 @@ import static android.widget.Toast.LENGTH_LONG;
 
 @SuppressWarnings("WeakerAccess")
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, AudioAdapter.SongOnClickListener, AudioAdapter.FavoriteAudioListener {
+        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, AudioAdapter.SongOnClickListener {
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.santoshkumarsingh.gxmusicplayer.PlayNewAudio";
     private static MediaPlayerService playerService;
+
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     @BindView(R.id.play_pause)
@@ -136,6 +135,7 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(MainActivity.this, "Service Unbound", Toast.LENGTH_SHORT).show();
         }
     };
+    private StorageUtil storageUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,17 +162,29 @@ public class MainActivity extends AppCompatActivity
         seekBar.setClickable(true);
         NavigationDrawerSetup();
 
-        StorageUtil storageUtil = new StorageUtil(MainActivity.this);
+        storageUtil = new StorageUtil(MainActivity.this);
         trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
 
         if (savedInstanceState == null) {
+            audioList = null;
             if (storageUtil.loadAudioIndex() == -1) {
                 checkPermission();
             } else {
                 Load_Audio_Data();
             }
+        } else {
+            audioList = savedInstanceState.getParcelableArrayList(getString(R.string.AUDIO_STATE));
+            setDataIntoAdapter(audioList);
         }
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (audioList == null) {
+            audioList = storageUtil.loadAudio();
+            setDataIntoAdapter(audioList);
+        }
     }
 
     private void Load_Audio_Data() {
@@ -195,9 +207,8 @@ public class MainActivity extends AppCompatActivity
                 .subscribeWith(new DisposableObserver<List<Audio>>() {
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull List<Audio> audios) {
-                        audioList = audios;
                         hideProgressbar();
-                        configRecycleView();
+                        setDataIntoAdapter(audios);
                     }
 
                     @Override
@@ -313,12 +324,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-//        Load_Audio_Data();
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
         super.onSaveInstanceState(outState, outPersistentState);
         outState.putParcelableArrayList(getString(R.string.AUDIO_STATE), new ArrayList<Parcelable>(audioAdapter.getAudioList()));
@@ -339,13 +344,17 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    private void setDataIntoAdapter(List<Audio> audios) {
+        audioList = audios;
+        audioAdapter = new AudioAdapter(this, audios);
+        audioAdapter.notifyDataSetChanged();
+        configRecycleView();
+    }
+
     //---------------------------
     private void configRecycleView() {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
-        audioAdapter = new AudioAdapter(this, this);
-        audioAdapter.addSongs(audioList);
-        audioAdapter.notifyDataSetChanged();
         recyclerView.setAdapter(audioAdapter);
         final DividerItemDecoration itemDecoration = new DividerItemDecoration(recyclerView.getContext(), linearLayoutManager.getOrientation());
         recyclerView.addItemDecoration(itemDecoration);
@@ -413,14 +422,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-//        final HorizontalScrollView scrollView = (HorizontalScrollView) findViewById(R.id.scroll);
-
-//        scrollView.postDelayed(new Runnable() {
-//            public void run() {
-//                scrollView.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
-//            }
-//        }, 100L);
-
+//
     }
 
     private void playAudio(int audioIndex) {
@@ -635,19 +637,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public void OnClick(ImageButton optionButton, View view, Bitmap bitmap, String URL, int position) {
-        trackPosition = position;
-        playAudio(position);
-        animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
-        play_layout.setAnimation(animation);
-        optionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
-    }
 
     private void setPlayPauseState(boolean playPauseState) {
         if (playerService == null || playerService.mediaPlayer == null) {
@@ -662,12 +651,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onFavoriteClicked(Audio audio) {
-        RealmContentProvider contentProvider = new RealmContentProvider();
-        contentProvider.addFavorite(getApplicationContext(), audio);
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (serviceBound) {
@@ -678,5 +661,8 @@ public class MainActivity extends AppCompatActivity
         disposable1.dispose();
     }
 
-
+    @Override
+    public void OnItemClicked(int position) {
+        playAudio(position);
+    }
 }

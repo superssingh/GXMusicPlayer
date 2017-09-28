@@ -49,9 +49,8 @@ public class FavoriteActivity extends AppCompatActivity implements FavoriteOnCli
         RealmResults<FavoriteAudio> favoriteAudios = realm.where(FavoriteAudio.class).findAll();
         if (favoriteAudios.size() == 0) {
             recyclerView.setVisibility(View.GONE);
-            Toast.makeText(getApplicationContext(), "Data Not Found", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), R.string.NoDataFound, Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(getApplicationContext(), "Data Found", Toast.LENGTH_LONG).show();
             configRecycleView(favoriteAudios);
         }
 

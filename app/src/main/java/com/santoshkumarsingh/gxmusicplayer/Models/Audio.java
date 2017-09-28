@@ -20,12 +20,13 @@ public class Audio implements Parcelable {
             return new Audio[size];
         }
     };
-    private String TITLE, ARTIST, URL, ALBUM, DURATION, GENRES;
+    private String ID, TITLE, ARTIST, URL, ALBUM, DURATION, GENRES;
 
     public Audio() {
     }
 
-    public Audio(String TITLE, String ARTIST, String URL, String ALBUM, String DURATION, String GENRES) {
+    public Audio(String ID, String TITLE, String ARTIST, String URL, String ALBUM, String DURATION, String GENRES) {
+        this.ID = ID;
         this.TITLE = TITLE;
         this.ARTIST = ARTIST;
         this.URL = URL;
@@ -35,6 +36,7 @@ public class Audio implements Parcelable {
     }
 
     protected Audio(Parcel in) {
+        ID = in.readString();
         TITLE = in.readString();
         ARTIST = in.readString();
         URL = in.readString();
@@ -43,12 +45,28 @@ public class Audio implements Parcelable {
         GENRES = in.readString();
     }
 
-    public String getGENRES() {
-        return GENRES;
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(ID);
+        dest.writeString(TITLE);
+        dest.writeString(ARTIST);
+        dest.writeString(URL);
+        dest.writeString(ALBUM);
+        dest.writeString(DURATION);
+        dest.writeString(GENRES);
     }
 
-    public void setGENRES(String GENRES) {
-        this.GENRES = GENRES;
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public String getID() {
+        return ID;
+    }
+
+    public void setID(String ID) {
+        this.ID = ID;
     }
 
     public String getTITLE() {
@@ -91,17 +109,11 @@ public class Audio implements Parcelable {
         this.DURATION = DURATION;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
+    public String getGENRES() {
+        return GENRES;
     }
 
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(TITLE);
-        parcel.writeString(ARTIST);
-        parcel.writeString(URL);
-        parcel.writeString(ALBUM);
-        parcel.writeString(DURATION);
+    public void setGENRES(String GENRES) {
+        this.GENRES = GENRES;
     }
 }

@@ -5,7 +5,7 @@
     <alpha
         android:duration="1000"
         android:fromAlpha="0.0"
-        android:interpolator="@android:anim/bounce_interpolator"
+        android:interpolator="@android:animator/fade_in"
         android:toAlpha="1.0" />
 
 </set>

@@ -3,11 +3,9 @@
     android:shape="rectangle">
 
     <gradient
-        android:angle="90"
-        android:centerColor="#84060606"
-        android:centerX="@android:integer/config_longAnimTime"
-        android:endColor="#7b0a0909"
-        android:startColor="#a4c40343"
-        android:type="linear" />
+        android:angle="45"
+        android:centerColor="#afb9053e"
+        android:endColor="#e245051d"
+        android:startColor="#e438041e"></gradient>
 
 </shape>

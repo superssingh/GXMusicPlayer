@@ -38,7 +38,7 @@
     <string name="Already_exists">Already marked as favorite</string>
     <string name="Favorite_empty_list">Favorite list is empty</string>
     <string name="deleteButton">delete</string>
-    <string name="NoDataFound">No data found in favorite list</string>
+    <string name="NoDataFound">No data found.</string>
     <string name="Image_Width">230</string>
     <string name="AUDIO_STATE">audio_state</string>
     <string name="SONG_POSITION">currentPosition</string>
