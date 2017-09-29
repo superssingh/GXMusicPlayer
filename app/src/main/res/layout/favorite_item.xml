@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/placeNameHolder"
     android:layout_width="match_parent"
     android:layout_height="60dp"
-    android:background="@drawable/pink_red"
     android:clickable="true"
     android:elevation="4dp"
     android:gravity="center"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    app:cardBackgroundColor="@color/cardview_dark_background">
 
     <ImageView
         android:id="@+id/F_imageView"
@@ -47,13 +47,13 @@
     </LinearLayout>
 
     <ImageButton
-            android:id="@+id/F_delete"
-            android:layout_width="32dp"
+        android:id="@+id/F_delete"
+        android:layout_width="32dp"
         android:layout_height="match_parent"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="10dp"
-            android:background="@drawable/ic_delete"
-            android:contentDescription="@string/deleteButton" />
+        android:layout_gravity="bottom|end"
+        android:layout_margin="10dp"
+        android:background="@drawable/ic_delete"
+        android:contentDescription="@string/deleteButton" />
 
-</LinearLayout>
+</android.support.v7.widget.CardView>
 

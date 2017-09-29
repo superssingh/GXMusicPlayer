@@ -230,13 +230,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.setVolume(1.0f, 1.0f);
         }
 
-//        if (!mAudioFocusGranted && requestAudioFocus()) {
-//            // 2. Kill off any other play back sources
-//            forceMusicStop();
-//            // 3. Register broadcast receiver for player intents
-//            setupBroadcastReceiver();
-//        }
-
         mediaPlayer.start();
         mAudioIsPlaying = true;
         buildNotification(PlaybackStatus.PAUSED);
@@ -296,8 +289,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     private void initMediaSession() {
         if (mediaSessionManager != null) return; //mediaSessionManager exists
-
-//        if (mContext==null){ mContext=getApplicationContext();}
 
         mediaSessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
         // Create a new MediaSession
@@ -360,7 +351,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         // replace with medias albumArt
         albumArt = (utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null ?
                 utilities.getTrackThumbnail(activeAudio.getURL())
-                : BitmapFactory.decodeResource(getResources(), R.drawable.audio_image));
+                : BitmapFactory.decodeResource(getResources(), R.drawable.ic_audiotrack));
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)

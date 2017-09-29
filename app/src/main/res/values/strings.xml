@@ -42,5 +42,7 @@
     <string name="Image_Width">230</string>
     <string name="AUDIO_STATE">audio_state</string>
     <string name="SONG_POSITION">currentPosition</string>
+    <string name="title_activity_tab">TabActivity</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 
 </resources>

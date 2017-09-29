@@ -18,13 +18,13 @@
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 
-    <style name="TextWhite" >
+    <style name="TextWhite">
         <item name="android:textColor">@color/colorWhite</item>
         <item name="android:fontFamily">@string/font_family_regular</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="TextGray" >
+    <style name="TextGray">
         <item name="android:textColor">@color/LightGray</item>
         <item name="android:fontFamily">@string/font_family_regular</item>
         <item name="android:textStyle">bold</item>

@@ -38,23 +38,4 @@
         android:layout_gravity="center_horizontal"
         android:visibility="gone" />
 
-    <!--<RelativeLayout-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent"-->
-    <!--android:id="@+id/progressBarFrame"-->
-    <!--android:gravity="center"-->
-    <!--android:visibility="visible"-->
-    <!--android:background="@drawable/pink_red">-->
-
-    <!--<com.wang.avi.AVLoadingIndicatorView-->
-    <!--android:id="@+id/avi"-->
-    <!--style="@style/AVLoadingIndicatorView"-->
-    <!--android:layout_gravity="center"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--app:indicatorName="LineScalePartyIndicator" />-->
-
-    <!--</RelativeLayout>-->
-
-
 </FrameLayout>

@@ -32,7 +32,6 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     private RealmResults<FavoriteAudio> favoriteAudios;
     private Utilities utilities;
     private FavoriteOnClickListener onClickListener;
-    private int preposition;
 
     public FavoriteRecyclerAdapter(FavoriteOnClickListener listener, RealmResults<FavoriteAudio> audios) {
         onClickListener = listener;
@@ -86,11 +85,6 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     @Override
     public int getItemCount() {
         return favoriteAudios.size();
-    }
-
-    public void addSongs(RealmResults<FavoriteAudio> favoriteAudios) {
-        this.favoriteAudios = favoriteAudios;
-        notifyDataSetChanged();
     }
 
     private void delete(int position) {

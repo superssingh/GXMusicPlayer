@@ -11,7 +11,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
 import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.RealmContentProvider;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
@@ -22,7 +21,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.RealmResults;
 
 /**
  * Created by santoshsingh (santoshkumarsingh.com) on 17/08/17.
@@ -31,7 +29,6 @@ import io.realm.RealmResults;
 @SuppressWarnings("ObjectEqualsNull")
 public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> {
 
-    RealmResults<FavoriteAudio> favoriteAudios;
     private Utilities utilities;
     private List<Audio> audioList = new ArrayList<>();
     private SongOnClickListener songOnClickListener;
@@ -89,22 +86,12 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.ViewHolder> 
         return audioList.size();
     }
 
-    public void addSongs(List<Audio> audioList) {
-        this.audioList = null;
-        this.audioList = audioList;
-        notifyDataSetChanged();
-    }
-
     public List<Audio> getAudioList() {
         return audioList;
     }
 
     public interface SongOnClickListener {
         void OnItemClicked(int position);
-    }
-
-    public interface FavoriteAudioListener {
-        void onFavoriteClicked(Audio audio);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

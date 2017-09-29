@@ -181,7 +181,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        if (audioList == null) {
+        if (audioList == null && storageUtil.loadAudio() == null) {
+//            checkPermission();
+            Load_Audio_Data();
+        } else {
             audioList = storageUtil.loadAudio();
             setDataIntoAdapter(audioList);
         }
@@ -250,7 +253,7 @@ public class MainActivity extends AppCompatActivity
                     public void accept(String s) throws Exception {
                         bitmap = (utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
                                 ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())
-                                : BitmapFactory.decodeResource(getResources(), R.drawable.audio_image));
+                                : BitmapFactory.decodeResource(getResources(), R.drawable.ic_audiotrack));
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
