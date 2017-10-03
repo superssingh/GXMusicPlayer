@@ -44,7 +44,6 @@ import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 import com.santoshkumarsingh.gxmusicplayer.Services.MediaPlayerService;
-import com.santoshkumarsingh.gxmusicplayer.Utilities.LoadAudio;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 
 import java.util.ArrayList;
@@ -103,7 +102,6 @@ public class MainActivity extends AppCompatActivity
     private Bitmap bitmap;
     private CompositeDisposable disposable, disposable1;
     private StorageUtil storageUtil;
-    private LoadAudio loadAudio;
     private RealmConfiguration config;
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -147,7 +145,6 @@ public class MainActivity extends AppCompatActivity
         NavigationDrawerSetup();
         disposable = new CompositeDisposable();
         disposable1 = new CompositeDisposable();
-        loadAudio = new LoadAudio(this);
         audioList = new ArrayList<>();
         utilities = new Utilities();
         storageUtil = new StorageUtil(this);
