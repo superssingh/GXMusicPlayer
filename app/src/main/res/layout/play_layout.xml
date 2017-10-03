@@ -93,7 +93,7 @@
                 android:id="@+id/play_pause"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:background="@drawable/ic_play"
+                android:background="@drawable/ic_play_circle_filled"
                 android:contentDescription="@string/play_pauseButton" />
 
             <ImageButton

@@ -1,46 +1,45 @@
 package com.santoshkumarsingh.gxmusicplayer.Activities;
 
-import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Parcelable;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.v4.content.ContextCompat;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatSeekBar;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.santoshkumarsingh.gxmusicplayer.Adapters.AudioAdapter;
+import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
+import com.santoshkumarsingh.gxmusicplayer.Fragments.DetailFragment;
+import com.santoshkumarsingh.gxmusicplayer.Fragments.FavoriteFragment;
+import com.santoshkumarsingh.gxmusicplayer.Fragments.HomeFragment;
+import com.santoshkumarsingh.gxmusicplayer.Interfaces.FavoriteOnClickListener2;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
@@ -48,7 +47,6 @@ import com.santoshkumarsingh.gxmusicplayer.Services.MediaPlayerService;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.LoadAudio;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -68,55 +66,45 @@ import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-
-import static android.widget.Toast.LENGTH_LONG;
+import io.realm.RealmResults;
 
 @SuppressWarnings("WeakerAccess")
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, AudioAdapter.SongOnClickListener {
+        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, TabLayout.OnTabSelectedListener, HomeFragment.OnFragmentInteractionListener, FavoriteFragment.OnFragmentInteractionListener, DetailFragment.OnFragmentInteractionListener {
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.santoshkumarsingh.gxmusicplayer.PlayNewAudio";
     private static MediaPlayerService playerService;
-
-    @BindView(R.id.recyclerView)
-    RecyclerView recyclerView;
-    @BindView(R.id.play_pause)
-    ImageButton play_pause;
-    @BindView(R.id.previous)
-    ImageButton previous;
-    @BindView(R.id.next)
-    ImageButton next;
-    @BindView(R.id.songThumbnail)
-    ImageView songThumbnail;
+    @BindView(R.id.fab)
+    FloatingActionButton fab;
+    @BindView(R.id.Current_Play_Pause)
+    ImageButton playPause;
+    @BindView(R.id.track_Thumbnail)
+    ImageView trackThumbnail;
     @BindView(R.id.trackTitle)
     TextView songTitle;
     @BindView(R.id.trackArtist)
     TextView songArtist;
-    @BindView(R.id.trackDuration)
-    TextView songDuration;
-    @BindView(R.id.seekBar)
+    @BindView(R.id.current_seekBar)
     AppCompatSeekBar seekBar;
-    @BindView(R.id.fab)
-    FloatingActionButton fab;
-    @BindView(R.id.Progress_bar)
-    ProgressBar progressBar;
     @BindView(R.id.play_layout)
     FrameLayout play_layout;
-
+    @BindView(R.id.Tab_layout)
+    TabLayout tabLayout;
+    @BindView(R.id.View_Pager)
+    ViewPager pager;
+    Animation animation;
+    FavoriteOnClickListener2 favoriteOnClickListener;
     private Utilities utilities;
     private int trackPosition = 0;
     private List<Audio> audioList;
-    private AudioAdapter audioAdapter;
     private boolean serviceBound = false;
     private Intent playerIntent;
     private Toolbar toolbar;
-    private DecimalFormat decimalFormat = new DecimalFormat("#.##");
     private Bitmap bitmap;
     private CompositeDisposable disposable, disposable1;
+    private StorageUtil storageUtil;
     private LoadAudio loadAudio;
     private RealmConfiguration config;
-    private Animation animation;
-
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -127,6 +115,8 @@ public class MainActivity extends AppCompatActivity
             playerService.setCallback(MainActivity.this);
             serviceBound = true;
             Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
+            UI_update(trackPosition, bitmap);
+            play_layout.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -135,7 +125,6 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(MainActivity.this, "Service Unbound", Toast.LENGTH_SHORT).show();
         }
     };
-    private StorageUtil storageUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,6 +134,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         // Realm Initialization
+        Realm.removeDefaultConfiguration();
         Realm.init(this);
         config = new RealmConfiguration.Builder()
                 .name(getString(R.string.RealmDatabaseName))
@@ -154,213 +144,40 @@ public class MainActivity extends AppCompatActivity
         Realm.setDefaultConfiguration(config);
 
         ButterKnife.bind(this);
+        NavigationDrawerSetup();
         disposable = new CompositeDisposable();
         disposable1 = new CompositeDisposable();
         loadAudio = new LoadAudio(this);
         audioList = new ArrayList<>();
         utilities = new Utilities();
-        seekBar.setClickable(true);
-        NavigationDrawerSetup();
+        storageUtil = new StorageUtil(this);
+        animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+        play_layout.setAnimation(animation);
+        songTitle.setSelected(true);
+        playerService = new MediaPlayerService();
+        play_layout.setVisibility(View.GONE);
+        InitializedView();
 
-        storageUtil = new StorageUtil(MainActivity.this);
-        trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
-
-        if (savedInstanceState == null) {
-            audioList = null;
-            if (storageUtil.loadAudioIndex() == -1) {
-                checkPermission();
-            } else {
-                Load_Audio_Data();
-            }
+        if (storageUtil.loadAudioIndex() != -1) {
+            audioList = storageUtil.loadAudio();
+            trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
+            ConnectMediaPlayer();
         } else {
-            audioList = savedInstanceState.getParcelableArrayList(getString(R.string.AUDIO_STATE));
-            setDataIntoAdapter(audioList);
+            return;
         }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        if (audioList == null && storageUtil.loadAudio() == null) {
-//            checkPermission();
-            Load_Audio_Data();
-        } else {
-            audioList = storageUtil.loadAudio();
-            setDataIntoAdapter(audioList);
-        }
     }
 
-    private void Load_Audio_Data() {
-        disposable.add(getAudio()
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(new Consumer<List<Audio>>() {
-                    @Override
-                    public void accept(List<Audio> audios) throws Exception {
-                        showProgressbar();
-                    }
-                })
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(new Consumer<List<Audio>>() {
-                    @Override
-                    public void accept(List<Audio> audios) throws Exception {
-
-                    }
-                })
-                .subscribeWith(new DisposableObserver<List<Audio>>() {
-                    @Override
-                    public void onNext(@io.reactivex.annotations.NonNull List<Audio> audios) {
-                        hideProgressbar();
-                        setDataIntoAdapter(audios);
-                    }
-
-                    @Override
-                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        Log.e("Error:: ", e.getMessage());
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        Log.e("OnComplete:: ", "Completed");
-                        ConnectMediaPlayer();
-
-                    }
-                }));
-    }
-
-    private Observable<List<Audio>> getAudio() {
-        return Observable.fromCallable(new Callable<List<Audio>>() {
-            @Override
-            public List<Audio> call() throws Exception {
-                return getAudioList();
-            }
-        });
-    }
-
-    private void showProgressbar() {
-        progressBar.setVisibility(View.VISIBLE);
-    }
-
-    private void hideProgressbar() {
-        progressBar.setVisibility(View.GONE);
-    }
-
-    private void ConnectMediaPlayer() {
-        disposable1.add(observable()
-                .subscribeOn(Schedulers.io())
-                .doOnNext(new Consumer<String>() {
-                    @Override
-                    public void accept(String s) throws Exception {
-                        bitmap = (utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
-                                ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())
-                                : BitmapFactory.decodeResource(getResources(), R.drawable.ic_audiotrack));
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new DisposableObserver<String>() {
-
-                    @Override
-                    public void onNext(@io.reactivex.annotations.NonNull String s) {
-                        UI_update(trackPosition);
-                        playAudio(trackPosition);
-                    }
-
-                    @Override
-                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        Log.e("Service_bound_Error-", e.toString());
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        Log.e("Service_Bound- ", "Completed ");
-                        if (playerService != null && playerService.mediaPlayer != null) {
-                            setPlayPauseState(playerService.ismAudioIsPlaying());
-                        }
-
-                    }
-                }));
-    }
-
-    private Observable<String> observable() {
-        return Observable.create(new ObservableOnSubscribe<String>() {
-            @Override
-            public void subscribe(@io.reactivex.annotations.NonNull ObservableEmitter<String> e) throws Exception {
-                do {
-                    if (playerService == null) {
-                        playerService = MediaPlayerService.getInstance(getApplicationContext());
-                        playerService.setAudioList(audioList);
-                    }
-                    e.onNext("START");
-                } while (playerService == null);
-
-                e.onComplete();
-            }
-        });
-    }
-
-    //-------
-    private void update_seekBar() {
-        Observable.interval(1, TimeUnit.SECONDS).subscribe(new Observer<Long>() {
-            @Override
-            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
-
-            }
-
-            @Override
-            public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
-                if (playerService.mediaPlayer != null) {
-                    seekBarCycle();
-                }
-            }
-
-            @Override
-            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                Log.e("SeekBar_Error: ", e.toString());
-            }
-
-            @Override
-            public void onComplete() {
-
-            }
-        });
-
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
-        outState.putParcelableArrayList(getString(R.string.AUDIO_STATE), new ArrayList<Parcelable>(audioAdapter.getAudioList()));
-        outState.putInt(getString(R.string.SONG_POSITION), trackPosition);
-
-    }
-
-    private void NavigationDrawerSetup() {
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        //noinspection deprecation
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-    }
-
-    private void setDataIntoAdapter(List<Audio> audios) {
-        audioList = audios;
-        audioAdapter = new AudioAdapter(this, audios);
-        audioAdapter.notifyDataSetChanged();
-        configRecycleView();
-    }
-
-    //---------------------------
-    private void configRecycleView() {
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(audioAdapter);
-        final DividerItemDecoration itemDecoration = new DividerItemDecoration(recyclerView.getContext(), linearLayoutManager.getOrientation());
-        recyclerView.addItemDecoration(itemDecoration);
+    private void InitializedView() {
+        //------Tab & View pager init...
+        pager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
+        tabLayout.setupWithViewPager(pager);
+        pager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        //------OnclickedListenters
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -383,53 +200,156 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        play_pause.setOnClickListener(new View.OnClickListener() {
+        playPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (playerService.ismAudioIsPlaying()) {
                     playerService.pause();
-                    play_pause.setBackgroundResource(R.drawable.ic_play);
+                    playPause.setImageResource(R.drawable.ic_play_circle_filled);
                 } else {
                     playerService.resume();
-                    play_pause.setBackgroundResource(R.drawable.ic_pause);
+                    playPause.setImageResource(R.drawable.ic_pause_circle_filled);
                 }
             }
         });
 
-        previous.setOnClickListener(new View.OnClickListener() {
+    }
+
+    private void Load_Audio_Data() {
+        disposable.add(getAudio()
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<List<Audio>>() {
+                    @Override
+                    public void accept(List<Audio> audios) throws Exception {
+
+                    }
+                })
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<List<Audio>>() {
+                    @Override
+                    public void accept(List<Audio> audios) throws Exception {
+                    }
+                })
+                .subscribeWith(new DisposableObserver<List<Audio>>() {
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull List<Audio> audios) {
+                        ConnectMediaPlayer();
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        Log.e("Error:: ", e.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.e("OnComplete:: ", "Completed");
+
+                    }
+                }));
+    }
+
+    private Observable<List<Audio>> getAudio() {
+        return Observable.fromCallable(new Callable<List<Audio>>() {
             @Override
-            public void onClick(View v) {
-                if (!serviceBound) {
-                    return;
-                }
+            public List<Audio> call() throws Exception {
+                do {
+                    if (storageUtil.loadAudioIndex() != -1) {
+                        audioList = storageUtil.loadAudio();
+                    }
+                } while (audioList != null);
 
-                playerService.skipToPrevious();
-                playerService.playMedia();
-                play_pause.setBackgroundResource(R.drawable.ic_pause);
-                trackPosition = playerService.getAudioIndex();
-
+                return audioList;
             }
         });
+    }
 
-        next.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!serviceBound) {
-                    return;
-                }
-
-                playerService.skipToNext();
-                playerService.playMedia();
-                play_pause.setBackgroundResource(R.drawable.ic_pause);
-                trackPosition = playerService.getAudioIndex();
-            }
-        });
-
+//    private void showProgressbar() {
+//        progressBar.setVisibility(View.VISIBLE);
+//    }
 //
+//    private void hideProgressbar() {
+//        progressBar.setVisibility(View.GONE);
+//    }
+
+    private void ConnectMediaPlayer() {
+        disposable.add(observable()
+                .subscribeOn(Schedulers.io())
+                .doOnNext(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer s) throws Exception {
+                        bitmap = utilities.getTrackThumbnail(audioList.get(s).getURL()) != null
+                                ? utilities.getTrackThumbnail(audioList.get(s).getURL()) : null;
+//                                : BitmapFactory.decodeResource(getResources(), R.drawable.ic_headset));
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer s) throws Exception {
+
+                    }
+                })
+                .subscribeWith(new DisposableObserver<Integer>() {
+
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull Integer s) {
+//                        UI_update(s);
+                        playAudio(s);
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        Log.e("Service_bound_Error-", e.toString());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.e("Service_Bound- ", "Completed ");
+                        if (playerService != null && playerService.mediaPlayer != null) {
+                            Log.d("Service_Bound- ", "" + playerService.ismAudioIsPlaying() + "/ " + playerService.getRepeat());
+                            setPlayPauseState(playerService.mediaPlayer.isPlaying());
+                            setRepeatButtonIcon(playerService.getRepeat());
+                        }
+                        setRepeatButtonIcon(playerService.getRepeat());
+                    }
+                }));
+    }
+
+    private Observable<Integer> observable() {
+        return Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(@io.reactivex.annotations.NonNull ObservableEmitter<Integer> e) throws Exception {
+                do {
+                    if (playerService == null) {
+                        playerService = MediaPlayerService.getInstance(getApplicationContext());
+                        playerService.setAudioList(audioList);
+                    }
+                    e.onNext(trackPosition);
+
+                    Log.d("Observable- ", "" + playerService.ismAudioIsPlaying() + "/ " + playerService.getRepeat());
+                } while (playerService == null);
+
+                e.onComplete();
+            }
+        });
+    }
+
+    private void NavigationDrawerSetup() {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        //noinspection deprecation
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
     }
 
     private void playAudio(int audioIndex) {
-
         //Check is service is active
         if (!serviceBound) {
             //Store Serializable audioList to SharedPreferences
@@ -453,7 +373,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         trackPosition = audioIndex;
-        play_pause.setBackgroundResource(R.drawable.ic_pause);
+        playPause.setImageResource(R.drawable.ic_pause_circle_filled);
 
     }
 
@@ -467,39 +387,6 @@ public class MainActivity extends AppCompatActivity
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         serviceBound = savedInstanceState.getBoolean("ServiceState");
-    }
-
-    private List<Audio> getAudioList() {
-        return loadAudio.loadAudioFiles();
-    }
-
-    private void checkPermission() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 24);
-                return;
-            }
-        }
-
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case 24:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Load_Audio_Data();
-                } else {
-                    Toast.makeText(this, getString(R.string.permission_denied), LENGTH_LONG).show();
-                    checkPermission();
-                }
-                break;
-
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-                Load_Audio_Data();
-        }
     }
 
     @Override
@@ -556,101 +443,78 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    @Override
+    public void doSomething(int position, Bitmap bitmap) {
+        UI_update(position, bitmap);
+    }
+
+    public void UI_update(int trackPosition, Bitmap bitmap) {
+        setRepeatButtonIcon(playerService.getRepeat());
+        setPlayPauseState(playerService.ismAudioIsPlaying());
+        if (bitmap == null) {
+            trackThumbnail.setImageResource(R.drawable.ic_headset);
+        } else {
+            trackThumbnail.setImageBitmap(bitmap);
+        }
+
+        songTitle.setText(audioList.get(trackPosition).getTITLE());
+        songArtist.setText(audioList.get(trackPosition).getARTIST());
+
+        seekBar.setMax(Integer.parseInt(audioList.get(trackPosition).getDURATION()));
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if (b) {
+                    if (playerService.mediaPlayer.isPlaying()) {
+                        playerService.mediaPlayer.seekTo(i);
+                    }
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        update_seekBar();
+    }
+
     public void seekBarCycle() {
         int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
         seekBar.setProgress(i);
     }
 
-    @Override
-    public void doSomething(int position, int duration, int currentTime, Bitmap bitmap) {
-        songThumbnail.setImageBitmap(bitmap);
-        songTitle.setText(audioList.get(position).getTITLE());
-        songArtist.setText(audioList.get(position).getARTIST());
-        songDuration.setText(decimalFormat.format(((float) duration / 1000) / 60) + "");
-
-        seekBar.setMax(Integer.parseInt(audioList.get(trackPosition).getDURATION()));
-
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+    private void update_seekBar() {
+        Observable.interval(1, TimeUnit.SECONDS).subscribe(new Observer<Long>() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (b) {
-                    if (playerService.mediaPlayer.isPlaying()) {
-                        playerService.mediaPlayer.seekTo(i);
-                    }
+            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
+                if (playerService.mediaPlayer != null) {
+                    seekBarCycle();
                 }
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
+            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                Log.e("SeekBar_Error: ", e.toString());
             }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
+            public void onComplete() {
 
             }
         });
 
-        update_seekBar();
-
-    }
-
-    public void UI_update(int trackPosition) {
-        setRepeatButtonIcon(playerService.getRepeat());
-        setPlayPauseState(playerService.ismAudioIsPlaying());
-        songThumbnail.setImageBitmap(bitmap);
-        songTitle.setText(audioList.get(trackPosition).getTITLE());
-        songArtist.setText(audioList.get(trackPosition).getARTIST());
-        songDuration.setText(decimalFormat.format(((float)
-                Integer.parseInt(audioList.get(trackPosition).getDURATION()) / 1000) / 60) + "");
-
-        seekBar.setMax(Integer.parseInt(audioList.get(trackPosition).getDURATION()));
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (b) {
-                    if (playerService.mediaPlayer.isPlaying()) {
-                        playerService.mediaPlayer.seekTo(i);
-                    }
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
-        update_seekBar();
-
-    }
-
-    private void setRepeatButtonIcon(int repeat) {
-        if (repeat == 1) {
-            fab.setImageResource(R.drawable.ic_repeat_one);
-        } else if (repeat == 2) {
-            fab.setImageResource(R.drawable.ic_shuffle);
-        } else {
-            fab.setImageResource(R.drawable.ic_repeat_all);
-        }
-    }
-
-
-    private void setPlayPauseState(boolean playPauseState) {
-        if (playerService == null || playerService.mediaPlayer == null) {
-            return;
-        } else if (playerService.mediaPlayer != null) {
-            if (playPauseState == false) {
-                play_pause.setBackgroundResource(R.drawable.ic_play);
-            } else {
-                play_pause.setBackgroundResource(R.drawable.ic_pause);
-            }
-        }
     }
 
     @Override
@@ -665,7 +529,106 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void OnItemClicked(int position) {
+    public void onHomeFragmentInteraction(List<Audio> audios, int position) {
+        audioList = audios;
+        trackPosition = position;
+        ConnectMediaPlayer();
+    }
+
+    @Override
+    public void onDetailFragmentInteraction(int position) {
         playAudio(position);
     }
+
+    @Override
+    public void onFavoriteFragmentInteraction(RealmResults<FavoriteAudio> audios, int position) {
+        audioList = convertList(audios);
+        playAudio(position);
+    }
+
+    private List<Audio> convertList(RealmResults<FavoriteAudio> audios) {
+        List<Audio> audioList = new ArrayList<>();
+        for (FavoriteAudio audio : audios) {
+            Audio a = new Audio(audio);
+            audioList.add(a);
+        }
+
+        return audioList;
+    }
+
+    //*****Tab Layout***********
+    @Override
+    public void onTabSelected(TabLayout.Tab tab) {
+        pager.setCurrentItem(tab.getPosition());
+    }
+
+    @Override
+    public void onTabUnselected(TabLayout.Tab tab) {
+
+    }
+
+    @Override
+    public void onTabReselected(TabLayout.Tab tab) {
+    }
+
+    private void setRepeatButtonIcon(int repeat) {
+        switch (repeat) {
+            case 0:
+                fab.setImageResource(R.drawable.ic_repeat_all);
+                break;
+            case 1:
+                fab.setImageResource(R.drawable.ic_repeat_one);
+                break;
+            case 2:
+                fab.setImageResource(R.drawable.ic_shuffle);
+                break;
+        }
+    }
+
+    private void setPlayPauseState(boolean playPauseState) {
+        if (playPauseState) {
+            playPause.setImageResource(R.drawable.ic_pause_circle_filled);
+        } else {
+            playPause.setImageResource(R.drawable.ic_play_circle_filled);
+        }
+    }
+
+    private class ViewPagerAdapter extends FragmentPagerAdapter {
+        String[] tabs;
+
+        public ViewPagerAdapter(FragmentManager fm) {
+            super(fm);
+            tabs = getResources().getStringArray(R.array.Tabs);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            HomeFragment homeFragment = new HomeFragment();
+            FavoriteFragment favoriteFragment = new FavoriteFragment();
+            DetailFragment detailFragment = new DetailFragment();
+
+            switch (position) {
+                case 0:
+                    return homeFragment;
+                case 1:
+                    return favoriteFragment;
+                case 2:
+                    return detailFragment;
+            }
+
+            return homeFragment;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return tabs[position];
+        }
+
+        @Override
+        public int getCount() {
+            return 3;
+        }
+
+    }
+
 }

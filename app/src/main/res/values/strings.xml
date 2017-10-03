@@ -44,5 +44,15 @@
     <string name="SONG_POSITION">currentPosition</string>
     <string name="title_activity_tab">TabActivity</string>
     <string name="section_format">Hello World from section: %1$d</string>
+    <string name="POSITION">position</string>
+    <string name="HOME_STATE">HOME_STATE</string>
+    <string name="All_Audio">All</string>
+    <string name="Favorite_State">STATUS</string>
+
+    <string-array name="Tabs">
+        <item>All</item>
+        <item>Favorite</item>
+        <item>Albums</item>
+    </string-array>
 
 </resources>

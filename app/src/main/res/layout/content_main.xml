@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.santoshkumarsingh.gxmusicplayer.Activities.MainActivity"
     tools:showIn="@layout/app_bar_main">
@@ -11,31 +12,37 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/pink_red"
-        android:gravity="center"
         android:orientation="vertical">
 
-        <include layout="@layout/play_layout" />
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recyclerView"
+        <android.support.v4.view.ViewPager
+            android:id="@+id/View_Pager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:background="@drawable/background"
-            android:scrollIndicators="right"
-            android:scrollbarStyle="insideOverlay"
-            android:scrollbars="vertical"></android.support.v7.widget.RecyclerView>
+            android:layout_weight="1">
+
+            <android.support.design.widget.TabLayout
+                android:id="@+id/Tab_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:background="@drawable/black_transparent"
+                app:tabGravity="fill"
+                app:tabIndicatorColor="@color/colorAccent"
+                app:tabSelectedTextColor="@color/LightGray"
+                app:tabTextColor="@color/colorWhite">
+
+            </android.support.design.widget.TabLayout>
+
+        </android.support.v4.view.ViewPager>
 
         <include layout="@layout/current_play" />
+
     </LinearLayout>
 
-    <ProgressBar
-        android:id="@+id/Progress_bar"
-        style="@android:style/Widget.ProgressBar.Inverse"
-        android:layout_width="50dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="center_horizontal"
-        android:visibility="gone" />
+    <!--<ProgressBar-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_gravity="center"-->
+    <!--android:id="@+id/Progress_bar"/>-->
 
 </FrameLayout>

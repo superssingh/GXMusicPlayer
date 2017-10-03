@@ -1,20 +1,29 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.santoshkumarsingh.gxmusicplayer.Fragments.HomeFragment">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerView"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@drawable/background"
-        android:scrollIndicators="right"
-        android:scrollbarStyle="insideOverlay"
-        android:scrollbars="vertical"></android.support.v7.widget.RecyclerView>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <include layout="@layout/current_play" />
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/Home_recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/background1"
+            android:scrollIndicators="right"
+            android:scrollbarAlwaysDrawVerticalTrack="true"
+            android:scrollbarFadeDuration="2000"
+            android:scrollbarStyle="insideOverlay"
+            android:scrollbars="vertical"
 
-</LinearLayout>
+            ></android.support.v7.widget.RecyclerView>
+
+    </LinearLayout>
+
+</FrameLayout>

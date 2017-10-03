@@ -24,6 +24,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.santoshkumarsingh.gxmusicplayer.Activities.MainActivity;
+import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
@@ -33,6 +34,8 @@ import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import io.realm.RealmResults;
 
 import static android.content.ContentValues.TAG;
 
@@ -60,6 +63,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private final IBinder iBinder = new LocalBinder();
     // global variable
     public MediaPlayer mediaPlayer;
+    RealmResults<FavoriteAudio> audios;
     private Context mContext;
     private AudioManager audioManager;
     //Used to pause/resume MediaPlayer
@@ -83,7 +87,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private boolean mAudioFocusGranted = false;
     private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener;
     private boolean mReceiverRegistered = false;
-
     //BroadcastReceiver for Becoming noisy (any other interruption)
     private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
         @Override
@@ -351,7 +354,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         // replace with medias albumArt
         albumArt = (utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null ?
                 utilities.getTrackThumbnail(activeAudio.getURL())
-                : BitmapFactory.decodeResource(getResources(), R.drawable.ic_audiotrack));
+                : BitmapFactory.decodeResource(getResources(), R.drawable.ic_headset));
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
@@ -412,22 +415,35 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     private void buildNotification(PlaybackStatus playbackStatus) {
 
-        int notificationAction;//needs to be initialized
-        PendingIntent play_pauseAction;
+
+        int notificationAction = android.R.drawable.ic_media_pause;//needs to be initialized
+        PendingIntent play_pauseAction = null;
         //Build a new notification according to the current state of the MediaPlayer
-        if (playbackStatus.equals(PlaybackStatus.PLAYING)) {
-            notificationAction = android.R.drawable.ic_media_pause;
-            //create the pause action
-            play_pauseAction = playbackAction(1);
-        } else {
-            notificationAction = android.R.drawable.ic_media_play;
-            //create the play action
-            play_pauseAction = playbackAction(0);
+        switch (playbackStatus) {
+            case PLAYING:
+                notificationAction = android.R.drawable.ic_media_pause;
+                //create the pause action
+                play_pauseAction = playbackAction(1);
+                break;
+            case PAUSED:
+                notificationAction = android.R.drawable.ic_media_play;
+                //create the play action
+                play_pauseAction = playbackAction(0);
+                break;
         }
+//        if (playbackStatus.equals(PlaybackStatus.PLAYING)) {
+//            notificationAction = android.R.drawable.ic_media_pause;
+//            //create the pause action
+//            play_pauseAction = playbackAction(1);
+//        } else {
+//            notificationAction = android.R.drawable.ic_media_play;
+//            //create the play action
+//            play_pauseAction = playbackAction(0);
+//        }
 
         albumArt = (utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
                 ? utilities.getTrackThumbnail(activeAudio.getURL())
-                : BitmapFactory.decodeResource(getResources(), R.drawable.audio_image));
+                : BitmapFactory.decodeResource(getResources(), R.drawable.ic_audiotrack));
         // Create a new Notification
         NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(this)
                 .setShowWhen(false)
@@ -649,7 +665,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         //Invoked when the media source is ready for playback.
         playMedia();
         if (serviceCallback != null) {
-            serviceCallback.doSomething(audioIndex, mp.getDuration(), mp.getCurrentPosition(), albumArt);
+            serviceCallback.doSomething(audioIndex, albumArt);
         }
     }
 
@@ -773,9 +789,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             unregisterReceiver(playNewAudio);
             removeNotification();
 
-            //clear cached playlist
-            new StorageUtil(getApplicationContext()).clearCachedAudioPlaylist();
-
             //Forced Stop any mediaplayer
             forceMusicStop();
         }
@@ -803,4 +816,5 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             return MediaPlayerService.this;
         }
     }
+
 }

@@ -7,5 +7,5 @@ import android.graphics.Bitmap;
  */
 
 public interface ServiceCallback {
-    void doSomething(int position, int duration, int currentTime, Bitmap bitmap);
+    void doSomething(int position, Bitmap bitmap);
 }

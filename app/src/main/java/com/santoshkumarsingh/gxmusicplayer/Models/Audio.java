@@ -3,6 +3,8 @@ package com.santoshkumarsingh.gxmusicplayer.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
+
 /**
  * Created by santoshsingh (santoshkumarsingh.com) on 17/08/17.
  */
@@ -24,6 +26,17 @@ public class Audio implements Parcelable {
 
     public Audio() {
     }
+
+    public Audio(FavoriteAudio audios) {
+        this.ID = audios.getID();
+        this.TITLE = audios.getTITLE();
+        this.ARTIST = audios.getARTIST();
+        this.URL = audios.getURL();
+        this.ALBUM = audios.getALBUM();
+        this.DURATION = audios.getDURATION();
+        this.GENRES = audios.getGENRES();
+    }
+
 
     public Audio(String ID, String TITLE, String ARTIST, String URL, String ALBUM, String DURATION, String GENRES) {
         this.ID = ID;

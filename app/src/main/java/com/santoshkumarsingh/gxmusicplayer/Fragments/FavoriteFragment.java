@@ -1,20 +1,46 @@
 package com.santoshkumarsingh.gxmusicplayer.Fragments;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
+import com.santoshkumarsingh.gxmusicplayer.Adapters.FavoriteRecyclerAdapter;
+import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
+import com.santoshkumarsingh.gxmusicplayer.Interfaces.FavoriteOnClickListener;
 import com.santoshkumarsingh.gxmusicplayer.R;
 
-public class FavoriteFragment extends Fragment {
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import io.realm.Realm;
+import io.realm.RealmResults;
 
+public class FavoriteFragment extends Fragment implements FavoriteOnClickListener {
+
+    public static String KEY = "KEY";
+    @BindView(R.id.fav_recyclerView)
+    RecyclerView recyclerView;
+    int position = 0;
     private OnFragmentInteractionListener mListener;
+    private View view;
+    private Realm realm = null;
+    private FavoriteRecyclerAdapter recyclerAdapter;
 
     public FavoriteFragment() {
+    }
+
+    public static FavoriteFragment newInstance(int position) {
+        FavoriteFragment favoriteFragment = new FavoriteFragment();
+        Bundle bundle = new Bundle();
+        bundle.putInt(KEY, position);
+        favoriteFragment.setArguments(bundle);
+        return favoriteFragment;
     }
 
     @Override
@@ -26,8 +52,35 @@ public class FavoriteFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_favorite, container, false);
+        view = inflater.inflate(R.layout.fragment_favorite, container, false);
+        ButterKnife.bind(this, view);
+        getFavoriteList();
+        return view;
+    }
+
+    public void getFavoriteList() {
+        realm = Realm.getDefaultInstance();
+        RealmResults<FavoriteAudio> favoriteAudios = realm.where(FavoriteAudio.class).findAll();
+
+        if (favoriteAudios.size() == 0) {
+            recyclerView.setVisibility(View.GONE);
+            Toast.makeText(getContext(), R.string.NoDataFound, Toast.LENGTH_LONG).show();
+        } else {
+            recyclerView.setVisibility(View.VISIBLE);
+            configRecycleView(favoriteAudios);
+        }
+    }
+
+    private void configRecycleView(RealmResults<FavoriteAudio> results) {
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerAdapter = new FavoriteRecyclerAdapter(this, results);
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.setAdapter(recyclerAdapter);
+        final DividerItemDecoration itemDecoration = new DividerItemDecoration(recyclerView.getContext(), linearLayoutManager.getOrientation());
+        recyclerView.addItemDecoration(itemDecoration);
+
+        position = 2;
     }
 
     @Override
@@ -45,9 +98,28 @@ public class FavoriteFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        if (!realm.isClosed()) {
+            realm.close();
+        }
+
+    }
+
+    @Override
+    public void OnClick(RealmResults<FavoriteAudio> audios, int position) {
+
+        mListener.onFavoriteFragmentInteraction(audios, position);
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            getFavoriteList();
+        }
     }
 
     public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
+        void onFavoriteFragmentInteraction(RealmResults<FavoriteAudio> audios, int position);
     }
+
 }

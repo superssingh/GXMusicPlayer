@@ -1,7 +1,6 @@
 package com.santoshkumarsingh.gxmusicplayer.Fragments;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -17,10 +16,12 @@ public class DetailFragment extends Fragment {
     public DetailFragment() {
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
+    public static DetailFragment newInstance(int position) {
+        DetailFragment detailFragment = new DetailFragment();
+        Bundle bundle = new Bundle();
+        bundle.putInt("KEY", position);
+        detailFragment.setArguments(bundle);
+        return detailFragment;
     }
 
     @Override
@@ -29,6 +30,7 @@ public class DetailFragment extends Fragment {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_detail, container, false);
     }
+
 
     @Override
     public void onAttach(Context context) {
@@ -47,7 +49,15 @@ public class DetailFragment extends Fragment {
         mListener = null;
     }
 
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            //add your refresh or reload method
+        }
+    }
+
     public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
+        void onDetailFragmentInteraction(int position);
     }
 }

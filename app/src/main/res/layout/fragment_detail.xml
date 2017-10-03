@@ -3,7 +3,7 @@
     android:id="@+id/play_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background">
+    android:background="@drawable/background1">
 
     <ImageView
         android:id="@+id/songThumbnail"
@@ -94,7 +94,7 @@
                 android:id="@+id/play_pause"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:background="@drawable/ic_play"
+                android:background="@drawable/ic_play_circle_filled"
                 android:contentDescription="@string/play_pauseButton" />
 
             <ImageButton
