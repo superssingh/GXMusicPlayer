@@ -30,6 +30,6 @@
         android:src="@drawable/ic_repeat_all"
         app:elevation="8dp"
         app:layout_anchor="@id/toolbar"
-        app:layout_anchorGravity="bottom|end" />
+        app:layout_anchorGravity="top|end" />
 
 </android.support.design.widget.CoordinatorLayout>

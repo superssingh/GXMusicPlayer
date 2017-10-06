@@ -35,14 +35,6 @@ public class FavoriteFragment extends Fragment implements FavoriteOnClickListene
     public FavoriteFragment() {
     }
 
-    public static FavoriteFragment newInstance(int position) {
-        FavoriteFragment favoriteFragment = new FavoriteFragment();
-        Bundle bundle = new Bundle();
-        bundle.putInt(KEY, position);
-        favoriteFragment.setArguments(bundle);
-        return favoriteFragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,12 +93,10 @@ public class FavoriteFragment extends Fragment implements FavoriteOnClickListene
         if (!realm.isClosed()) {
             realm.close();
         }
-
     }
 
     @Override
     public void OnClick(RealmResults<FavoriteAudio> audios, int position) {
-
         mListener.onFavoriteFragmentInteraction(audios, position);
     }
 
@@ -115,6 +105,7 @@ public class FavoriteFragment extends Fragment implements FavoriteOnClickListene
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             getFavoriteList();
+
         }
     }
 

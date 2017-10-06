@@ -5,11 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="60dp"
     android:clickable="true"
-    android:elevation="4dp"
     android:gravity="center"
     android:orientation="horizontal"
     app:cardBackgroundColor="@color/cardview_dark_background"
-    app:cardCornerRadius="5dp"
     app:cardElevation="4dp">
 
     <LinearLayout
@@ -57,7 +55,7 @@
 
     <ImageButton
         android:id="@+id/F_delete"
-        android:layout_width="32dp"
+        android:layout_width="36dp"
         android:layout_height="match_parent"
         android:layout_gravity="bottom|end"
         android:layout_margin="10dp"

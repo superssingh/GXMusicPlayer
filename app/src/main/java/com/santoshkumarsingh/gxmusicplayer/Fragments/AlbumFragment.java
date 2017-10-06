@@ -7,30 +7,31 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 
-public class DetailFragment extends Fragment {
+import java.util.List;
+
+public class AlbumFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
+    private View view;
 
-    public DetailFragment() {
+    public AlbumFragment() {
+
     }
 
-    public static DetailFragment newInstance(int position) {
-        DetailFragment detailFragment = new DetailFragment();
-        Bundle bundle = new Bundle();
-        bundle.putInt("KEY", position);
-        detailFragment.setArguments(bundle);
-        return detailFragment;
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_detail, container, false);
+        view = inflater.inflate(R.layout.fragment_album, container, false);
+        return view;
     }
-
 
     @Override
     public void onAttach(Context context) {
@@ -49,15 +50,8 @@ public class DetailFragment extends Fragment {
         mListener = null;
     }
 
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser) {
-            //add your refresh or reload method
-        }
-    }
 
     public interface OnFragmentInteractionListener {
-        void onDetailFragmentInteraction(int position);
+        void onFragmentInteraction(List<Audio> audios);
     }
 }

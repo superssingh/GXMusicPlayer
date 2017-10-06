@@ -223,10 +223,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
-    public void setAudioList(List<Audio> audioList) {
-        this.audioList = audioList;
-    }
-
     public void playMedia() {
         if (mediaPlayer == null) {
             initMediaPlayer();
@@ -414,7 +410,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     private void buildNotification(PlaybackStatus playbackStatus) {
-
 
         int notificationAction = android.R.drawable.ic_media_pause;//needs to be initialized
         PendingIntent play_pauseAction = null;
@@ -665,7 +660,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         //Invoked when the media source is ready for playback.
         playMedia();
         if (serviceCallback != null) {
-            serviceCallback.doSomething(audioIndex, albumArt);
+            serviceCallback.doSomething(audioList, audioIndex, albumArt);
         }
     }
 
@@ -806,6 +801,18 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         return mAudioIsPlaying;
     }
 
+    public Bitmap getAlbumArt() {
+        return albumArt;
+    }
+
+    public List<Audio> getAudioList() {
+        return audioList;
+    }
+
+    public void setAudioList(List<Audio> audioList) {
+        this.audioList = audioList;
+    }
+
     public enum PlaybackStatus {
         PLAYING,
         PAUSED
@@ -816,5 +823,4 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             return MediaPlayerService.this;
         }
     }
-
 }

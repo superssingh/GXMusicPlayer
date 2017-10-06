@@ -51,10 +51,23 @@ public class StorageUtil {
         editor.apply();
     }
 
+    public int loadCategoryIndex() {
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        return preferences.getInt("categoryIndex", -1);//return -a if no data found
+    }
+
+    public void storeCategoryIndex(int index) {
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt("categoryIndex", index);
+        editor.apply();
+    }
+
     public int loadAudioIndex() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         return preferences.getInt("audioIndex", -1);//return -a if no data found
     }
+
 
     public void clearCachedAudioPlaylist() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);

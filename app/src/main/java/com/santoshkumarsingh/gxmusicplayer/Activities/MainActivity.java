@@ -36,10 +36,9 @@ import android.widget.Toast;
 
 import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
-import com.santoshkumarsingh.gxmusicplayer.Fragments.DetailFragment;
+import com.santoshkumarsingh.gxmusicplayer.Fragments.AlbumFragment;
 import com.santoshkumarsingh.gxmusicplayer.Fragments.FavoriteFragment;
 import com.santoshkumarsingh.gxmusicplayer.Fragments.HomeFragment;
-import com.santoshkumarsingh.gxmusicplayer.Interfaces.FavoriteOnClickListener2;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
@@ -69,7 +68,7 @@ import io.realm.RealmResults;
 
 @SuppressWarnings("WeakerAccess")
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, TabLayout.OnTabSelectedListener, HomeFragment.OnFragmentInteractionListener, FavoriteFragment.OnFragmentInteractionListener, DetailFragment.OnFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, TabLayout.OnTabSelectedListener, HomeFragment.OnFragmentInteractionListener, FavoriteFragment.OnFragmentInteractionListener, AlbumFragment.OnFragmentInteractionListener {
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.santoshkumarsingh.gxmusicplayer.PlayNewAudio";
     private static MediaPlayerService playerService;
@@ -92,9 +91,8 @@ public class MainActivity extends AppCompatActivity
     @BindView(R.id.View_Pager)
     ViewPager pager;
     Animation animation;
-    FavoriteOnClickListener2 favoriteOnClickListener;
     private Utilities utilities;
-    private int trackPosition = 0;
+    private int trackPosition = 0, categoryState = 0;
     private List<Audio> audioList;
     private boolean serviceBound = false;
     private Intent playerIntent;
@@ -113,7 +111,7 @@ public class MainActivity extends AppCompatActivity
             playerService.setCallback(MainActivity.this);
             serviceBound = true;
             Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
-            UI_update(trackPosition, bitmap);
+            UI_update(audioList, trackPosition, bitmap);
             play_layout.setVisibility(View.VISIBLE);
         }
 
@@ -158,6 +156,7 @@ public class MainActivity extends AppCompatActivity
         if (storageUtil.loadAudioIndex() != -1) {
             audioList = storageUtil.loadAudio();
             trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
+            categoryState = storageUtil.loadCategoryIndex() == -1 ? 0 : storageUtil.loadCategoryIndex();
             ConnectMediaPlayer();
         } else {
             return;
@@ -165,8 +164,20 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onPause() {
+        super.onPause();
+        if (serviceBound) {
+            unbindService(serviceConnection);
+        }
+
+//        disposable.dispose();
+//        disposable1.dispose();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Load_Audio_Data();
     }
 
     private void InitializedView() {
@@ -174,7 +185,15 @@ public class MainActivity extends AppCompatActivity
         pager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
         tabLayout.setupWithViewPager(pager);
         pager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-        //------OnclickedListenters
+
+        //------OnClickedListenters
+        play_layout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                startActivity(intent);
+            }
+        });
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -202,10 +221,10 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 if (playerService.ismAudioIsPlaying()) {
                     playerService.pause();
-                    playPause.setImageResource(R.drawable.ic_play_circle_filled);
+                    playPause.setImageResource(R.drawable.ic_play_circle_outline);
                 } else {
                     playerService.resume();
-                    playPause.setImageResource(R.drawable.ic_pause_circle_filled);
+                    playPause.setImageResource(R.drawable.ic_pause_circle_outline);
                 }
             }
         });
@@ -214,24 +233,26 @@ public class MainActivity extends AppCompatActivity
 
     private void Load_Audio_Data() {
         disposable.add(getAudio()
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(new Consumer<List<Audio>>() {
-                    @Override
-                    public void accept(List<Audio> audios) throws Exception {
-
-                    }
-                })
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(new Consumer<List<Audio>>() {
+                .doOnNext(new Consumer<Integer>() {
                     @Override
-                    public void accept(List<Audio> audios) throws Exception {
+                    public void accept(Integer integer) throws Exception {
+                        if (storageUtil.loadAudioIndex() != -1) {
+                            categoryState = storageUtil.loadCategoryIndex();
+                            trackPosition = storageUtil.loadAudioIndex();
+                            audioList = storageUtil.loadAudio();
+                            bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL());
+                            playerIntent = new Intent(MainActivity.this, MediaPlayerService.class);
+                            bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+                        } else {
+                            return;
+                        }
                     }
                 })
-                .subscribeWith(new DisposableObserver<List<Audio>>() {
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<Integer>() {
                     @Override
-                    public void onNext(@io.reactivex.annotations.NonNull List<Audio> audios) {
-                        ConnectMediaPlayer();
+                    public void onNext(@io.reactivex.annotations.NonNull Integer position) {
                     }
 
                     @Override
@@ -241,34 +262,19 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onComplete() {
-                        Log.e("OnComplete:: ", "Completed");
-
+                        Log.d("OnComplete:: ", "Resume Completed");
                     }
                 }));
     }
 
-    private Observable<List<Audio>> getAudio() {
-        return Observable.fromCallable(new Callable<List<Audio>>() {
+    private Observable<Integer> getAudio() {
+        return Observable.fromCallable(new Callable<Integer>() {
             @Override
-            public List<Audio> call() throws Exception {
-                do {
-                    if (storageUtil.loadAudioIndex() != -1) {
-                        audioList = storageUtil.loadAudio();
-                    }
-                } while (audioList != null);
-
-                return audioList;
+            public Integer call() throws Exception {
+                return trackPosition;
             }
         });
     }
-
-//    private void showProgressbar() {
-//        progressBar.setVisibility(View.VISIBLE);
-//    }
-//
-//    private void hideProgressbar() {
-//        progressBar.setVisibility(View.GONE);
-//    }
 
     private void ConnectMediaPlayer() {
         disposable.add(observable()
@@ -276,9 +282,7 @@ public class MainActivity extends AppCompatActivity
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer s) throws Exception {
-                        bitmap = utilities.getTrackThumbnail(audioList.get(s).getURL()) != null
-                                ? utilities.getTrackThumbnail(audioList.get(s).getURL()) : null;
-//                                : BitmapFactory.decodeResource(getResources(), R.drawable.ic_headset));
+                        bitmap = utilities.getTrackThumbnail(audioList.get(s).getURL());
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
@@ -292,8 +296,7 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull Integer s) {
-//                        UI_update(s);
-                        playAudio(s);
+                        playAudio(s, categoryState);
                     }
 
                     @Override
@@ -303,13 +306,7 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onComplete() {
-                        Log.e("Service_Bound- ", "Completed ");
-                        if (playerService != null && playerService.mediaPlayer != null) {
-                            Log.d("Service_Bound- ", "" + playerService.ismAudioIsPlaying() + "/ " + playerService.getRepeat());
-                            setPlayPauseState(playerService.mediaPlayer.isPlaying());
-                            setRepeatButtonIcon(playerService.getRepeat());
-                        }
-                        setRepeatButtonIcon(playerService.getRepeat());
+                        Log.d("Service_Bound- ", "Completed ");
                     }
                 }));
     }
@@ -323,9 +320,8 @@ public class MainActivity extends AppCompatActivity
                         playerService = MediaPlayerService.getInstance(getApplicationContext());
                         playerService.setAudioList(audioList);
                     }
-                    e.onNext(trackPosition);
 
-                    Log.d("Observable- ", "" + playerService.ismAudioIsPlaying() + "/ " + playerService.getRepeat());
+                    e.onNext(trackPosition);
                 } while (playerService == null);
 
                 e.onComplete();
@@ -346,31 +342,48 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private void playAudio(int audioIndex) {
+    private void playAudio(int audioIndex, int categoryIndex) {
         //Check is service is active
         if (!serviceBound) {
             //Store Serializable audioList to SharedPreferences
             StorageUtil storage = new StorageUtil(getApplicationContext());
             storage.storeAudio(audioList);
             storage.storeAudioIndex(audioIndex);
+            storage.storeCategoryIndex(categoryIndex);
 
             playerIntent = new Intent(this, MediaPlayerService.class);
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
         } else {
-            //Store the new audioIndex to SharedPreferences
-            StorageUtil storage = new StorageUtil(getApplicationContext());
-            storage.storeAudioIndex(audioIndex);
+            if (categoryIndex == storageUtil.loadCategoryIndex()) {
+                //Store the new audioIndex to SharedPreferences
+                StorageUtil storage = new StorageUtil(getApplicationContext());
+                storage.storeAudioIndex(audioIndex);
 
-            //Service is active
-            //Send a broadcast to the service -> PLAY_NEW_AUDIO
-            Intent broadcastIntent = new Intent(Broadcast_PLAY_NEW_AUDIO);
-            sendBroadcast(broadcastIntent);
+                //Service is active
+                //Send a broadcast to the service -> PLAY_NEW_AUDIO
+                Intent broadcastIntent = new Intent(Broadcast_PLAY_NEW_AUDIO);
+                sendBroadcast(broadcastIntent);
+            } else {
+                StorageUtil storage = new StorageUtil(getApplicationContext());
+                storage.storeAudio(audioList);
+                storage.storeAudioIndex(audioIndex);
+                storage.storeCategoryIndex(categoryIndex);
+
+                Intent broadcastIntent = new Intent(Broadcast_PLAY_NEW_AUDIO);
+                sendBroadcast(broadcastIntent);
+
+                playerIntent = new Intent(this, MediaPlayerService.class);
+                startService(playerIntent);
+                bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+
+            }
         }
 
         trackPosition = audioIndex;
-        playPause.setImageResource(R.drawable.ic_pause_circle_filled);
+        categoryState = categoryIndex;
+        playPause.setImageResource(R.drawable.ic_pause_circle_outline);
 
     }
 
@@ -441,11 +454,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void doSomething(int position, Bitmap bitmap) {
-        UI_update(position, bitmap);
+    public void doSomething(List<Audio> audioList, int position, Bitmap bitmap) {
+        UI_update(audioList, position, bitmap);
     }
 
-    public void UI_update(int trackPosition, Bitmap bitmap) {
+    public void UI_update(List<Audio> audioList, int trackPosition, Bitmap bitmap) {
+        this.audioList = audioList;
         setRepeatButtonIcon(playerService.getRepeat());
         setPlayPauseState(playerService.ismAudioIsPlaying());
         if (bitmap == null) {
@@ -503,7 +517,7 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                Log.e("SeekBar_Error: ", e.toString());
+                Log.e("SeekBar_loop: ", e.toString());
             }
 
             @Override
@@ -517,30 +531,31 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (serviceBound) {
-            unbindService(serviceConnection);
-        }
-
         disposable.dispose();
         disposable1.dispose();
     }
 
     @Override
-    public void onHomeFragmentInteraction(List<Audio> audios, int position) {
-        audioList = audios;
+    public void onHomeFragmentInteraction(List<Audio> audios, int position, Bitmap bitmap) {
+        categoryState = 0;
         trackPosition = position;
-        ConnectMediaPlayer();
-    }
+        audioList = audios;
+        storageUtil.storeAudio(audioList);
+        playerService.setAudioList(audios);
+        this.bitmap = bitmap;
 
-    @Override
-    public void onDetailFragmentInteraction(int position) {
-        playAudio(position);
+        playAudio(position, categoryState);
     }
 
     @Override
     public void onFavoriteFragmentInteraction(RealmResults<FavoriteAudio> audios, int position) {
+        categoryState = 1;
+        trackPosition = position;
         audioList = convertList(audios);
-        playAudio(position);
+        storageUtil.storeAudio(audioList);
+        playerService.setAudioList(audioList);
+
+        playAudio(position, categoryState);
     }
 
     private List<Audio> convertList(RealmResults<FavoriteAudio> audios) {
@@ -551,21 +566,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         return audioList;
-    }
-
-    //*****Tab Layout***********
-    @Override
-    public void onTabSelected(TabLayout.Tab tab) {
-        pager.setCurrentItem(tab.getPosition());
-    }
-
-    @Override
-    public void onTabUnselected(TabLayout.Tab tab) {
-
-    }
-
-    @Override
-    public void onTabReselected(TabLayout.Tab tab) {
     }
 
     private void setRepeatButtonIcon(int repeat) {
@@ -584,11 +584,33 @@ public class MainActivity extends AppCompatActivity
 
     private void setPlayPauseState(boolean playPauseState) {
         if (playPauseState) {
-            playPause.setImageResource(R.drawable.ic_pause_circle_filled);
+            playPause.setImageResource(R.drawable.ic_pause_circle_outline);
         } else {
-            playPause.setImageResource(R.drawable.ic_play_circle_filled);
+            playPause.setImageResource(R.drawable.ic_play_circle_outline);
         }
     }
+
+    @Override
+    public void onFragmentInteraction(List<Audio> audios) {
+
+    }
+
+    //*****Tab Layout------------
+    @Override
+    public void onTabSelected(TabLayout.Tab tab) {
+        pager.setCurrentItem(tab.getPosition());
+    }
+
+    @Override
+    public void onTabUnselected(TabLayout.Tab tab) {
+
+    }
+
+    @Override
+    public void onTabReselected(TabLayout.Tab tab) {
+
+    }
+
 
     private class ViewPagerAdapter extends FragmentPagerAdapter {
         String[] tabs;
@@ -602,7 +624,7 @@ public class MainActivity extends AppCompatActivity
         public Fragment getItem(int position) {
             HomeFragment homeFragment = new HomeFragment();
             FavoriteFragment favoriteFragment = new FavoriteFragment();
-            DetailFragment detailFragment = new DetailFragment();
+            AlbumFragment albumFragment = new AlbumFragment();
 
             switch (position) {
                 case 0:
@@ -610,7 +632,7 @@ public class MainActivity extends AppCompatActivity
                 case 1:
                     return favoriteFragment;
                 case 2:
-                    return detailFragment;
+                    return albumFragment;
             }
 
             return homeFragment;

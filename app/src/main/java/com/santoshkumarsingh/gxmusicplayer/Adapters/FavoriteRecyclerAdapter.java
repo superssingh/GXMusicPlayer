@@ -64,7 +64,7 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
             public void onClick(View v) {
 
                 if (onClickListener != null) {
-                    onClickListener.OnClick(holder.delete, holder.itemView, trackImage, holder.favoriteAudio.getURL(), holder.getAdapterPosition());
+                    onClickListener.OnClick(favoriteAudios, holder.getAdapterPosition());
                 }
             }
         });
@@ -77,6 +77,8 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
                 if (favoriteAudios.size() == 0) {
                     Snackbar.make(view, R.string.Favorite_empty_list, Snackbar.LENGTH_LONG).show();
                 }
+
+                notifyDataSetChanged();
             }
         });
 
@@ -85,6 +87,13 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     @Override
     public int getItemCount() {
         return favoriteAudios.size();
+    }
+
+    public void refreshList() {
+        Realm realm = Realm.getDefaultInstance();
+        favoriteAudios = realm.where(FavoriteAudio.class).findAllAsync();
+        notifyDataSetChanged();
+        realm.close();
     }
 
     private void delete(int position) {
@@ -96,6 +105,7 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
         realm.commitTransaction();
         notifyDataSetChanged();
         realm.close();
+        getItemCount();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

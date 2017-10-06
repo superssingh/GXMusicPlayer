@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -57,14 +58,6 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     public HomeFragment() {
     }
 
-    public static HomeFragment newInstance(int position) {
-        HomeFragment homeFragment = new HomeFragment();
-        Bundle bundle = new Bundle();
-        bundle.putInt("KEY", position);
-        homeFragment.setArguments(bundle);
-        return homeFragment;
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -77,25 +70,10 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         if (storageUtil.loadAudio() == null) {
             checkPermission();
         } else {
-            if (savedInstanceState != null) {
-                audioList = savedInstanceState.getParcelableArrayList(getString(R.string.All_Audio));
-            } else {
-                audioList = storageUtil.loadAudio();
-                trackposition = storageUtil.loadAudioIndex();
-            }
-
-            setDataIntoAdapter(audioList);
+            Load_AudioFiles();
         }
 
         return view;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (storageUtil.loadAudio() == null) {
-            Load_AudioFiles();
-        }
     }
 
     private void checkPermission() {
@@ -188,7 +166,6 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         return audios;
     }
 
-
     private void setDataIntoAdapter(List<Audio> audios) {
         audioList = audios;
         audioRecyclerAdapter = new AudioRecyclerAdapter(this, audios);
@@ -214,11 +191,10 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     }
 
     @Override
-    public void OnItemClicked(List<Audio> audios, int position) {
-        mListener.onHomeFragmentInteraction(audios, position);
+    public void OnItemClicked(List<Audio> audios, int position, Bitmap bitmap) {
+        mListener.onHomeFragmentInteraction(audios, position, bitmap);
     }
 
-    //------------------------
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -246,12 +222,13 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-
+            disposable = new CompositeDisposable();
+            Load_AudioFiles();
         }
     }
 
     public interface OnFragmentInteractionListener {
-        void onHomeFragmentInteraction(List<Audio> audios, int position);
+        void onHomeFragmentInteraction(List<Audio> audios, int position, Bitmap bitmap);
     }
 
 }
