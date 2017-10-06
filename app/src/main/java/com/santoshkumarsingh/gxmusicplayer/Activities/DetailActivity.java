@@ -6,12 +6,15 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -55,7 +58,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     @BindView(R.id.d_previous)
     ImageButton previous;
     @BindView(R.id.d_repeatOne)
-    ImageButton repeatOne;
+    ImageButton repeatBTN;
     @BindView(R.id.d_repeatRandom)
     ImageButton repeatRandom;
     @BindView(R.id.d_seekBar)
@@ -84,7 +87,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     private CompositeDisposable disposable;
     private StorageUtil storageUtil;
     private DecimalFormat decimalFormat = new DecimalFormat("#.##");
-
+    private Animation animation;
+    private CountDownTimer timer;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -104,6 +108,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         }
     };
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,6 +119,12 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         utilities = new Utilities();
         storageUtil = new StorageUtil(this);
         playerService = new MediaPlayerService();
+        animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+        d_thumbnail.setAnimation(animation);
+        title.setAnimation(animation);
+        artist.setAnimation(animation);
+        album.setAnimation(animation);
+
         setClickedListeners();
 
         if (storageUtil.loadAudioIndex() != -1) {
@@ -171,14 +182,14 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             }
         });
 
-        repeatOne.setOnClickListener(new View.OnClickListener() {
+        repeatBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!serviceBound) {
                     return;
                 }
-
-                playerService.setRepeat(1);
+                repeatBTN.setAnimation(animation);
+                setRepeatButtonIcon(playerService.getRepeat());
             }
         });
 
@@ -279,19 +290,21 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     @Override
     public void doSomething(List<Audio> audioList, int position, Bitmap bitmap) {
         UI_update(audioList, position, bitmap);
-
     }
 
     private void setRepeatButtonIcon(int repeat) {
         switch (repeat) {
             case 0:
-                repeatOne.setImageResource(R.drawable.ic_repeat_all);
+                repeatBTN.setBackgroundResource(R.drawable.ic_repeat_one);
+                playerService.setRepeat(1);
                 break;
             case 1:
-                repeatOne.setImageResource(R.drawable.ic_repeat_one);
+                repeatBTN.setBackgroundResource(R.drawable.ic_shuffle);
+                playerService.setRepeat(2);
                 break;
             case 2:
-                repeatRandom.setImageResource(R.drawable.ic_shuffle);
+                repeatBTN.setBackgroundResource(R.drawable.ic_repeat_all);
+                playerService.setRepeat(0);
                 break;
         }
     }
@@ -316,6 +329,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
         title.setText(audioList.get(trackPosition).getTITLE());
         artist.setText(audioList.get(trackPosition).getARTIST());
+        album.setText(audioList.get(trackPosition).getALBUM());
         int trackDuration = Integer.parseInt(audioList.get(trackPosition).getDURATION());
         duration.setText(decimalFormat.format(((float) trackDuration / 1000) / 60) + "");
 
@@ -326,6 +340,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                 if (b) {
                     if (playerService.mediaPlayer.isPlaying()) {
                         playerService.mediaPlayer.seekTo(i);
+
                     }
                 }
             }
@@ -342,11 +357,18 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         });
 
         update_seekBar();
+
+
     }
 
     private void seekBarCycle() {
         int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
         seekBar.setProgress(i);
+    }
+
+    private void currentTimeCycle() {
+        int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
+        currentTime.setText(decimalFormat.format(((float) i / 1000) / 60) + "");
     }
 
     private void update_seekBar() {
@@ -373,9 +395,54 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
             }
         });
-
     }
 
+//    public void timerStart(long timeLengthMilli) {
+//        timer = new CountDownTimer(timeLengthMilli, 1000) {
+//
+//            @Override
+//            public void onTick(long milliTillFinish) {
+//                milliLeft = milliTillFinish;
+//                min = (milliTillFinish / (1000 * 60));
+//                sec = ((milliTillFinish / 1000) - min * 60);
+//                clock.setText(Long.toString(min) + ":" + Long.toString(sec));
+//                Log.i("Tick", "Tock");
+//            }
+//        };
+//    }
+
+
+    private void update_currentTime() {
+        Observable.interval(1, TimeUnit.SECONDS)
+                .subscribeOn(Schedulers.newThread())
+                .doOnNext(new Consumer<Long>() {
+                    @Override
+                    public void accept(Long aLong) throws Exception {
+                        aLong = Long.valueOf(playerService.mediaPlayer.getCurrentPosition());
+                    }
+                })
+                .subscribe(new Observer<Long>() {
+                    @Override
+                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
+                        currentTime.setText(decimalFormat.format(((float) aLong / 1000) / 60) + "");
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        Log.e("SeekBar_Error: ", e.toString());
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
 
     @Override
     protected void onDestroy() {
