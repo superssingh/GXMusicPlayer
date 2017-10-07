@@ -154,7 +154,7 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
                     String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
                     String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
                     String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-                    String genres = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Genres._ID));
+                    String genres = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
 
                     Audio audio = new Audio(id, title, artist, url, album, duration, genres);
                     audios.add(audio);

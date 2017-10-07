@@ -188,7 +188,21 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                 if (!serviceBound) {
                     return;
                 }
+
                 repeatBTN.setAnimation(animation);
+                switch (playerService.getRepeat()) {
+
+                    case 0:
+                        playerService.setRepeat(1);
+                        break;
+                    case 1:
+                        playerService.setRepeat(2);
+                        break;
+                    case 2:
+                        playerService.setRepeat(0);
+                        break;
+                }
+
                 setRepeatButtonIcon(playerService.getRepeat());
             }
         });
@@ -200,7 +214,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                     return;
                 }
 
-                playerService.setRepeat(2);
             }
         });
 
@@ -295,16 +308,13 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     private void setRepeatButtonIcon(int repeat) {
         switch (repeat) {
             case 0:
-                repeatBTN.setBackgroundResource(R.drawable.ic_repeat_one);
-                playerService.setRepeat(1);
+                repeatBTN.setBackgroundResource(R.drawable.ic_repeat_all);
                 break;
             case 1:
-                repeatBTN.setBackgroundResource(R.drawable.ic_shuffle);
-                playerService.setRepeat(2);
+                repeatBTN.setBackgroundResource(R.drawable.ic_repeat_one);
                 break;
             case 2:
-                repeatBTN.setBackgroundResource(R.drawable.ic_repeat_all);
-                playerService.setRepeat(0);
+                repeatBTN.setBackgroundResource(R.drawable.ic_shuffle);
                 break;
         }
     }
