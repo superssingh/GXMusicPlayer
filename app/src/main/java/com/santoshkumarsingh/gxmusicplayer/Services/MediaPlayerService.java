@@ -263,7 +263,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             // 2. Give up audio focus
             abandonAudioFocus();
         }
-
     }
 
     public void pause() {
@@ -282,7 +281,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.start();
             mAudioIsPlaying = true;
             buildNotification(PlaybackStatus.PAUSED);
-
         }
     }
 
@@ -310,13 +308,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             @Override
             public void onPlay() {
                 super.onPlay();
-                resume();
+                pause();
             }
 
             @Override
             public void onPause() {
                 super.onPause();
-                pause();
+                resume();
+
             }
 
             @Override

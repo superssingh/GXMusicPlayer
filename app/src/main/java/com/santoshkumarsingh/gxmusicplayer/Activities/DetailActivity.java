@@ -113,6 +113,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
+        toolbar = new Toolbar(this);
+        toolbar.setTitle("Playing");
         ButterKnife.bind(this);
         disposable = new CompositeDisposable();
         audioList = new ArrayList<>();
@@ -178,7 +180,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                 play.setBackgroundResource(R.drawable.ic_pause_circle_filled);
                 trackPosition = playerService.getAudioIndex();
                 storageUtil.storeAudioIndex(trackPosition);
-
             }
         });
 
@@ -191,7 +192,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
                 repeatBTN.setAnimation(animation);
                 switch (playerService.getRepeat()) {
-
                     case 0:
                         playerService.setRepeat(1);
                         break;

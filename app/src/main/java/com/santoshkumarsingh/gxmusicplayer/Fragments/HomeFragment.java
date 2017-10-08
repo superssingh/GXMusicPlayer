@@ -144,7 +144,8 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         List<Audio> audios = new ArrayList<>();
         Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String selection = MediaStore.Audio.Media.IS_MUSIC + "!=0";
-        Cursor cursor = getActivity().getContentResolver().query(uri, null, selection, null, null);
+        String sortOrder = "LOWER(" + MediaStore.Audio.Media.DISPLAY_NAME + ") ASC";
+        Cursor cursor = getActivity().getContentResolver().query(uri, null, selection, null, sortOrder);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 do {
