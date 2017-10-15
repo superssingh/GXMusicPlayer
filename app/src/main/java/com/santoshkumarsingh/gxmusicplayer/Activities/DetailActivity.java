@@ -2,6 +2,7 @@ package com.santoshkumarsingh.gxmusicplayer.Activities;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
@@ -13,11 +14,14 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -31,6 +35,7 @@ import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -73,22 +78,29 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     TextView currentTime;
     @BindView(R.id.d_trackAlbum)
     TextView album;
+    @BindView(R.id.presetText)
+    TextView presetText;
     @BindView(R.id.d_fab)
     FloatingActionButton detail_fab;
-    AlertDialog dialog;
     private Utilities utilities;
     private int trackPosition = 0;
     private List<Audio> audioList;
     private boolean serviceBound = false;
     private Intent playerIntent;
     private Bitmap bitmap;
-    private CompositeDisposable disposable, disposable1;
+    private CompositeDisposable disposable, disposable1, disposable2;
     private StorageUtil storageUtil;
     private Animation animation;
+
     private MediaRecorder mediaRecorder;
     private File audioFilePath;
+
+    //for Equalizer-----
     private Equalizer equalizer;
     private int equalizerPresets;
+    private String[] presets;
+    private short val;
+
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -107,7 +119,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             Log.d("DetailActivity:", "Service Unbound");
         }
     };
-    private short val;
+    private AlertDialog dialog;
 
 
     @Override
@@ -118,6 +130,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         ButterKnife.bind(this);
         disposable = new CompositeDisposable();
         disposable1 = new CompositeDisposable();
+        disposable2 = new CompositeDisposable();
         audioList = new ArrayList<>();
         utilities = new Utilities();
         storageUtil = new StorageUtil(this);
@@ -227,6 +240,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             public void onClick(View v) {
                 if (!serviceBound) {
                     return;
+                } else {
+                    showPresets();
                 }
             }
         });
@@ -283,6 +298,43 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                 } while (playerService == null);
 
                 e.onComplete();
+            }
+        });
+    }
+
+    private void setEqualizer() {
+        disposable.add(equalizerObservale()
+                .subscribeOn(Schedulers.newThread())
+                .doOnNext(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer s) throws Exception {
+                        EqualizerSetup(s);
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<Integer>() {
+
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull Integer s) {
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        Log.e("Equalizer_Error-", e.toString());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d("Equlizer- ", "Completed ");
+                    }
+                }));
+    }
+
+    private Observable<Integer> equalizerObservale() {
+        return Observable.fromCallable(new Callable<Integer>() {
+            @Override
+            public Integer call() throws Exception {
+                return equalizerPresets;
             }
         });
     }
@@ -388,6 +440,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         unbindService(serviceConnection);
         disposable.dispose();
         disposable1.dispose();
+        disposable2.dispose();
     }
 
     private void EqualizerSetup(int value) {
@@ -395,10 +448,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         equalizer.setEnabled(true);
         equalizer.usePreset((short) value);
         val = equalizer.getCurrentPreset();
-
-        Log.d("TotalPreset: ", equalizer.getNumberOfPresets() + "");
+        presetText.setText(presets[value]);
         Log.d("currentPreset: ", equalizer.getCurrentPreset() + "");
-        Log.d("currentPresetName: ", equalizer.getPresetName(val) + "");
     }
 
     private void update_seekBar() {
@@ -423,8 +474,27 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
 
     private void showPresets() {
-//        dialog=new AlertDialog(DetailActivity.this,R.layout.preset_layout);
-    }
+        presets = getResources().getStringArray(R.array.PRESETS);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View convertView = inflater.inflate(R.layout.preset_layout, null);
+        builder.setView(convertView);
+        builder.setTitle(R.string.Equalizer);
+        ListView lv = convertView.findViewById(R.id.listView);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(DetailActivity.this, android.R.layout.simple_list_item_1, presets);
+        lv.setAdapter(adapter);
 
+        builder.setItems(presets, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                equalizerPresets = which;
+                setEqualizer();
+                dialog.dismiss();
+            }
+        });
+
+        dialog = builder.create();
+        dialog.show();
+    }
 
 }

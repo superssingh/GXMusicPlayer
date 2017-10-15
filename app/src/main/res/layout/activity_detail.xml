@@ -24,14 +24,6 @@
             android:gravity="bottom"
             android:orientation="vertical">
 
-            <!--<ImageView-->
-            <!--android:id="@+id/d_songThumbnail"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="0dp"-->
-            <!--android:layout_weight="1"-->
-            <!--android:elevation="8dp"-->
-            <!--android:contentDescription="@string/Album_thumb"-->
-            <!--android:scaleType="fitXY" />-->
 
             <LinearLayout
                 android:id="@+id/d_details"
@@ -134,7 +126,7 @@
                     android:layout_weight="1"
                     android:gravity="left|center"
                     android:orientation="horizontal"
-                    android:padding="5dp">
+                    android:padding="3dp">
 
                     <ImageButton
                         android:id="@+id/d_repeatRandom"
@@ -146,17 +138,19 @@
                         android:tooltipText="Jazz" />
 
                     <TextView
-                        android:layout_width="match_parent"
+                        android:id="@+id/presetText"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:gravity=""
-                        android:text="Preset"
-                        android:textColor="#fff" />
+                        android:layout_weight="1"
+                        android:text="Classical"
+                        android:textColor="#fff"
+                        android:textSize="14dp" />
 
                 </LinearLayout>
 
                 <ImageButton
                     android:id="@+id/d_previous"
-                    android:layout_width="50dp"
+                    android:layout_width="40dp"
                     android:layout_height="50dp"
                     android:background="@drawable/ic_first"
                     android:contentDescription="@string/previousButton" />
@@ -171,7 +165,7 @@
 
                 <ImageButton
                     android:id="@+id/d_next"
-                    android:layout_width="50dp"
+                    android:layout_width="40dp"
                     android:layout_height="50dp"
                     android:background="@drawable/ic_last"
                     android:contentDescription="@string/nextButton" />
@@ -182,7 +176,7 @@
                     android:layout_weight="1"
                     android:gravity="right|center"
                     android:orientation="horizontal"
-                    android:padding="5dp">
+                    android:padding="3dp">
 
                     <ImageButton
                         android:id="@+id/d_repeatOne"
@@ -195,14 +189,6 @@
 
         </LinearLayout>
 
-        <!--<GridView-->
-        <!--android:id="@+id/gridView"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent"-->
-        <!--android:background="@drawable/orange_gradient"-->
-        <!--android:numColumns="auto_fit">-->
-
-        <!--</GridView>-->
     </FrameLayout>
 
     <android.support.design.widget.FloatingActionButton

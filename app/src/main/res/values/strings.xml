@@ -53,6 +53,7 @@
     <string name="Artist">Artist</string>
     <string name="Keyword">keyword</string>
     <string name="search_bar">searchbar</string>
+    <string name="Equalizer">Pick Presets</string>
 
     <string-array name="Tabs">
         <item>All</item>
@@ -61,7 +62,7 @@
         <item>Artists</item>
     </string-array>
 
-    <string-array name="PresetState">
+    <string-array name="PRESETS">
         <item>Normal</item>
         <item>Classical</item>
         <item>Dance</item>
