@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -37,6 +36,7 @@ import android.widget.Toast;
 import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Fragments.AlbumFragment;
+import com.santoshkumarsingh.gxmusicplayer.Fragments.ArtistFragment;
 import com.santoshkumarsingh.gxmusicplayer.Fragments.FavoriteFragment;
 import com.santoshkumarsingh.gxmusicplayer.Fragments.HomeFragment;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
@@ -55,10 +55,8 @@ import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
@@ -68,12 +66,10 @@ import io.realm.RealmResults;
 
 @SuppressWarnings("WeakerAccess")
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, TabLayout.OnTabSelectedListener, HomeFragment.OnFragmentInteractionListener, FavoriteFragment.OnFragmentInteractionListener, AlbumFragment.OnFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, TabLayout.OnTabSelectedListener, HomeFragment.OnFragmentInteractionListener, FavoriteFragment.OnFragmentInteractionListener, AlbumFragment.OnFragmentInteractionListener, ArtistFragment.OnArtistFragmentInteractionListener {
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.santoshkumarsingh.gxmusicplayer.PlayNewAudio";
     private static MediaPlayerService playerService;
-    @BindView(R.id.fab)
-    FloatingActionButton fab;
     @BindView(R.id.Current_Play_Pause)
     ImageButton playPause;
     @BindView(R.id.track_Thumbnail)
@@ -101,6 +97,7 @@ public class MainActivity extends AppCompatActivity
     private CompositeDisposable disposable, disposable1;
     private StorageUtil storageUtil;
     private RealmConfiguration config;
+    private CompositeDisposable disposable2;
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -113,6 +110,7 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
             UI_update(audioList, trackPosition, bitmap);
             play_layout.setVisibility(View.VISIBLE);
+
         }
 
         @Override
@@ -143,10 +141,11 @@ public class MainActivity extends AppCompatActivity
         NavigationDrawerSetup();
         disposable = new CompositeDisposable();
         disposable1 = new CompositeDisposable();
+        disposable2 = new CompositeDisposable();
         audioList = new ArrayList<>();
         utilities = new Utilities();
         storageUtil = new StorageUtil(this);
-        animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+        animation = AnimationUtils.loadAnimation(this, R.anim.bounce);
         play_layout.setAnimation(animation);
         songTitle.setSelected(true);
         playerService = new MediaPlayerService();
@@ -161,6 +160,8 @@ public class MainActivity extends AppCompatActivity
         } else {
             return;
         }
+
+
     }
 
     @Override
@@ -170,8 +171,6 @@ public class MainActivity extends AppCompatActivity
             unbindService(serviceConnection);
         }
 
-//        disposable.dispose();
-//        disposable1.dispose();
     }
 
     @Override
@@ -192,27 +191,6 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 startActivity(intent);
-            }
-        });
-
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                switch (playerService.getRepeat()) {
-                    case 0:
-                        playerService.setRepeat(1);
-                        fab.setImageResource(R.drawable.ic_repeat_one);
-                        break;
-                    case 1:
-                        playerService.setRepeat(2);
-                        fab.setImageResource(R.drawable.ic_shuffle);
-                        break;
-                    case 2:
-                        playerService.setRepeat(0);
-                        fab.setImageResource(R.drawable.ic_repeat_all);
-                        break;
-                }
             }
         });
 
@@ -257,7 +235,7 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        Log.e("Error:: ", e.getMessage());
+                        Log.e("Error:MainActivity1", e.getMessage());
                     }
 
                     @Override
@@ -373,11 +351,6 @@ public class MainActivity extends AppCompatActivity
 
                 Intent broadcastIntent = new Intent(Broadcast_PLAY_NEW_AUDIO);
                 sendBroadcast(broadcastIntent);
-
-                playerIntent = new Intent(this, MediaPlayerService.class);
-                startService(playerIntent);
-                bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-
             }
         }
 
@@ -419,6 +392,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        switch (id) {
+            case R.id.my_search_bar:
+
+        }
 
         if (id == R.id.action_settings) {
             return true;
@@ -434,8 +411,6 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_favorite) {
-            Intent intent = new Intent(MainActivity.this, FavoriteActivity.class);
-            startActivity(intent);
 
         } else if (id == R.id.nav_exit) {
             if (serviceBound || playerService.mediaPlayer != null) {
@@ -460,10 +435,9 @@ public class MainActivity extends AppCompatActivity
 
     public void UI_update(List<Audio> audioList, int trackPosition, Bitmap bitmap) {
         this.audioList = audioList;
-        setRepeatButtonIcon(playerService.getRepeat());
         setPlayPauseState(playerService.ismAudioIsPlaying());
         if (bitmap == null) {
-            trackThumbnail.setImageResource(R.drawable.ic_headset);
+            trackThumbnail.setImageResource(R.drawable.audio_image);
         } else {
             trackThumbnail.setImageBitmap(bitmap);
         }
@@ -494,45 +468,33 @@ public class MainActivity extends AppCompatActivity
         });
 
         update_seekBar();
+
     }
 
-    public void seekBarCycle() {
-        int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
-        seekBar.setProgress(i);
-    }
 
     private void update_seekBar() {
-        Observable.interval(1, TimeUnit.SECONDS).subscribe(new Observer<Long>() {
-            @Override
-            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
-
-            }
-
-            @Override
-            public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
-                if (playerService.mediaPlayer != null) {
-                    seekBarCycle();
-                }
-            }
-
-            @Override
-            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                Log.e("SeekBar_loop: ", e.toString());
-            }
-
-            @Override
-            public void onComplete() {
-
-            }
-        });
-
+        disposable2.add(Observable.interval(1, TimeUnit.SECONDS)
+                .subscribeOn(Schedulers.io())
+                .doOnNext(new Consumer<Long>() {
+                    @Override
+                    public void accept(Long aLong) throws Exception {
+                        int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
+                        seekBar.setProgress(i);
+                    }
+                }).observeOn(AndroidSchedulers.mainThread())
+                .subscribe()
+        );
     }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
         disposable.dispose();
         disposable1.dispose();
+        disposable2.dispose();
+
     }
 
     @Override
@@ -558,6 +520,25 @@ public class MainActivity extends AppCompatActivity
         playAudio(position, categoryState);
     }
 
+    @Override
+    public void onFragmentInteraction(String id) {
+        categoryState = 3;
+        Intent intent = new Intent(MainActivity.this, ListActivity.class)
+                .putExtra(getString(R.string.Keyword), id)
+                .putExtra(getString(R.string.category), categoryState);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onArtistFragmentInteraction(String id) {
+        categoryState = 4;
+        Intent intent = new Intent(MainActivity.this, ListActivity.class)
+                .putExtra(getString(R.string.Keyword), id)
+                .putExtra(getString(R.string.category), categoryState);
+        startActivity(intent);
+
+    }
+
     private List<Audio> convertList(RealmResults<FavoriteAudio> audios) {
         List<Audio> audioList = new ArrayList<>();
         for (FavoriteAudio audio : audios) {
@@ -568,31 +549,12 @@ public class MainActivity extends AppCompatActivity
         return audioList;
     }
 
-    private void setRepeatButtonIcon(int repeat) {
-        switch (repeat) {
-            case 0:
-                fab.setImageResource(R.drawable.ic_repeat_all);
-                break;
-            case 1:
-                fab.setImageResource(R.drawable.ic_repeat_one);
-                break;
-            case 2:
-                fab.setImageResource(R.drawable.ic_shuffle);
-                break;
-        }
-    }
-
     private void setPlayPauseState(boolean playPauseState) {
         if (playPauseState) {
             playPause.setImageResource(R.drawable.ic_pause_circle_outline);
         } else {
             playPause.setImageResource(R.drawable.ic_play_circle_outline);
         }
-    }
-
-    @Override
-    public void onFragmentInteraction(List<Audio> audios) {
-
     }
 
     //*****Tab Layout------------
@@ -611,7 +573,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-
     private class ViewPagerAdapter extends FragmentPagerAdapter {
         String[] tabs;
 
@@ -625,6 +586,7 @@ public class MainActivity extends AppCompatActivity
             HomeFragment homeFragment = new HomeFragment();
             FavoriteFragment favoriteFragment = new FavoriteFragment();
             AlbumFragment albumFragment = new AlbumFragment();
+            ArtistFragment artistFragment = new ArtistFragment();
 
             switch (position) {
                 case 0:
@@ -633,6 +595,8 @@ public class MainActivity extends AppCompatActivity
                     return favoriteFragment;
                 case 2:
                     return albumFragment;
+                case 3:
+                    return artistFragment;
             }
 
             return homeFragment;
@@ -645,9 +609,10 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public int getCount() {
-            return 3;
+            return 4;
         }
 
     }
+
 
 }

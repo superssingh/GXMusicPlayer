@@ -4,15 +4,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/pink_red"
     android:orientation="vertical"
-    tools:context="com.santoshkumarsingh.gxmusicplayer.Activities.FavoriteActivity">
+    tools:context="com.santoshkumarsingh.gxmusicplayer.Activities.ListActivity">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/fav_recyclerView"
+        android:id="@+id/List_recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollIndicators="right"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:scrollbarFadeDuration="5000"
+        android:scrollbarStyle="insideOverlay"
+        android:scrollbars="vertical">
 
     </android.support.v7.widget.RecyclerView>
 
+    <include layout="@layout/current_play" />
 </LinearLayout>

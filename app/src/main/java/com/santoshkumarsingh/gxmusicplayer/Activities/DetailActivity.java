@@ -5,12 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
+import android.media.MediaRecorder;
+import android.media.audiofx.Equalizer;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
@@ -19,7 +20,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
@@ -28,7 +28,7 @@ import com.santoshkumarsingh.gxmusicplayer.R;
 import com.santoshkumarsingh.gxmusicplayer.Services.MediaPlayerService;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 
-import java.text.DecimalFormat;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -38,10 +38,8 @@ import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
@@ -71,24 +69,26 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     TextView artist;
     @BindView(R.id.d_trackTitle)
     TextView title;
-    @BindView(R.id.d_songCurrentTime)
+    @BindView(R.id.d_CurrentTime)
     TextView currentTime;
     @BindView(R.id.d_trackAlbum)
     TextView album;
     @BindView(R.id.d_fab)
     FloatingActionButton detail_fab;
+    AlertDialog dialog;
     private Utilities utilities;
     private int trackPosition = 0;
     private List<Audio> audioList;
     private boolean serviceBound = false;
     private Intent playerIntent;
-    private Toolbar toolbar;
     private Bitmap bitmap;
-    private CompositeDisposable disposable;
+    private CompositeDisposable disposable, disposable1;
     private StorageUtil storageUtil;
-    private DecimalFormat decimalFormat = new DecimalFormat("#.##");
     private Animation animation;
-    private CountDownTimer timer;
+    private MediaRecorder mediaRecorder;
+    private File audioFilePath;
+    private Equalizer equalizer;
+    private int equalizerPresets;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -97,30 +97,32 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             playerService = binder.getService();
             playerService.setCallback(DetailActivity.this);
             serviceBound = true;
-            Toast.makeText(DetailActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
+            Log.d("DetailActivity:", "Service Bound");
             UI_update(audioList, trackPosition, bitmap);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             serviceBound = false;
-            Toast.makeText(DetailActivity.this, "Service Unbound", Toast.LENGTH_SHORT).show();
+            Log.d("DetailActivity:", "Service Unbound");
         }
     };
+    private short val;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-        toolbar = new Toolbar(this);
-        toolbar.setTitle("Playing");
+        getSupportActionBar().setTitle("Playing");
         ButterKnife.bind(this);
         disposable = new CompositeDisposable();
+        disposable1 = new CompositeDisposable();
         audioList = new ArrayList<>();
         utilities = new Utilities();
         storageUtil = new StorageUtil(this);
         playerService = new MediaPlayerService();
+        mediaRecorder = new MediaRecorder();
         animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
         d_thumbnail.setAnimation(animation);
         title.setAnimation(animation);
@@ -136,10 +138,23 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         } else {
             return;
         }
-
     }
 
     private void setClickedListeners() {
+        detail_fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (val == 9) {
+                    val = 0;
+                    EqualizerSetup(val);
+
+                } else {
+                    EqualizerSetup(val + 1);
+                }
+
+            }
+        });
+
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -213,7 +228,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                 if (!serviceBound) {
                     return;
                 }
-
             }
         });
 
@@ -331,8 +345,9 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         this.audioList = audioList;
         setRepeatButtonIcon(playerService.getRepeat());
         setPlayPauseState(playerService.ismAudioIsPlaying());
+
         if (bitmap == null) {
-            d_thumbnail.setImageResource(R.drawable.ic_headset);
+            d_thumbnail.setImageResource(R.drawable.audio_image);
         } else {
             d_thumbnail.setImageBitmap(bitmap);
         }
@@ -340,8 +355,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         title.setText(audioList.get(trackPosition).getTITLE());
         artist.setText(audioList.get(trackPosition).getARTIST());
         album.setText(audioList.get(trackPosition).getALBUM());
-        int trackDuration = Integer.parseInt(audioList.get(trackPosition).getDURATION());
-        duration.setText(decimalFormat.format(((float) trackDuration / 1000) / 60) + "");
+        duration.setText(utilities.milliSecondsToTimer((long) Integer.parseInt(audioList.get(trackPosition).getDURATION())));
 
         seekBar.setMax(Integer.parseInt(audioList.get(trackPosition).getDURATION()));
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -350,14 +364,12 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                 if (b) {
                     if (playerService.mediaPlayer.isPlaying()) {
                         playerService.mediaPlayer.seekTo(i);
-
                     }
                 }
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
             }
 
             @Override
@@ -368,90 +380,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
         update_seekBar();
 
-
-    }
-
-    private void seekBarCycle() {
-        int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
-        seekBar.setProgress(i);
-    }
-
-    private void currentTimeCycle() {
-        int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
-        currentTime.setText(decimalFormat.format(((float) i / 1000) / 60) + "");
-    }
-
-    private void update_seekBar() {
-        Observable.interval(1, TimeUnit.SECONDS).subscribe(new Observer<Long>() {
-            @Override
-            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
-
-            }
-
-            @Override
-            public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
-                if (playerService.mediaPlayer != null) {
-                    seekBarCycle();
-                }
-            }
-
-            @Override
-            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                Log.e("SeekBar_Error: ", e.toString());
-            }
-
-            @Override
-            public void onComplete() {
-
-            }
-        });
-    }
-
-//    public void timerStart(long timeLengthMilli) {
-//        timer = new CountDownTimer(timeLengthMilli, 1000) {
-//
-//            @Override
-//            public void onTick(long milliTillFinish) {
-//                milliLeft = milliTillFinish;
-//                min = (milliTillFinish / (1000 * 60));
-//                sec = ((milliTillFinish / 1000) - min * 60);
-//                clock.setText(Long.toString(min) + ":" + Long.toString(sec));
-//                Log.i("Tick", "Tock");
-//            }
-//        };
-//    }
-
-
-    private void update_currentTime() {
-        Observable.interval(1, TimeUnit.SECONDS)
-                .subscribeOn(Schedulers.newThread())
-                .doOnNext(new Consumer<Long>() {
-                    @Override
-                    public void accept(Long aLong) throws Exception {
-                        aLong = Long.valueOf(playerService.mediaPlayer.getCurrentPosition());
-                    }
-                })
-                .subscribe(new Observer<Long>() {
-                    @Override
-                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
-                        currentTime.setText(decimalFormat.format(((float) aLong / 1000) / 60) + "");
-                    }
-
-                    @Override
-                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        Log.e("SeekBar_Error: ", e.toString());
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
     }
 
     @Override
@@ -459,5 +387,44 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         super.onDestroy();
         unbindService(serviceConnection);
         disposable.dispose();
+        disposable1.dispose();
     }
+
+    private void EqualizerSetup(int value) {
+        equalizer = new Equalizer(0, playerService.mediaPlayer.getAudioSessionId());
+        equalizer.setEnabled(true);
+        equalizer.usePreset((short) value);
+        val = equalizer.getCurrentPreset();
+
+        Log.d("TotalPreset: ", equalizer.getNumberOfPresets() + "");
+        Log.d("currentPreset: ", equalizer.getCurrentPreset() + "");
+        Log.d("currentPresetName: ", equalizer.getPresetName(val) + "");
+    }
+
+    private void update_seekBar() {
+        disposable1.add(Observable.interval(1, TimeUnit.SECONDS)
+                .subscribeOn(Schedulers.io())
+                .doOnNext(new Consumer<Long>() {
+                    @Override
+                    public void accept(Long aLong) throws Exception {
+                        int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
+                        seekBar.setProgress(i);
+                    }
+                }).observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<Long>() {
+                    @Override
+                    public void accept(Long aLong) throws Exception {
+                        currentTime.setText(utilities.milliSecondsToTimer((long) playerService.mediaPlayer.getCurrentPosition()));
+                    }
+                })
+                .subscribe()
+        );
+    }
+
+
+    private void showPresets() {
+//        dialog=new AlertDialog(DetailActivity.this,R.layout.preset_layout);
+    }
+
+
 }

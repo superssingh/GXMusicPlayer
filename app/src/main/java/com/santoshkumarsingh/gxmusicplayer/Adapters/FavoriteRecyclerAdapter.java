@@ -51,6 +51,8 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
         holder.favoriteAudio = favoriteAudios.get(position);
         holder.mTitle.setText(holder.favoriteAudio.getTITLE());
         holder.mArtist.setText(holder.favoriteAudio.getARTIST());
+        long duration = Long.parseLong(holder.favoriteAudio.getDURATION());
+        holder.duration.setText(utilities.milliSecondsToTimer(duration));
 
         final Bitmap trackImage = utilities.getTrackThumbnail(holder.favoriteAudio.getURL());
         if (trackImage != null) {
@@ -114,6 +116,8 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
         TextView mTitle;
         @BindView(R.id.F_Artist)
         TextView mArtist;
+        @BindView(R.id.song_duration)
+        TextView duration;
         @BindView(R.id.F_delete)
         ImageButton delete;
         @BindView(R.id.F_imageView)

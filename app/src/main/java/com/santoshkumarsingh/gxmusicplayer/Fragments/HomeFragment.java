@@ -46,7 +46,6 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
 
     @BindView(R.id.Home_recyclerView)
     RecyclerView recyclerView;
-    int trackposition = 0;
     private OnFragmentInteractionListener mListener;
     private List<Audio> audioList;
     private AudioRecyclerAdapter audioRecyclerAdapter;
@@ -106,7 +105,7 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
 
     private void Load_AudioFiles() {
         disposable.add(getAudio()
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<List<Audio>>() {
                     @Override
@@ -116,12 +115,12 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
 
                     @Override
                     public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        Log.e("Error:: ", e.getMessage());
+                        Log.e("Error::Home ", e.getMessage());
                     }
 
                     @Override
                     public void onComplete() {
-                        Log.e("OnComplete:: ", "Completed");
+                        Log.d("OnComplete:: ", "Completed");
 
                     }
                 }));
@@ -132,10 +131,9 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
             @Override
             public List<Audio> call() throws Exception {
                 do {
-                    loadAudioFiles();
+                    audioList = loadAudioFiles();
                 } while (audioList == null);
-
-                return loadAudioFiles();
+                return audioList;
             }
         });
     }

@@ -11,13 +11,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.google.android.flexbox.FlexWrap;
 import com.google.android.flexbox.FlexboxLayoutManager;
-import com.santoshkumarsingh.gxmusicplayer.Adapters.AlbumRecyclerAdapter;
-import com.santoshkumarsingh.gxmusicplayer.Interfaces.AlbumOnClickListener;
-import com.santoshkumarsingh.gxmusicplayer.Models.Album;
+import com.santoshkumarsingh.gxmusicplayer.Adapters.ArtistRecyclerAdapter;
+import com.santoshkumarsingh.gxmusicplayer.Interfaces.ArtistOnClickListener;
+import com.santoshkumarsingh.gxmusicplayer.Models.Artist;
 import com.santoshkumarsingh.gxmusicplayer.R;
 
 import java.util.ArrayList;
@@ -34,17 +33,17 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
-public class AlbumFragment extends Fragment implements AlbumOnClickListener {
+public class ArtistFragment extends Fragment implements ArtistOnClickListener {
 
-    @BindView(R.id.album_recyclerView)
+    @BindView(R.id.artist_recyclerView)
     RecyclerView recyclerView;
-    AlbumRecyclerAdapter recyclerAdapter;
-    List<Album> albumList;
+    ArtistRecyclerAdapter recyclerAdapter;
+    List<Artist> artistList;
     CompositeDisposable disposable;
-    private OnFragmentInteractionListener mListener;
+    private OnArtistFragmentInteractionListener mListener;
     private View view;
 
-    public AlbumFragment() {
+    public ArtistFragment() {
 
     }
 
@@ -56,28 +55,30 @@ public class AlbumFragment extends Fragment implements AlbumOnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_album, container, false);
+        view = inflater.inflate(R.layout.fragment_artist, container, false);
         ButterKnife.bind(this, view);
-        albumList = new ArrayList<>();
+        artistList = new ArrayList<Artist>();
         disposable = new CompositeDisposable();
-        Load_Albums();
+        Load_Artists();
+
         return view;
     }
 
-    private void Load_Albums() {
+
+    private void Load_Artists() {
         disposable.add(getAudio()
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new DisposableObserver<List<Album>>() {
+                .subscribeWith(new DisposableObserver<List<Artist>>() {
                     @Override
-                    public void onNext(@io.reactivex.annotations.NonNull List<Album> audios) {
-                        albumList = audios;
-                        configRecycleView(albumList);
+                    public void onNext(@io.reactivex.annotations.NonNull List<Artist> audios) {
+                        artistList = audios;
+                        configRecycleView(audios);
                     }
 
                     @Override
                     public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        Log.e("Error::Albums ", e.getMessage());
+                        Log.e("Error::Artists ", e.getMessage());
                     }
 
                     @Override
@@ -88,19 +89,19 @@ public class AlbumFragment extends Fragment implements AlbumOnClickListener {
                 }));
     }
 
-    private Observable<List<Album>> getAudio() {
-        return Observable.fromCallable(new Callable<List<Album>>() {
+    private Observable<List<Artist>> getAudio() {
+        return Observable.fromCallable(new Callable<List<Artist>>() {
             @Override
-            public List<Album> call() throws Exception {
-                return loadAlbums();
+            public List<Artist> call() throws Exception {
+                return loadArtistsList();
             }
         });
     }
 
-    private void configRecycleView(List<Album> albumList) {
+    private void configRecycleView(List<Artist> ArtistList) {
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager();
         layoutManager.setFlexWrap(FlexWrap.WRAP);
-        recyclerAdapter = new AlbumRecyclerAdapter(this, albumList);
+        recyclerAdapter = new ArtistRecyclerAdapter(this, ArtistList);
         recyclerView.setAdapter(recyclerAdapter);
         recyclerView.setLayoutManager(layoutManager);
     }
@@ -108,8 +109,8 @@ public class AlbumFragment extends Fragment implements AlbumOnClickListener {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof OnArtistFragmentInteractionListener) {
+            mListener = (OnArtistFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -122,54 +123,53 @@ public class AlbumFragment extends Fragment implements AlbumOnClickListener {
         mListener = null;
     }
 
-    public List<Album> loadAlbums() {
-        List<Album> albumList = new ArrayList<>();
-        Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+    public List<Artist> loadArtistsList() {
+        List<Artist> artists = new ArrayList<>();
+        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String selection = MediaStore.Audio.Media.IS_MUSIC + "!=0";
-        String sortOrder = "lower(" + MediaStore.Audio.Albums.ALBUM + ") ASC";
+        String sortOrder = "lower(" + MediaStore.Audio.Media.ARTIST + ") ASC";
         Cursor cursor = getActivity().getContentResolver().query(uri, null, selection, null, sortOrder);
 
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 do {
-                    String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID));
-                    String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
                     String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                    String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
                     String art = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
-                    Album album = new Album(id, name, artist, art);
-                    albumList.add(album);
+                    Artist data = new Artist(artist, name, art);
+                    artists.add(data);
+
                 } while (cursor.moveToNext());
             }
 
             cursor.close();
         }
 
-        return removeDuplicates(albumList);
+
+        return removeDuplicates(artists);
     }
 
-    private List<Album> removeDuplicates(List<Album> albumList) {
+    private List<Artist> removeDuplicates(List<Artist> artists) {
 
-        List<Album> listContacts = new ArrayList<Album>();
+        List<Artist> listContacts = new ArrayList<Artist>();
         //LinkedHashSet preserves the order of the original list
-        Set<Album> unique = new LinkedHashSet<Album>(albumList);
-        listContacts = new ArrayList<Album>(unique);
+        Set<Artist> unique = new LinkedHashSet<Artist>(artists);
+        listContacts = new ArrayList<Artist>(unique);
 
         return listContacts;
     }
 
     @Override
     public void OnClick(String AlbumID) {
-        Toast.makeText(getContext(), "OK " + AlbumID, Toast.LENGTH_LONG).show();
-        mListener.onFragmentInteraction(AlbumID);
-
+        mListener.onArtistFragmentInteraction(AlbumID);
     }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-
+            Load_Artists();
         }
     }
 
@@ -179,8 +179,8 @@ public class AlbumFragment extends Fragment implements AlbumOnClickListener {
         disposable.dispose();
     }
 
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(String id);
+    public interface OnArtistFragmentInteractionListener {
+        void onArtistFragmentInteraction(String id);
 
     }
 }

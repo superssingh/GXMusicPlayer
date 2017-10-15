@@ -43,6 +43,7 @@ public class RealmContentProvider {
                 Toast.makeText(context, R.string.FavoriteMarked, Toast.LENGTH_SHORT)
                         .show();
             }
+
         }, new Realm.Transaction.OnError() {
             @Override
             public void onError(@NonNull Throwable error) {
@@ -69,7 +70,7 @@ public class RealmContentProvider {
         realm.close();
     }
 
-    private void delete(int position) {
+    public void delete(int position) {
         Realm realm = Realm.getDefaultInstance();
         RealmResults<FavoriteAudio> favoriteAudios = realm.where(FavoriteAudio.class).findAll();
         realm.beginTransaction();

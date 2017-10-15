@@ -48,11 +48,30 @@
     <string name="HOME_STATE">HOME_STATE</string>
     <string name="All_Audio">All</string>
     <string name="Favorite_State">STATUS</string>
+    <string name="ALBUM_ID">ID</string>
+    <string name="category">category</string>
+    <string name="Artist">Artist</string>
+    <string name="Keyword">keyword</string>
+    <string name="search_bar">searchbar</string>
 
     <string-array name="Tabs">
         <item>All</item>
-        <item>Favorite</item>
+        <item>Favorites</item>
         <item>Albums</item>
+        <item>Artists</item>
+    </string-array>
+
+    <string-array name="PresetState">
+        <item>Normal</item>
+        <item>Classical</item>
+        <item>Dance</item>
+        <item>Flat</item>
+        <item>Folk</item>
+        <item>Heavy Metal</item>
+        <item>Hip Hop</item>
+        <item>Jazz</item>
+        <item>Pop</item>
+        <item>Rock</item>
     </string-array>
 
 </resources>

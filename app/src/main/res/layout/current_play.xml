@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/play_layout"
     android:layout_width="match_parent"
     android:layout_height="70dp"
-    android:background="@drawable/background"
+    android:background="@drawable/orange_gradient"
     android:elevation="8dp">
 
     <LinearLayout
@@ -32,6 +33,7 @@
 
                 <TextView
                     android:id="@+id/trackTitle"
+                    style="@style/TextAppearance.AppCompat.Title"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_marginLeft="5dp"
@@ -43,8 +45,10 @@
                     android:marqueeRepeatLimit="marquee_forever"
                     android:scrollHorizontally="true"
                     android:singleLine="true"
+                    android:text="SongTitle"
                     android:textColor="@color/colorWhite"
-                    android:textSize="16dp" />
+                    android:textSize="18dp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/trackArtist"
@@ -54,13 +58,17 @@
                     android:layout_weight="1"
                     android:maxLines="1"
                     android:text="@string/Song_Artist"
-                    android:textColor="@color/colorWhite" />
+                    android:textColor="@color/LightGray"
+                    android:textSize="14dp" />
 
                 <android.support.v7.widget.AppCompatSeekBar
                     android:id="@+id/current_seekBar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp" />
+                    android:layout_marginBottom="5dp"
+                    android:progressBackgroundTint="#333"
+                    android:progressTint="@color/cardview_light_background"
+                    android:thumbTint="@color/cardview_light_background" />
 
             </LinearLayout>
 
@@ -70,7 +78,7 @@
                 android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:layout_marginRight="5dp"
-                android:background="@drawable/background_round"
+                android:background="@drawable/orange_round"
                 android:contentDescription="@string/play_pauseButton"
                 android:src="@drawable/ic_play_circle_outline" />
 

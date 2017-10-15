@@ -2,13 +2,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background1"
+    android:background="@color/cardview_light_background"
     tools:context="com.santoshkumarsingh.gxmusicplayer.Fragments.FavoriteFragment">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/fav_recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:scrollbarFadeDuration="5000"
+        android:scrollbars="vertical">
 
     </android.support.v7.widget.RecyclerView>
 

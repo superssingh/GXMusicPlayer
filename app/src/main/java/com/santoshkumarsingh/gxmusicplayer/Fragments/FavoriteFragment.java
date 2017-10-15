@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,10 +24,8 @@ import io.realm.RealmResults;
 
 public class FavoriteFragment extends Fragment implements FavoriteOnClickListener {
 
-    public static String KEY = "KEY";
     @BindView(R.id.fav_recyclerView)
     RecyclerView recyclerView;
-    int position = 0;
     private OnFragmentInteractionListener mListener;
     private View view;
     private Realm realm = null;
@@ -46,6 +45,12 @@ public class FavoriteFragment extends Fragment implements FavoriteOnClickListene
                              Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_favorite, container, false);
         ButterKnife.bind(this, view);
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+        recyclerView.setLayoutManager(linearLayoutManager);
+        final DividerItemDecoration itemDecoration = new DividerItemDecoration(recyclerView.getContext(), linearLayoutManager.getOrientation());
+        recyclerView.addItemDecoration(itemDecoration);
+
         getFavoriteList();
         return view;
     }
@@ -64,15 +69,9 @@ public class FavoriteFragment extends Fragment implements FavoriteOnClickListene
     }
 
     private void configRecycleView(RealmResults<FavoriteAudio> results) {
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
-        recyclerView.setLayoutManager(linearLayoutManager);
         recyclerAdapter = new FavoriteRecyclerAdapter(this, results);
-        recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(recyclerAdapter);
-        final DividerItemDecoration itemDecoration = new DividerItemDecoration(recyclerView.getContext(), linearLayoutManager.getOrientation());
-        recyclerView.addItemDecoration(itemDecoration);
-
-        position = 2;
+        Log.d("OnComplete:: ", "Completed");
     }
 
     @Override
@@ -105,7 +104,6 @@ public class FavoriteFragment extends Fragment implements FavoriteOnClickListene
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             getFavoriteList();
-
         }
     }
 

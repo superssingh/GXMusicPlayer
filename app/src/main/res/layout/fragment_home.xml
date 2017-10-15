@@ -1,7 +1,9 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/cardview_light_background"
     android:orientation="vertical"
     tools:context="com.santoshkumarsingh.gxmusicplayer.Fragments.HomeFragment">
 
@@ -15,14 +17,11 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:background="@drawable/background1"
             android:scrollIndicators="right"
             android:scrollbarAlwaysDrawVerticalTrack="true"
             android:scrollbarFadeDuration="2000"
             android:scrollbarStyle="insideOverlay"
-            android:scrollbars="vertical"
-
-            ></android.support.v7.widget.RecyclerView>
+            android:scrollbars="vertical" />
 
     </LinearLayout>
 
