@@ -102,6 +102,8 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
             Toast.makeText(ListActivity.this, "Service Unbound", Toast.LENGTH_SHORT).show();
         }
     };
+    private int category;
+    private String keyword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,8 +111,8 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         setContentView(R.layout.activity_list);
         ButterKnife.bind(this);
         Bundle bundle = getIntent().getExtras();
-        String keyword = bundle.getString(getString(R.string.Keyword));
-        int category = bundle.getInt(getString(R.string.category));
+        keyword = bundle.getString(getString(R.string.Keyword));
+        category = bundle.getInt(getString(R.string.category));
 
         disposable = new CompositeDisposable();
         audioList = new ArrayList<>();
@@ -121,25 +123,9 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         songTitle.setSelected(true);
         playerService = new MediaPlayerService();
 
-        if (category == 3) {
-            getSupportActionBar().setTitle("Songs of album");
-            audioList = loadAlbumFiles(keyword);
-        } else if (category == 4) {
-            getSupportActionBar().setTitle("Songs of artist");
-            audioList = loadArtistFiles(keyword);
-        }
-
-        setDataIntoAdapter(audioList);
-
-        if (storageUtil.loadAudioIndex() != -1) {
-            audioList = storageUtil.loadAudio();
-            trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
-            categoryState = storageUtil.loadCategoryIndex() == -1 ? 0 : storageUtil.loadCategoryIndex();
-            ConnectMediaPlayer();
-        } else {
-            return;
-        }
+        Load_Audio_Data();
     }
+
 
     private void setDataIntoAdapter(List<Audio> audios) {
         audioList = audios;
@@ -183,7 +169,10 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer s) throws Exception {
-                        bitmap = utilities.getTrackThumbnail(audioList.get(s).getURL());
+                        bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
+                                ? utilities.compressBitmap(utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()))
+                                : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 50, 50);
+
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
@@ -217,12 +206,10 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
             @Override
             public void subscribe(@io.reactivex.annotations.NonNull ObservableEmitter<Integer> e) throws Exception {
                 do {
-
                     if (playerService == null) {
                         playerService = MediaPlayerService.getInstance(getApplicationContext());
                         playerService.setAudioList(audioList);
                     }
-
                     e.onNext(trackPosition);
                 } while (playerService == null);
 
@@ -281,12 +268,8 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
     public void UI_update(List<Audio> audioList, int trackPosition, Bitmap bitmap) {
         this.audioList = audioList;
         setPlayPauseState(playerService.ismAudioIsPlaying());
-        if (bitmap == null) {
-            trackThumbnail.setImageResource(R.drawable.audio_image);
-        } else {
-            trackThumbnail.setImageBitmap(bitmap);
-        }
 
+        trackThumbnail.setImageBitmap(bitmap);
         songTitle.setText(audioList.get(trackPosition).getTITLE());
         songArtist.setText(audioList.get(trackPosition).getARTIST());
 
@@ -378,13 +361,12 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
     }
 
     @Override
-    public void OnItemClicked(List<Audio> audios, int position, Bitmap bitmap) {
+    public void OnItemClicked(List<Audio> audios, int position) {
         categoryState = 0;
         trackPosition = position;
         audioList = audios;
         storageUtil.storeAudio(audioList);
         playerService.setAudioList(audios);
-        this.bitmap = bitmap;
         playAudio(position, categoryState);
     }
 
@@ -446,15 +428,28 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
 
     private void Load_Audio_Data() {
         disposable.add(getAudio()
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer integer) throws Exception {
+
+                        if (integer == 3) {
+                            getSupportActionBar().setTitle("Songs of album");
+                            audioList = loadAlbumFiles(keyword);
+                        } else if (integer == 4) {
+                            getSupportActionBar().setTitle("Songs of artist");
+                            audioList = loadArtistFiles(keyword);
+                        }
+                        setDataIntoAdapter(audioList);
+
                         if (storageUtil.loadAudioIndex() != -1) {
                             categoryState = storageUtil.loadCategoryIndex();
                             trackPosition = storageUtil.loadAudioIndex();
                             audioList = storageUtil.loadAudio();
-                            bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL());
+                            bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
+                                    ? utilities.compressBitmap(utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()))
+                                    : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 50, 50);
+
                             playerIntent = new Intent(ListActivity.this, MediaPlayerService.class);
                             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
                         } else {
@@ -484,8 +479,7 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         return Observable.fromCallable(new Callable<Integer>() {
             @Override
             public Integer call() throws Exception {
-
-                return trackPosition;
+                return category;
             }
         });
     }

@@ -1,7 +1,5 @@
 package com.santoshkumarsingh.gxmusicplayer.Interfaces;
 
-import android.graphics.Bitmap;
-
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 
 import java.util.List;
@@ -11,5 +9,5 @@ import java.util.List;
  */
 
 public interface SongOnClickListener {
-    void OnItemClicked(List<Audio> audios, int position, Bitmap bitmap);
+    void OnItemClicked(List<Audio> audios, int position);
 }

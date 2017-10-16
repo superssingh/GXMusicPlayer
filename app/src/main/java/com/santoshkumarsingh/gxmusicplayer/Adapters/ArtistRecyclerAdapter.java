@@ -27,6 +27,7 @@ import butterknife.ButterKnife;
 @SuppressWarnings("ObjectEqualsNull")
 public class ArtistRecyclerAdapter extends RecyclerView.Adapter<ArtistRecyclerAdapter.ViewHolder> {
 
+    Bitmap bitmap;
     private Utilities utilities;
     private List<Artist> albumList;
     private ArtistOnClickListener onClickListener;
@@ -47,10 +48,14 @@ public class ArtistRecyclerAdapter extends RecyclerView.Adapter<ArtistRecyclerAd
     @Override
     public void onBindViewHolder(final ArtistRecyclerAdapter.ViewHolder holder, int position) {
         holder.Album_artrist.setText(albumList.get(position).getARTIST());
+        final int i = position;
 
-        final Bitmap trackImage = utilities.getTrackThumbnail(albumList.get(position).getALBUM_ART());
-        if (trackImage != null) {
-            holder.albumImage.setImageBitmap(trackImage);
+        bitmap = utilities.getTrackThumbnail(albumList.get(i).getALBUM_ART()) != null
+                ? utilities.compressBitmap(utilities.getTrackThumbnail(albumList.get(i).getALBUM_ART()))
+                : null;
+
+        if (bitmap != null) {
+            holder.albumImage.setImageBitmap(bitmap);
         } else {
             holder.albumImage.setImageResource(R.drawable.ic_audiotrack);
         }
@@ -59,7 +64,7 @@ public class ArtistRecyclerAdapter extends RecyclerView.Adapter<ArtistRecyclerAd
             @Override
             public void onClick(View v) {
                 if (onClickListener != null) {
-                    onClickListener.OnClick(albumList.get(position).getARTIST());
+                    onClickListener.OnClick(albumList.get(i).getARTIST());
                 }
             }
         });

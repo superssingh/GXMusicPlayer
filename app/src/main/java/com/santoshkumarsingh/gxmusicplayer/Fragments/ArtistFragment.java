@@ -30,6 +30,7 @@ import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
@@ -59,21 +60,37 @@ public class ArtistFragment extends Fragment implements ArtistOnClickListener {
         ButterKnife.bind(this, view);
         artistList = new ArrayList<Artist>();
         disposable = new CompositeDisposable();
+
         Load_Artists();
 
         return view;
     }
 
+    private Observable<Integer> getArtist() {
+        return Observable.fromCallable(new Callable<Integer>() {
+            @Override
+            public Integer call() throws Exception {
+                return 0;
+            }
+        });
+    }
+
 
     private void Load_Artists() {
-        disposable.add(getAudio()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new DisposableObserver<List<Artist>>() {
+
+        disposable.add(getArtist()
+                .subscribeOn(Schedulers.io())
+                .doOnNext(new Consumer<Integer>() {
                     @Override
-                    public void onNext(@io.reactivex.annotations.NonNull List<Artist> audios) {
-                        artistList = audios;
-                        configRecycleView(audios);
+                    public void accept(Integer integer) throws Exception {
+                        artistList = loadArtistsList();
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<Integer>() {
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull Integer integer) {
+                        configRecycleView(artistList);
                     }
 
                     @Override
@@ -169,6 +186,7 @@ public class ArtistFragment extends Fragment implements ArtistOnClickListener {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
+            disposable = new CompositeDisposable();
             Load_Artists();
         }
     }
@@ -181,6 +199,7 @@ public class ArtistFragment extends Fragment implements ArtistOnClickListener {
 
     public interface OnArtistFragmentInteractionListener {
         void onArtistFragmentInteraction(String id);
-
     }
+
+
 }

@@ -30,6 +30,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
@@ -42,7 +43,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -73,8 +73,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     ImageButton previous;
     @BindView(R.id.d_repeatOne)
     ImageButton repeatBTN;
-    @BindView(R.id.d_repeatRandom)
-    ImageButton repeatRandom;
+    @BindView(R.id.d_equalizer)
+    ImageButton equalizerBTN;
     @BindView(R.id.d_seekBar)
     SeekBar seekBar;
     @BindView(R.id.d_songThumbnail)
@@ -93,8 +93,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     TextView presetText;
     @BindView(R.id.d_fab)
     FloatingActionButton detail_fab;
-    //    @BindView(R.id.bmb)
-//    BoomButton bmb;
     private Utilities utilities;
     private int trackPosition = 0;
     private List<Audio> audioList;
@@ -256,7 +254,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             }
         });
 
-        repeatRandom.setOnClickListener(new View.OnClickListener() {
+        equalizerBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!serviceBound) {
@@ -275,21 +273,18 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer s) throws Exception {
-                        bitmap = utilities.getTrackThumbnail(audioList.get(s).getURL());
+                        bitmap = (utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
+                                ? utilities.compressBitmap(utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()))
+                                : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 100, 100));
+                        playAudio(s);
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(new Consumer<Integer>() {
-                    @Override
-                    public void accept(Integer s) throws Exception {
-
-                    }
-                })
                 .subscribeWith(new DisposableObserver<Integer>() {
 
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull Integer s) {
-                        playAudio(s);
+
                     }
 
                     @Override
@@ -319,43 +314,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                 } while (playerService == null);
 
                 e.onComplete();
-            }
-        });
-    }
-
-    private void setEqualizer() {
-        disposable.add(equalizerObservale()
-                .subscribeOn(Schedulers.newThread())
-                .doOnNext(new Consumer<Integer>() {
-                    @Override
-                    public void accept(Integer s) throws Exception {
-                        EqualizerSetup(s);
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new DisposableObserver<Integer>() {
-
-                    @Override
-                    public void onNext(@io.reactivex.annotations.NonNull Integer s) {
-                    }
-
-                    @Override
-                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        Log.e("Equalizer_Error-", e.toString());
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        Log.d("Equlizer- ", "Completed ");
-                    }
-                }));
-    }
-
-    private Observable<Integer> equalizerObservale() {
-        return Observable.fromCallable(new Callable<Integer>() {
-            @Override
-            public Integer call() throws Exception {
-                return equalizerPresets;
             }
         });
     }
@@ -418,13 +376,9 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         this.audioList = audioList;
         setRepeatButtonIcon(playerService.getRepeat());
         setPlayPauseState(playerService.ismAudioIsPlaying());
+        presetText.setText("[" + playerService.getPresetLevel() + "]");
 
-        if (bitmap == null) {
-            d_thumbnail.setImageResource(R.drawable.audio_image);
-        } else {
-            d_thumbnail.setImageBitmap(bitmap);
-        }
-
+        d_thumbnail.setImageBitmap(bitmap);
         title.setText(audioList.get(trackPosition).getTITLE());
         artist.setText(audioList.get(trackPosition).getARTIST());
         album.setText(audioList.get(trackPosition).getALBUM());
@@ -462,15 +416,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         disposable.dispose();
         disposable1.dispose();
         disposable2.dispose();
-    }
+        audioList = null;
 
-    private void EqualizerSetup(int value) {
-        equalizer = new Equalizer(0, playerService.mediaPlayer.getAudioSessionId());
-        equalizer.setEnabled(true);
-        equalizer.usePreset((short) value);
-        val = equalizer.getCurrentPreset();
-        presetText.setText(presets[value]);
-        Log.d("currentPreset: ", equalizer.getCurrentPreset() + "");
     }
 
     private void update_seekBar() {
@@ -479,17 +426,40 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                 .doOnNext(new Consumer<Long>() {
                     @Override
                     public void accept(Long aLong) throws Exception {
-                        int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
-                        seekBar.setProgress(i);
+                        if (playerService.mediaPlayer != null) {
+                            int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
+                            seekBar.setProgress(i);
+                        } else {
+                            seekBar.setProgress(0);
+                        }
                     }
                 }).observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(new Consumer<Long>() {
                     @Override
                     public void accept(Long aLong) throws Exception {
-                        currentTime.setText(utilities.milliSecondsToTimer((long) playerService.mediaPlayer.getCurrentPosition()));
+                        if (playerService.mediaPlayer != null) {
+                            currentTime.setText(utilities.milliSecondsToTimer((long) playerService.mediaPlayer.getCurrentPosition()));
+                        } else {
+                            currentTime.setText("0:0");
+                        }
                     }
                 })
-                .subscribe()
+                .subscribeWith(new DisposableObserver<Long>() {
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
+
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        Log.e("seekBar: ", e.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                })
         );
     }
 
@@ -508,8 +478,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         builder.setItems(presets, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                equalizerPresets = which;
-                setEqualizer();
+
+                setEqualizer((short) which);
                 dialog.dismiss();
             }
         });
@@ -518,12 +488,19 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         dialog.show();
     }
 
+    private void setEqualizer(Short level) {
+        playerService.setPresetLevel(level);
+        presetText.setText("[" + level + "]");
+
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case REQUEST_RECORD_AUDIO_PERMISSION:
+                //REQUEST_RECORD_AUDIO_PERMISSION:
                 permissionToRecordAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
                 break;
         }
@@ -554,6 +531,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
         mRecorder.start();
         Log.d("Recording", "ON");
+        Toast.makeText(DetailActivity.this, "On", Toast.LENGTH_LONG).show();
     }
 
     private void stopRecording() {
@@ -561,12 +539,13 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         mRecorder.release();
         mRecorder = null;
         Log.d("Recording", "OFF");
+        Toast.makeText(DetailActivity.this, "Stop", Toast.LENGTH_LONG).show();
     }
 
     private void initRecorder() {
         // Record to the external cache directory for visibility
         mFileName = getExternalCacheDir().getAbsolutePath();
-        mFileName += "/audiorecordtest.mp3";
+        mFileName += "/000000Recordtest.3gp";
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
 
@@ -610,6 +589,5 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             setOnClickListener(clicker);
         }
     }
-
 
 }

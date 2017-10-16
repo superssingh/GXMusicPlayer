@@ -7,7 +7,7 @@
     <color name="colorWhite">#fafafa</color>
     <color name="LightGray">#d4d1d1</color>
     <color name="DarkGray">#807e7e</color>
-    <color name="black_transparent">#6a454343</color>
+    <color name="black_transparent">#94060606</color>
     <color name="Red_transparent">#b10a0909</color>
     <color name="orange">#acff1e00</color>
 </resources>

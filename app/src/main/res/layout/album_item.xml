@@ -2,8 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/placeNameHolder"
-    android:layout_width="160dp"
-    android:layout_height="200sp"
+    android:layout_width="140dp"
+    android:layout_height="180sp"
     android:layout_margin="10dp"
     android:clickable="true"
     android:orientation="vertical">
@@ -14,9 +14,9 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clickable="true"
-        android:elevation="8dp"
         app:cardBackgroundColor="#ffffff"
-        app:cardCornerRadius="10dp">
+        app:cardCornerRadius="10dp"
+        app:elevation="4dp">
 
         <ImageView
             android:id="@+id/A_imageView"

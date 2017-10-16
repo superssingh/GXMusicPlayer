@@ -25,7 +25,7 @@
             android:orientation="horizontal">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
@@ -35,9 +35,8 @@
                     android:id="@+id/trackTitle"
                     style="@style/TextAppearance.AppCompat.Title"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
-                    android:layout_weight="1"
                     android:ellipsize="marquee"
                     android:fadingEdge="horizontal"
                     android:focusable="true"
@@ -53,9 +52,8 @@
                 <TextView
                     android:id="@+id/trackArtist"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
-                    android:layout_weight="1"
                     android:maxLines="1"
                     android:text="@string/Song_Artist"
                     android:textColor="@color/LightGray"
@@ -65,7 +63,7 @@
                     android:id="@+id/current_seekBar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
+                    android:layout_marginBottom="2dp"
                     android:progressBackgroundTint="#333"
                     android:progressTint="@color/cardview_light_background"
                     android:thumbTint="@color/cardview_light_background" />

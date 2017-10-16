@@ -66,7 +66,7 @@ import io.realm.RealmResults;
 
 @SuppressWarnings("WeakerAccess")
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ServiceCallback, TabLayout.OnTabSelectedListener, HomeFragment.OnFragmentInteractionListener, FavoriteFragment.OnFragmentInteractionListener, AlbumFragment.OnFragmentInteractionListener, ArtistFragment.OnArtistFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, TabLayout.OnTabSelectedListener, HomeFragment.OnFragmentInteractionListener, FavoriteFragment.OnFragmentInteractionListener, AlbumFragment.OnFragmentInteractionListener, ArtistFragment.OnArtistFragmentInteractionListener, ServiceCallback {
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.santoshkumarsingh.gxmusicplayer.PlayNewAudio";
     private static MediaPlayerService playerService;
@@ -156,11 +156,11 @@ public class MainActivity extends AppCompatActivity
             audioList = storageUtil.loadAudio();
             trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
             categoryState = storageUtil.loadCategoryIndex() == -1 ? 0 : storageUtil.loadCategoryIndex();
+            audioList = storageUtil.loadAudio();
             ConnectMediaPlayer();
         } else {
             return;
         }
-
 
     }
 
@@ -211,20 +211,27 @@ public class MainActivity extends AppCompatActivity
 
     private void Load_Audio_Data() {
         disposable.add(getAudio()
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer integer) throws Exception {
                         if (storageUtil.loadAudioIndex() != -1) {
-                            categoryState = storageUtil.loadCategoryIndex();
-                            trackPosition = storageUtil.loadAudioIndex();
                             audioList = storageUtil.loadAudio();
-                            bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL());
+                            trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
+                            categoryState = storageUtil.loadCategoryIndex() == -1 ? 0 : storageUtil.loadCategoryIndex();
+                            audioList = storageUtil.loadAudio();
+
+                            bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
+                                    ? utilities.compressBitmap(utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()))
+                                    : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 50, 50);
+
                             playerIntent = new Intent(MainActivity.this, MediaPlayerService.class);
                             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+
                         } else {
                             return;
                         }
+
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
@@ -260,16 +267,13 @@ public class MainActivity extends AppCompatActivity
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer s) throws Exception {
-                        bitmap = utilities.getTrackThumbnail(audioList.get(s).getURL());
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(new Consumer<Integer>() {
-                    @Override
-                    public void accept(Integer s) throws Exception {
+                        bitmap = (utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
+                                ? utilities.compressBitmap(utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()))
+                                : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 100, 100));
 
                     }
                 })
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<Integer>() {
 
                     @Override
@@ -285,6 +289,7 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onComplete() {
                         Log.d("Service_Bound- ", "Completed ");
+
                     }
                 }));
     }
@@ -295,14 +300,13 @@ public class MainActivity extends AppCompatActivity
             public void subscribe(@io.reactivex.annotations.NonNull ObservableEmitter<Integer> e) throws Exception {
                 do {
                     if (playerService == null) {
-                        playerService = MediaPlayerService.getInstance(getApplicationContext());
+                        playerService = MediaPlayerService.getInstance(MainActivity.this);
                         playerService.setAudioList(audioList);
                     }
 
                     e.onNext(trackPosition);
-                } while (playerService == null);
+                } while (audioList == null);
 
-                e.onComplete();
             }
         });
     }
@@ -357,7 +361,6 @@ public class MainActivity extends AppCompatActivity
         trackPosition = audioIndex;
         categoryState = categoryIndex;
         playPause.setImageResource(R.drawable.ic_pause_circle_outline);
-
     }
 
     @Override
@@ -433,15 +436,12 @@ public class MainActivity extends AppCompatActivity
         UI_update(audioList, position, bitmap);
     }
 
-    public void UI_update(List<Audio> audioList, int trackPosition, Bitmap bitmap) {
-        this.audioList = audioList;
+    public void UI_update(List<Audio> audio, int trackPosition, Bitmap bitmap) {
+        audioList = audio;
         setPlayPauseState(playerService.ismAudioIsPlaying());
-        if (bitmap == null) {
-            trackThumbnail.setImageResource(R.drawable.audio_image);
-        } else {
-            trackThumbnail.setImageBitmap(bitmap);
-        }
 
+
+        trackThumbnail.setImageBitmap(bitmap);
         songTitle.setText(audioList.get(trackPosition).getTITLE());
         songArtist.setText(audioList.get(trackPosition).getARTIST());
 
@@ -478,11 +478,30 @@ public class MainActivity extends AppCompatActivity
                 .doOnNext(new Consumer<Long>() {
                     @Override
                     public void accept(Long aLong) throws Exception {
-                        int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
-                        seekBar.setProgress(i);
+                        if (playerService.mediaPlayer != null) {
+                            int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
+                            seekBar.setProgress(i);
+                        } else {
+                            seekBar.setProgress(0);
+                        }
                     }
                 }).observeOn(AndroidSchedulers.mainThread())
-                .subscribe()
+                .subscribeWith(new DisposableObserver<Long>() {
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
+
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        Log.e("seekBar: ", e.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                })
         );
     }
 
@@ -497,14 +516,18 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    private void PauseMediaPlayer() {
+        playerService.pause();
+        setPlayPauseState(false);
+    }
+
     @Override
-    public void onHomeFragmentInteraction(List<Audio> audios, int position, Bitmap bitmap) {
+    public void onHomeFragmentInteraction(List<Audio> audios, int position) {
         categoryState = 0;
         trackPosition = position;
         audioList = audios;
         storageUtil.storeAudio(audioList);
         playerService.setAudioList(audios);
-        this.bitmap = bitmap;
 
         playAudio(position, categoryState);
     }

@@ -28,6 +28,7 @@ import butterknife.ButterKnife;
 @SuppressWarnings("ObjectEqualsNull")
 public class AudioListRecyclerAdapter extends RecyclerView.Adapter<AudioListRecyclerAdapter.ViewHolder> {
 
+    Bitmap bitmap;
     private Utilities utilities;
     private List<Audio> audioList = new ArrayList<>();
     private SongOnClickListener songOnClickListener;
@@ -52,19 +53,20 @@ public class AudioListRecyclerAdapter extends RecyclerView.Adapter<AudioListRecy
         final int audioPosition = position;
         holder.mTitle.setText(audio.getTITLE());
         holder.mArtist.setText(audio.getARTIST());
+        bitmap = utilities.getTrackThumbnail(audio.getURL()) != null
+                ? utilities.compressBitmap(utilities.getTrackThumbnail(audio.getURL()))
+                : null;
 
-        final Bitmap trackImage = utilities.getTrackThumbnail(audio.getURL());
-        if (trackImage != null) {
-            holder.thumbnail.setImageBitmap(trackImage);
+        if (bitmap != null) {
+            holder.thumbnail.setImageBitmap(bitmap);
         } else {
             holder.thumbnail.setImageResource(R.drawable.ic_audiotrack);
         }
-
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (songOnClickListener != null) {
-                    songOnClickListener.OnItemClicked(audioList, audioPosition, trackImage);
+                    songOnClickListener.OnItemClicked(audioList, audioPosition);
                 }
             }
         });

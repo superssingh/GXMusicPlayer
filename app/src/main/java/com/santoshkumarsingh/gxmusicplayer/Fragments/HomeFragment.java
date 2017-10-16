@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,7 +12,6 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -37,6 +35,7 @@ import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
@@ -63,13 +62,13 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         view = inflater.inflate(R.layout.fragment_home, container, false);
         ButterKnife.bind(this, view);
         audioList = new ArrayList<>();
+
         storageUtil = new StorageUtil(getContext());
         disposable = new CompositeDisposable();
-
-        if (storageUtil.loadAudio() == null) {
-            checkPermission();
-        } else {
+        if (storageUtil.loadAudioIndex() != -1) {
             Load_AudioFiles();
+        } else {
+            checkPermission();
         }
 
         return view;
@@ -106,6 +105,11 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     private void Load_AudioFiles() {
         disposable.add(getAudio()
                 .subscribeOn(Schedulers.io())
+                .doOnNext(new Consumer<List<Audio>>() {
+                    @Override
+                    public void accept(List<Audio> audioList) throws Exception {
+                    }
+                })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<List<Audio>>() {
                     @Override
@@ -130,10 +134,7 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         return Observable.fromCallable(new Callable<List<Audio>>() {
             @Override
             public List<Audio> call() throws Exception {
-                do {
-                    audioList = loadAudioFiles();
-                } while (audioList == null);
-                return audioList;
+                return loadAudioFiles();
             }
         });
     }
@@ -177,8 +178,6 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(audioRecyclerAdapter);
-        final DividerItemDecoration itemDecoration = new DividerItemDecoration(recyclerView.getContext(), linearLayoutManager.getOrientation());
-        recyclerView.addItemDecoration(itemDecoration);
     }
 
     @Override
@@ -190,8 +189,8 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     }
 
     @Override
-    public void OnItemClicked(List<Audio> audios, int position, Bitmap bitmap) {
-        mListener.onHomeFragmentInteraction(audios, position, bitmap);
+    public void OnItemClicked(List<Audio> audios, int position) {
+        mListener.onHomeFragmentInteraction(audios, position);
     }
 
     @Override
@@ -227,7 +226,7 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     }
 
     public interface OnFragmentInteractionListener {
-        void onHomeFragmentInteraction(List<Audio> audios, int position, Bitmap bitmap);
+        void onHomeFragmentInteraction(List<Audio> audios, int position);
     }
 
 }

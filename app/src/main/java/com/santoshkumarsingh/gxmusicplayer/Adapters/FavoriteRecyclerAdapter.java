@@ -6,8 +6,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -54,9 +52,12 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
         long duration = Long.parseLong(holder.favoriteAudio.getDURATION());
         holder.duration.setText(utilities.milliSecondsToTimer(duration));
 
-        final Bitmap trackImage = utilities.getTrackThumbnail(holder.favoriteAudio.getURL());
-        if (trackImage != null) {
-            holder.thumbnail.setImageBitmap(trackImage);
+        final Bitmap bitmap = utilities.getTrackThumbnail(holder.favoriteAudio.getURL()) != null
+                ? utilities.compressBitmap(utilities.getTrackThumbnail(holder.favoriteAudio.getURL()))
+                : null;
+
+        if (bitmap != null) {
+            holder.thumbnail.setImageBitmap(bitmap);
         } else {
             holder.thumbnail.setImageResource(R.drawable.ic_audiotrack);
         }
@@ -111,7 +112,6 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        private final Animation animation;
         @BindView(R.id.F_Title)
         TextView mTitle;
         @BindView(R.id.F_Artist)
@@ -126,8 +126,6 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
 
         public ViewHolder(View itemView) {
             super(itemView);
-            animation = AnimationUtils.loadAnimation(itemView.getContext(), R.anim.fade_in);
-            itemView.setAnimation(animation);
             ButterKnife.bind(this, itemView);
         }
     }

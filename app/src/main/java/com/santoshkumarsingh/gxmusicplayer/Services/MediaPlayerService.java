@@ -9,9 +9,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.audiofx.Equalizer;
 import android.media.session.MediaSessionManager;
 import android.os.Binder;
 import android.os.IBinder;
@@ -63,7 +63,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private Context mContext;
     private AudioManager audioManager;
     //Used to pause/resume MediaPlayer
-    private int resumePosition = 0, repeat = 0, preset = 0;
+    private int resumePosition = 0, repeat = 0;
     //Handle incoming phone calls
     private boolean ongoingCall = false;
     private PhoneStateListener phoneStateListener;
@@ -83,6 +83,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private boolean mAudioFocusGranted = false;
     private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener;
     private boolean mReceiverRegistered = false;
+    private Equalizer equalizer;
+    private short presetLevel = 0;
+
     //BroadcastReceiver for Becoming noisy (any other interruption)
     private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
         @Override
@@ -116,6 +119,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             buildNotification(PlaybackStatus.PAUSED);
         }
     };
+
 
     public MediaPlayerService() {
         super();
@@ -343,9 +347,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     private void updateMetaData() {
         // replace with medias albumArt
-        albumArt = (utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null ?
-                utilities.getTrackThumbnail(activeAudio.getURL())
-                : BitmapFactory.decodeResource(getResources(), R.drawable.ic_headset));
+
+        albumArt = (utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
+                ? utilities.compressBitmap(utilities.getTrackThumbnail(activeAudio.getURL()))
+                : utilities.decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.ic_headset, 50, 50));
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
@@ -374,7 +379,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public void skipToPrevious() {
         audioIndex = (audioIndex == 0 ? audioList.size() - 1 : audioIndex - 1);
         activeAudio = audioList.get(audioIndex);
-        resumePosition = 0;
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(audioIndex);
 
@@ -390,13 +394,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private void randomSelection() {
         audioIndex = utilities.randomSelection(audioIndex, audioList.size());
         activeAudio = audioList.get(audioIndex);
-        resumePosition = 0;
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(audioIndex);
-
         mediaPlayer.stop();
+
         //reset mediaPlayer
-        mediaPlayer.reset();
+        mediaPlayer.release();
         initMediaPlayer();
         //update notification
         updateMetaData();
@@ -427,8 +430,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
 
         albumArt = (utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
-                ? utilities.getTrackThumbnail(activeAudio.getURL())
-                : BitmapFactory.decodeResource(getResources(), R.drawable.audio_image));
+                ? utilities.compressBitmap(utilities.getTrackThumbnail(activeAudio.getURL()))
+                : utilities.decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.audio_image, 100, 100));
 
         // Create a new Notification
         NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(this)
@@ -620,7 +623,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 break;
             case 2:
                 randomSelection();
-                mp.start();
+                playMedia();
                 break;
         }
     }
@@ -749,6 +752,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
+
+    private void EqualizerSetup(short value) {
+        equalizer = new Equalizer(0, mediaPlayer.getAudioSessionId());
+        equalizer.setEnabled(true);
+        equalizer.usePreset(value);
+        presetLevel = equalizer.getCurrentPreset();
+    }
+
     private void forceMusicStop() {
         AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (am.isMusicActive()) {
@@ -808,12 +819,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         this.audioList = audioList;
     }
 
-    public int getPreset() {
-        return preset;
+    public short getPresetLevel() {
+        return presetLevel;
     }
 
-    public void setPreset(int preset) {
-        this.preset = preset;
+    public void setPresetLevel(short presetLevel) {
+        EqualizerSetup(presetLevel);
     }
 
     public enum PlaybackStatus {
