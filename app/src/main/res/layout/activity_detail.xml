@@ -200,4 +200,14 @@
         app:layout_anchor="@+id/d_details"
         app:layout_anchorGravity="end" />
 
+    <!--<com.nightonke.boommenu.BoomMenuButton-->
+    <!--android:id="@+id/bmb"-->
+    <!--app:layout_anchor="@+id/d_details"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--app:bmb_buttonEnum="textInsideCircle"-->
+    <!--app:bmb_piecePlaceEnum="piecePlace_dot_9_1"-->
+    <!--app:bmb_buttonPlaceEnum="buttonPlace_sc_9_1"-->
+    <!--/>-->
+
 </android.support.design.widget.CoordinatorLayout>

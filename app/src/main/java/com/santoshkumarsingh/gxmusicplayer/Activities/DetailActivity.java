@@ -1,26 +1,32 @@
 package com.santoshkumarsingh.gxmusicplayer.Activities;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.media.MediaRecorder;
 import android.media.audiofx.Equalizer;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -33,6 +39,7 @@ import com.santoshkumarsingh.gxmusicplayer.Services.MediaPlayerService;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -53,7 +60,11 @@ import static com.santoshkumarsingh.gxmusicplayer.Activities.MainActivity.Broadc
 
 public class DetailActivity extends AppCompatActivity implements ServiceCallback {
 
+    //--------Recorder
+    private static final String LOG_TAG = "AudioRecordTest";
+    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
     private static MediaPlayerService playerService;
+    private static String mFileName = null;
     @BindView(R.id.d_play_pause)
     ImageButton play;
     @BindView(R.id.d_next)
@@ -82,6 +93,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     TextView presetText;
     @BindView(R.id.d_fab)
     FloatingActionButton detail_fab;
+    //    @BindView(R.id.bmb)
+//    BoomButton bmb;
     private Utilities utilities;
     private int trackPosition = 0;
     private List<Audio> audioList;
@@ -91,15 +104,23 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     private CompositeDisposable disposable, disposable1, disposable2;
     private StorageUtil storageUtil;
     private Animation animation;
-
     private MediaRecorder mediaRecorder;
     private File audioFilePath;
-
     //for Equalizer-----
     private Equalizer equalizer;
     private int equalizerPresets;
     private String[] presets;
     private short val;
+    private AlertDialog dialog;
+    private RecordButton mRecordButton = null;
+    private MediaRecorder mRecorder = null;
+
+    // Requesting permission to RECORD_AUDIO
+    private boolean permissionToRecordAccepted = false;
+    private String[] permissions = {Manifest.permission.RECORD_AUDIO};
+
+
+    // service
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -119,8 +140,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             Log.d("DetailActivity:", "Service Unbound");
         }
     };
-    private AlertDialog dialog;
 
+    private boolean recording = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,8 +162,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         title.setAnimation(animation);
         artist.setAnimation(animation);
         album.setAnimation(animation);
-
         setClickedListeners();
+        initRecorder();
 
         if (storageUtil.loadAudioIndex() != -1) {
             audioList = storageUtil.loadAudio();
@@ -154,17 +175,17 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     }
 
     private void setClickedListeners() {
+
         detail_fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (val == 9) {
-                    val = 0;
-                    EqualizerSetup(val);
-
+                if (recording == true) {
+                    onRecord(false);
+                    recording = false;
                 } else {
-                    EqualizerSetup(val + 1);
+                    onRecord(true);
+                    recording = true;
                 }
-
             }
         });
 
@@ -496,5 +517,99 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         dialog = builder.create();
         dialog.show();
     }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case REQUEST_RECORD_AUDIO_PERMISSION:
+                permissionToRecordAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                break;
+        }
+        if (!permissionToRecordAccepted) finish();
+
+    }
+
+    private void onRecord(boolean start) {
+        if (start) {
+            startRecording();
+        } else {
+            stopRecording();
+        }
+    }
+
+    private void startRecording() {
+        mRecorder = new MediaRecorder();
+        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mRecorder.setOutputFile(mFileName);
+        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+        try {
+            mRecorder.prepare();
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "prepare() failed");
+        }
+
+        mRecorder.start();
+        Log.d("Recording", "ON");
+    }
+
+    private void stopRecording() {
+        mRecorder.stop();
+        mRecorder.release();
+        mRecorder = null;
+        Log.d("Recording", "OFF");
+    }
+
+    private void initRecorder() {
+        // Record to the external cache directory for visibility
+        mFileName = getExternalCacheDir().getAbsolutePath();
+        mFileName += "/audiorecordtest.mp3";
+
+        ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
+
+        LinearLayout ll = new LinearLayout(this);
+        mRecordButton = new RecordButton(this);
+        ll.addView(mRecordButton,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        0));
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mRecorder != null) {
+            mRecorder.release();
+            mRecorder = null;
+        }
+
+    }
+
+    class RecordButton extends android.support.v7.widget.AppCompatButton {
+        boolean mStartRecording = true;
+
+        OnClickListener clicker = new OnClickListener() {
+            public void onClick(View v) {
+                onRecord(mStartRecording);
+                if (mStartRecording) {
+                    setText("Stop recording");
+                } else {
+                    setText("Start recording");
+                }
+                mStartRecording = !mStartRecording;
+            }
+        };
+
+        public RecordButton(Context ctx) {
+            super(ctx);
+            setText("Start recording");
+            setOnClickListener(clicker);
+        }
+    }
+
 
 }
