@@ -151,7 +151,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         disposable1 = new CompositeDisposable();
         disposable2 = new CompositeDisposable();
         audioList = new ArrayList<>();
-        utilities = new Utilities();
+        utilities = new Utilities(getApplicationContext());
         storageUtil = new StorageUtil(this);
         playerService = new MediaPlayerService();
         mediaRecorder = new MediaRecorder();
@@ -273,13 +273,16 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer s) throws Exception {
-                        bitmap = (utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
-                                ? utilities.compressBitmap(utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()))
-                                : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 100, 100));
-                        playAudio(s);
+                        bitmap = utilities.setBitmapImage(audioList.get(trackPosition).getURL(), 100);
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        playAudio(integer);
+                    }
+                })
                 .subscribeWith(new DisposableObserver<Integer>() {
 
                     @Override
@@ -422,24 +425,17 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
     private void update_seekBar() {
         disposable1.add(Observable.interval(1, TimeUnit.SECONDS)
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(new Consumer<Long>() {
                     @Override
                     public void accept(Long aLong) throws Exception {
                         if (playerService.mediaPlayer != null) {
                             int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
                             seekBar.setProgress(i);
-                        } else {
-                            seekBar.setProgress(0);
-                        }
-                    }
-                }).observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(new Consumer<Long>() {
-                    @Override
-                    public void accept(Long aLong) throws Exception {
-                        if (playerService.mediaPlayer != null) {
                             currentTime.setText(utilities.milliSecondsToTimer((long) playerService.mediaPlayer.getCurrentPosition()));
                         } else {
+                            seekBar.setProgress(0);
                             currentTime.setText("0:0");
                         }
                     }

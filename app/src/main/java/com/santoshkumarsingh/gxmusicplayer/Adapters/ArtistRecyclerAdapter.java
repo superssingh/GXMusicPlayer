@@ -35,7 +35,6 @@ public class ArtistRecyclerAdapter extends RecyclerView.Adapter<ArtistRecyclerAd
     public ArtistRecyclerAdapter(ArtistOnClickListener listener, List<Artist> artists) {
         onClickListener = listener;
         albumList = artists;
-        utilities = new Utilities();
     }
 
     @Override
@@ -85,9 +84,10 @@ public class ArtistRecyclerAdapter extends RecyclerView.Adapter<ArtistRecyclerAd
 
         public ViewHolder(View itemView) {
             super(itemView);
+            ButterKnife.bind(this, itemView);
+            utilities = new Utilities(itemView.getContext());
             animation = AnimationUtils.loadAnimation(itemView.getContext(), R.anim.fade_in);
             itemView.setAnimation(animation);
-            ButterKnife.bind(this, itemView);
         }
     }
 }

@@ -34,7 +34,6 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     public FavoriteRecyclerAdapter(FavoriteOnClickListener listener, RealmResults<FavoriteAudio> audios) {
         onClickListener = listener;
         favoriteAudios = audios;
-        utilities = new Utilities();
     }
 
     @Override
@@ -127,6 +126,7 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
         public ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+            utilities = new Utilities(itemView.getContext());
         }
     }
 }

@@ -40,7 +40,7 @@
                 android:maxLines="1"
                 android:text="@string/Song_Title"
                 android:textColor="@color/cardview_dark_background"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"

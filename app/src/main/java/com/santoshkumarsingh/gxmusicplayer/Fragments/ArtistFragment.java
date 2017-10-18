@@ -18,6 +18,7 @@ import com.santoshkumarsingh.gxmusicplayer.Adapters.ArtistRecyclerAdapter;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ArtistOnClickListener;
 import com.santoshkumarsingh.gxmusicplayer.Models.Artist;
 import com.santoshkumarsingh.gxmusicplayer.R;
+import com.santoshkumarsingh.gxmusicplayer.Utilities.AutofitGridlayout;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -116,6 +117,7 @@ public class ArtistFragment extends Fragment implements ArtistOnClickListener {
     }
 
     private void configRecycleView(List<Artist> ArtistList) {
+        AutofitGridlayout gridlayout = new AutofitGridlayout(getContext(), 320);
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager();
         layoutManager.setFlexWrap(FlexWrap.WRAP);
         recyclerAdapter = new ArtistRecyclerAdapter(this, ArtistList);
@@ -149,17 +151,19 @@ public class ArtistFragment extends Fragment implements ArtistOnClickListener {
 
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                do {
-                    String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                    String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                    String art = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                String isMP3 = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                if (isMP3.contains(".mp3") || isMP3.contains(".MP3")) {
+                    do {
+                        String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                        String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+                        String art = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
-                    Artist data = new Artist(artist, name, art);
-                    artists.add(data);
+                        Artist data = new Artist(artist, name, art);
+                        artists.add(data);
 
-                } while (cursor.moveToNext());
+                    } while (cursor.moveToNext());
+                }
             }
-
             cursor.close();
         }
 

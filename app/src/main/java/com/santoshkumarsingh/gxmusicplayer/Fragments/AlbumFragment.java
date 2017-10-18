@@ -19,6 +19,7 @@ import com.santoshkumarsingh.gxmusicplayer.Adapters.AlbumRecyclerAdapter;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.AlbumOnClickListener;
 import com.santoshkumarsingh.gxmusicplayer.Models.Album;
 import com.santoshkumarsingh.gxmusicplayer.R;
+import com.santoshkumarsingh.gxmusicplayer.Utilities.AutofitGridlayout;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -98,6 +99,7 @@ public class AlbumFragment extends Fragment implements AlbumOnClickListener {
     }
 
     private void configRecycleView(List<Album> albumList) {
+        AutofitGridlayout gridlayout = new AutofitGridlayout(getContext(), 280);
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager();
         layoutManager.setFlexWrap(FlexWrap.WRAP);
         recyclerAdapter = new AlbumRecyclerAdapter(this, albumList);
@@ -131,17 +133,19 @@ public class AlbumFragment extends Fragment implements AlbumOnClickListener {
 
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                do {
-                    String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID));
-                    String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
-                    String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                    String art = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                String isMP3 = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                if (isMP3.contains(".mp3") || isMP3.contains(".MP3")) {
+                    do {
+                        String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID));
+                        String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
+                        String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                        String art = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
-                    Album album = new Album(id, name, artist, art);
-                    albumList.add(album);
-                } while (cursor.moveToNext());
+                        Album album = new Album(id, name, artist, art);
+                        albumList.add(album);
+                    } while (cursor.moveToNext());
+                }
             }
-
             cursor.close();
         }
 

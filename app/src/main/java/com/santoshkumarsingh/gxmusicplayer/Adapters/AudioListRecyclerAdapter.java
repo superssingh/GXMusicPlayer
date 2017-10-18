@@ -36,7 +36,6 @@ public class AudioListRecyclerAdapter extends RecyclerView.Adapter<AudioListRecy
     public AudioListRecyclerAdapter(SongOnClickListener songOnClickListener, List<Audio> audioList) {
         this.songOnClickListener = songOnClickListener;
         this.audioList = audioList;
-        utilities = new Utilities();
     }
 
     @Override
@@ -109,6 +108,7 @@ public class AudioListRecyclerAdapter extends RecyclerView.Adapter<AudioListRecy
         public ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+            utilities = new Utilities(itemView.getContext());
             love = new ShineButton(itemView.getContext());
         }
 

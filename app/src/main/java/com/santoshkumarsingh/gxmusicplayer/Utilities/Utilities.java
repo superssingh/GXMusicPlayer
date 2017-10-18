@@ -1,9 +1,12 @@
 package com.santoshkumarsingh.gxmusicplayer.Utilities;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
+
+import com.santoshkumarsingh.gxmusicplayer.R;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Random;
@@ -13,6 +16,11 @@ import java.util.Random;
  */
 
 public class Utilities {
+    Context context;
+
+    public Utilities(Context context) {
+        this.context = context;
+    }
 
     // Best way to decode and compress image into bitmap
     public Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
@@ -185,6 +193,14 @@ public class Utilities {
         // Display the compressed bitmap in ImageView
 //        iv_compressed.setImageBitmap(compressedBitmap);
 
+    }
+
+    public Bitmap setBitmapImage(String ImageUrl, int pixelSize) {
+        Bitmap bitmap;
+        bitmap = (getTrackThumbnail(ImageUrl) != null
+                ? compressBitmap(getTrackThumbnail(ImageUrl))
+                : decodeSampledBitmapFromResource(context.getResources(), R.drawable.audio_image, pixelSize, pixelSize));
+        return bitmap;
     }
 
 }

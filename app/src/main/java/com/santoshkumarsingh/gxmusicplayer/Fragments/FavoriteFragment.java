@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.santoshkumarsingh.gxmusicplayer.Adapters.FavoriteRecyclerAdapter;
 import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
@@ -61,7 +60,6 @@ public class FavoriteFragment extends Fragment implements FavoriteOnClickListene
 
         if (favoriteAudios.size() == 0) {
             recyclerView.setVisibility(View.GONE);
-            Toast.makeText(getContext(), R.string.NoDataFound, Toast.LENGTH_LONG).show();
         } else {
             recyclerView.setVisibility(View.VISIBLE);
             configRecycleView(favoriteAudios);

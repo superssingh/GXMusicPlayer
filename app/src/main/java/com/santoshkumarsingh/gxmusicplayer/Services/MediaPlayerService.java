@@ -79,7 +79,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private Utilities utilities;
     private Bitmap albumArt;
     private ServiceCallback serviceCallback;
-    private boolean mAudioIsPlaying = false;
+    private boolean mAudioIsPlaying = false, playerStop = false;
     private boolean mAudioFocusGranted = false;
     private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener;
     private boolean mReceiverRegistered = false;
@@ -185,8 +185,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         super.onCreate();
         audioList = new ArrayList<>();
         activeAudio = new Audio();
-        utilities = new Utilities();
+        utilities = new Utilities(mContext);
         mediaPlayer = new MediaPlayer();
+        mediaPlayer.setOnCompletionListener(this);
+        mediaPlayer.setOnErrorListener(this);
+        mediaPlayer.setOnPreparedListener(this);
+        mediaPlayer.setOnBufferingUpdateListener(this);
+        mediaPlayer.setOnSeekCompleteListener(this);
+        mediaPlayer.setOnInfoListener(this);
+
         // Perform one-time setup procedures
         // Manage incoming phone calls during playback.
         // Pause MediaPlayer on incoming call,
@@ -200,14 +207,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     private void initMediaPlayer() {
         resumePosition = 0;
-        mediaPlayer = new MediaPlayer();
         //Set up MediaPlayer event listeners
-        mediaPlayer.setOnCompletionListener(this);
-        mediaPlayer.setOnErrorListener(this);
-        mediaPlayer.setOnPreparedListener(this);
-        mediaPlayer.setOnBufferingUpdateListener(this);
-        mediaPlayer.setOnSeekCompleteListener(this);
-        mediaPlayer.setOnInfoListener(this);
+
         if (activeAudio != null) {
             //Reset so that the MediaPlayer is not pointing to another data source
             mediaPlayer.reset();
@@ -215,11 +216,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 // Set the data source to the mediaFile location
                 mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 mediaPlayer.setDataSource(activeAudio.getURL());
+                mediaPlayer.prepareAsync();
             } catch (IOException e) {
                 e.printStackTrace();
                 stopSelf();
             }
-            mediaPlayer.prepareAsync();
+
         }
     }
 
@@ -231,6 +233,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
         mediaPlayer.start();
         mAudioIsPlaying = true;
+        playerStop = false;
         buildNotification(PlaybackStatus.PAUSED);
 
     }
@@ -258,8 +261,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public void stopMedia() {
         // 1. Stop play back
         if (mediaPlayer.isPlaying() || mediaPlayer != null) {
+            resumePosition = mediaPlayer.getCurrentPosition();
             mediaPlayer.stop();
             mAudioIsPlaying = false;
+            playerStop = true;
             removeNotification();
             // 2. Give up audio focus
             abandonAudioFocus();
@@ -281,6 +286,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.seekTo(resumePosition);
             mediaPlayer.start();
             mAudioIsPlaying = true;
+            playerStop = false;
             buildNotification(PlaybackStatus.PAUSED);
         }
     }
@@ -348,9 +354,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private void updateMetaData() {
         // replace with medias albumArt
 
-        albumArt = (utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
+        albumArt = utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
                 ? utilities.compressBitmap(utilities.getTrackThumbnail(activeAudio.getURL()))
-                : utilities.decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.ic_headset, 50, 50));
+                : utilities.decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.ic_headset, 50, 50);
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
@@ -363,7 +369,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public void skipToNext() {
         audioIndex = (audioIndex == audioList.size() - 1 ? 0 : audioIndex + 1);
         activeAudio = audioList.get(audioIndex);
-        resumePosition = 0;
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(audioIndex);
 
@@ -379,6 +384,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public void skipToPrevious() {
         audioIndex = (audioIndex == 0 ? audioList.size() - 1 : audioIndex - 1);
         activeAudio = audioList.get(audioIndex);
+        resumePosition = 0;
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(audioIndex);
 
@@ -394,13 +400,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private void randomSelection() {
         audioIndex = utilities.randomSelection(audioIndex, audioList.size());
         activeAudio = audioList.get(audioIndex);
+        resumePosition = 0;
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(audioIndex);
         mediaPlayer.stop();
 
         //reset mediaPlayer
-        mediaPlayer.release();
+        mediaPlayer.reset();
         initMediaPlayer();
+
         //update notification
         updateMetaData();
         buildNotification(PlaybackStatus.PAUSED);
@@ -623,7 +631,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 break;
             case 2:
                 randomSelection();
-                playMedia();
                 break;
         }
     }
@@ -712,7 +719,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     @SuppressLint("LongLogTag")
     private void abandonAudioFocus() {
         AudioManager am = (AudioManager) mContext
-                .getSystemService(Context.AUDIO_SERVICE);
+                .getSystemService(AUDIO_SERVICE);
         int result = am.abandonAudioFocus(mOnAudioFocusChangeListener);
         if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             mAudioFocusGranted = false;
@@ -825,6 +832,22 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     public void setPresetLevel(short presetLevel) {
         EqualizerSetup(presetLevel);
+    }
+
+    public int getResumePosition() {
+        return resumePosition;
+    }
+
+    public void setResumePosition(int resumePosition) {
+        this.resumePosition = resumePosition;
+    }
+
+    public boolean isPlayerStop() {
+        return playerStop;
+    }
+
+    public void setPlayerStop(boolean playerStop) {
+        this.playerStop = playerStop;
     }
 
     public enum PlaybackStatus {

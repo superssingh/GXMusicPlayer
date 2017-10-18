@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/play_layout"
+    android:id="@+id/placeNameHolder"
     android:layout_width="match_parent"
     android:layout_height="70dp"
-    android:background="@drawable/orange_gradient"
-    android:elevation="8dp">
+    android:layout_marginBottom="0.6dp"
+    android:background="@color/cardview_light_background"
+    android:clickable="true"
+    app:cardBackgroundColor="@color/cardview_light_background"
+    app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,7 +16,7 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:id="@+id/track_Thumbnail"
+            android:id="@+id/V_Thumbnail"
             android:layout_width="70dp"
             android:layout_height="match_parent"
             android:contentDescription="@string/Album_thumb"
@@ -32,7 +35,7 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/trackTitle"
+                    android:id="@+id/V_Title"
                     style="@style/TextAppearance.AppCompat.Title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -45,43 +48,42 @@
                     android:scrollHorizontally="true"
                     android:singleLine="true"
                     android:text="SongTitle"
-                    android:textColor="@color/colorWhite"
-                    android:textSize="16dp"
-                    android:textStyle="bold" />
+                    android:textSize="16dp" />
 
-                <TextView
-                    android:id="@+id/trackArtist"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:maxLines="1"
-                    android:text="@string/Song_Artist"
-                    android:textColor="@color/LightGray"
-                    android:textSize="13dp" />
+                    android:orientation="horizontal"
+                    android:paddingTop="5dp">
 
-                <android.support.v7.widget.AppCompatSeekBar
-                    android:id="@+id/current_seekBar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="2dp"
-                    android:progressBackgroundTint="#333"
-                    android:progressTint="@color/cardview_light_background"
-                    android:thumbTint="@color/cardview_light_background" />
+                    <TextView
+                        android:id="@+id/V_Album"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_weight="1"
+                        android:maxLines="1"
+                        android:text="@string/Song_Artist"
+                        android:textColor="@color/DarkGray"
+                        android:textSize="13dp" />
 
+                    <TextView
+                        android:id="@+id/V_Duration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:maxLines="1"
+                        android:text="00:00"
+                        android:textColor="@color/DarkGray"
+                        android:textSize="13dp" />
+                </LinearLayout>
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/Current_Play_Pause"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_gravity="center"
-                android:layout_marginRight="5dp"
-                android:background="@drawable/orange_round"
-                android:contentDescription="@string/play_pauseButton"
-                android:src="@drawable/ic_play_circle_outline" />
 
         </LinearLayout>
 
     </LinearLayout>
 
-</FrameLayout>
+</android.support.v7.widget.CardView>
+

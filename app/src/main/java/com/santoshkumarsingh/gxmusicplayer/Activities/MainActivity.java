@@ -39,6 +39,7 @@ import com.santoshkumarsingh.gxmusicplayer.Fragments.AlbumFragment;
 import com.santoshkumarsingh.gxmusicplayer.Fragments.ArtistFragment;
 import com.santoshkumarsingh.gxmusicplayer.Fragments.FavoriteFragment;
 import com.santoshkumarsingh.gxmusicplayer.Fragments.HomeFragment;
+import com.santoshkumarsingh.gxmusicplayer.Fragments.VideoFragment;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
@@ -66,7 +67,7 @@ import io.realm.RealmResults;
 
 @SuppressWarnings("WeakerAccess")
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, TabLayout.OnTabSelectedListener, HomeFragment.OnFragmentInteractionListener, FavoriteFragment.OnFragmentInteractionListener, AlbumFragment.OnFragmentInteractionListener, ArtistFragment.OnArtistFragmentInteractionListener, ServiceCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, TabLayout.OnTabSelectedListener, HomeFragment.OnFragmentInteractionListener, FavoriteFragment.OnFragmentInteractionListener, AlbumFragment.OnFragmentInteractionListener, ArtistFragment.OnArtistFragmentInteractionListener, ServiceCallback, VideoFragment.OnFragmentInteractionListener {
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.santoshkumarsingh.gxmusicplayer.PlayNewAudio";
     private static MediaPlayerService playerService;
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity
     TabLayout tabLayout;
     @BindView(R.id.View_Pager)
     ViewPager pager;
+
     Animation animation;
     private Utilities utilities;
     private int trackPosition = 0, categoryState = 0;
@@ -93,11 +95,10 @@ public class MainActivity extends AppCompatActivity
     private boolean serviceBound = false;
     private Intent playerIntent;
     private Toolbar toolbar;
-    private Bitmap bitmap;
-    private CompositeDisposable disposable, disposable1;
+    private CompositeDisposable disposable, disposable1, disposable2, disposable3;
     private StorageUtil storageUtil;
     private RealmConfiguration config;
-    private CompositeDisposable disposable2;
+    private Bitmap bitmap;
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -142,10 +143,11 @@ public class MainActivity extends AppCompatActivity
         disposable = new CompositeDisposable();
         disposable1 = new CompositeDisposable();
         disposable2 = new CompositeDisposable();
+        disposable3 = new CompositeDisposable();
         audioList = new ArrayList<>();
-        utilities = new Utilities();
+        utilities = new Utilities(getApplicationContext());
         storageUtil = new StorageUtil(this);
-        animation = AnimationUtils.loadAnimation(this, R.anim.bounce);
+        animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
         play_layout.setAnimation(animation);
         songTitle.setSelected(true);
         playerService = new MediaPlayerService();
@@ -156,12 +158,10 @@ public class MainActivity extends AppCompatActivity
             audioList = storageUtil.loadAudio();
             trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
             categoryState = storageUtil.loadCategoryIndex() == -1 ? 0 : storageUtil.loadCategoryIndex();
-            audioList = storageUtil.loadAudio();
             ConnectMediaPlayer();
         } else {
             return;
         }
-
     }
 
     @Override
@@ -169,6 +169,7 @@ public class MainActivity extends AppCompatActivity
         super.onPause();
         if (serviceBound) {
             unbindService(serviceConnection);
+            serviceBound = false;
         }
 
     }
@@ -197,12 +198,16 @@ public class MainActivity extends AppCompatActivity
         playPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (playerService.ismAudioIsPlaying()) {
-                    playerService.pause();
-                    playPause.setImageResource(R.drawable.ic_play_circle_outline);
+                if (playerService.isPlayerStop()) {
+                    playAudio(trackPosition, categoryState);
                 } else {
-                    playerService.resume();
-                    playPause.setImageResource(R.drawable.ic_pause_circle_outline);
+                    if (playerService.ismAudioIsPlaying()) {
+                        playerService.pause();
+                        playPause.setImageResource(R.drawable.ic_play_circle_outline);
+                    } else {
+                        playerService.resume();
+                        playPause.setImageResource(R.drawable.ic_pause_circle_outline);
+                    }
                 }
             }
         });
@@ -210,7 +215,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void Load_Audio_Data() {
-        disposable.add(getAudio()
+        disposable1.add(getAudio()
                 .subscribeOn(Schedulers.io())
                 .doOnNext(new Consumer<Integer>() {
                     @Override
@@ -219,25 +224,17 @@ public class MainActivity extends AppCompatActivity
                             audioList = storageUtil.loadAudio();
                             trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
                             categoryState = storageUtil.loadCategoryIndex() == -1 ? 0 : storageUtil.loadCategoryIndex();
-                            audioList = storageUtil.loadAudio();
-
-                            bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
-                                    ? utilities.compressBitmap(utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()))
-                                    : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 50, 50);
-
+                            bitmap = utilities.setBitmapImage(audioList.get(trackPosition).getURL(), 50);
                             playerIntent = new Intent(MainActivity.this, MediaPlayerService.class);
                             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-
-                        } else {
-                            return;
                         }
-
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<Integer>() {
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull Integer position) {
+                        trackThumbnail.setImageBitmap(bitmap);
                     }
 
                     @Override
@@ -267,18 +264,21 @@ public class MainActivity extends AppCompatActivity
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer s) throws Exception {
-                        bitmap = (utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
-                                ? utilities.compressBitmap(utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()))
-                                : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 100, 100));
+
 
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        playAudio(integer, categoryState);
+                    }
+                })
                 .subscribeWith(new DisposableObserver<Integer>() {
-
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull Integer s) {
-                        playAudio(s, categoryState);
+
                     }
 
                     @Override
@@ -302,8 +302,8 @@ public class MainActivity extends AppCompatActivity
                     if (playerService == null) {
                         playerService = MediaPlayerService.getInstance(MainActivity.this);
                         playerService.setAudioList(audioList);
-                    }
 
+                    }
                     e.onNext(trackPosition);
                 } while (audioList == null);
 
@@ -352,6 +352,7 @@ public class MainActivity extends AppCompatActivity
                 storage.storeAudio(audioList);
                 storage.storeAudioIndex(audioIndex);
                 storage.storeCategoryIndex(categoryIndex);
+                playerService.setAudioList(audioList);
 
                 Intent broadcastIntent = new Intent(Broadcast_PLAY_NEW_AUDIO);
                 sendBroadcast(broadcastIntent);
@@ -360,7 +361,7 @@ public class MainActivity extends AppCompatActivity
 
         trackPosition = audioIndex;
         categoryState = categoryIndex;
-        playPause.setImageResource(R.drawable.ic_pause_circle_outline);
+
     }
 
     @Override
@@ -397,7 +398,6 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
         switch (id) {
             case R.id.my_search_bar:
-
         }
 
         if (id == R.id.action_settings) {
@@ -436,15 +436,19 @@ public class MainActivity extends AppCompatActivity
         UI_update(audioList, position, bitmap);
     }
 
-    public void UI_update(List<Audio> audio, int trackPosition, Bitmap bitmap) {
+    public void UI_update(List<Audio> audio, int position, Bitmap bitmap) {
+        if (bitmap == null) {
+            bitmap = utilities.setBitmapImage(audio.get(position).getURL(), 50);
+        }
+
         audioList = audio;
+        trackPosition = position;
         setPlayPauseState(playerService.ismAudioIsPlaying());
 
 
         trackThumbnail.setImageBitmap(bitmap);
         songTitle.setText(audioList.get(trackPosition).getTITLE());
         songArtist.setText(audioList.get(trackPosition).getARTIST());
-
         seekBar.setMax(Integer.parseInt(audioList.get(trackPosition).getDURATION()));
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -474,27 +478,22 @@ public class MainActivity extends AppCompatActivity
 
     private void update_seekBar() {
         disposable2.add(Observable.interval(1, TimeUnit.SECONDS)
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .doOnNext(new Consumer<Long>() {
                     @Override
                     public void accept(Long aLong) throws Exception {
-                        if (playerService.mediaPlayer != null) {
-                            int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
-                            seekBar.setProgress(i);
-                        } else {
-                            seekBar.setProgress(0);
-                        }
                     }
                 }).observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<Long>() {
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
-
+                        int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
+                        seekBar.setProgress(i);
                     }
 
                     @Override
                     public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        Log.e("seekBar: ", e.getMessage());
+                        Log.e("seekBar ", "error:" + e);
                     }
 
                     @Override
@@ -505,41 +504,39 @@ public class MainActivity extends AppCompatActivity
         );
     }
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (serviceBound) {
+            unbindService(serviceConnection);
+        } else {
+            return;
+        }
 
         disposable.dispose();
         disposable1.dispose();
         disposable2.dispose();
-
-    }
-
-    private void PauseMediaPlayer() {
-        playerService.pause();
-        setPlayPauseState(false);
+        disposable3.dispose();
     }
 
     @Override
     public void onHomeFragmentInteraction(List<Audio> audios, int position) {
-        categoryState = 0;
+        categoryState = 1;
         trackPosition = position;
         audioList = audios;
-        storageUtil.storeAudio(audioList);
-        playerService.setAudioList(audios);
-
+        play_layout.setVisibility(View.VISIBLE);
+        playerService.setAudioList(audioList);
         playAudio(position, categoryState);
+//        trackThumbnail.setImageBitmap(utilities.setBitmapImage(audioList.get(trackPosition).getURL(),50));
     }
 
     @Override
     public void onFavoriteFragmentInteraction(RealmResults<FavoriteAudio> audios, int position) {
-        categoryState = 1;
+        categoryState = 2;
         trackPosition = position;
         audioList = convertList(audios);
-        storageUtil.storeAudio(audioList);
+        play_layout.setVisibility(View.VISIBLE);
         playerService.setAudioList(audioList);
-
         playAudio(position, categoryState);
     }
 
@@ -596,6 +593,20 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    @Override
+    public void onVideoFragmentInteraction(String videoURL) {
+        if (playerService.ismAudioIsPlaying()) {
+            playerService.pause();
+        }
+
+        play_layout.setVisibility(View.GONE);
+
+        Intent intent = new Intent(MainActivity.this, VideoActivity.class)
+                .putExtra(getString(R.string.videoURL), videoURL);
+        startActivity(intent);
+
+    }
+
     private class ViewPagerAdapter extends FragmentPagerAdapter {
         String[] tabs;
 
@@ -610,6 +621,7 @@ public class MainActivity extends AppCompatActivity
             FavoriteFragment favoriteFragment = new FavoriteFragment();
             AlbumFragment albumFragment = new AlbumFragment();
             ArtistFragment artistFragment = new ArtistFragment();
+            VideoFragment videoFragment = new VideoFragment();
 
             switch (position) {
                 case 0:
@@ -620,10 +632,13 @@ public class MainActivity extends AppCompatActivity
                     return albumFragment;
                 case 3:
                     return artistFragment;
+                case 4:
+                    return videoFragment;
             }
 
             return homeFragment;
         }
+
 
         @Override
         public CharSequence getPageTitle(int position) {
@@ -632,10 +647,9 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public int getCount() {
-            return 4;
+            return 5;
         }
 
     }
-
 
 }

@@ -48,7 +48,7 @@
                     android:singleLine="true"
                     android:text="Title"
                     android:textColor="#ffffff"
-                    android:textSize="22dp"
+                    android:textSize="20dp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -60,7 +60,7 @@
                     android:maxLines="1"
                     android:text="@string/Song_Artist"
                     android:textColor="#dededd"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -72,7 +72,7 @@
                     android:maxLines="1"
                     android:text="Launched Date"
                     android:textColor="#dfffffff"
-                    android:textSize="16dp" />
+                    android:textSize="14dp" />
             </LinearLayout>
 
             <LinearLayout

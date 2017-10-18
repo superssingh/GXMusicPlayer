@@ -56,10 +56,11 @@
     <string name="Equalizer">Pick Presets</string>
 
     <string-array name="Tabs">
-        <item>All</item>
-        <item>Favorites</item>
+        <item>Audios</item>
+        <item>Love</item>
         <item>Albums</item>
         <item>Artists</item>
+        <item>Videos</item>
     </string-array>
 
     <string-array name="PRESETS">
@@ -74,5 +75,10 @@
         <item>Pop</item>
         <item>Rock</item>
     </string-array>
+
+    <string name="title_activity_fullscreen">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="videoURL">VIDEO_URL</string>
 
 </resources>

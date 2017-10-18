@@ -116,7 +116,7 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
 
         disposable = new CompositeDisposable();
         audioList = new ArrayList<>();
-        utilities = new Utilities();
+        utilities = new Utilities(getApplicationContext());
         storageUtil = new StorageUtil(this);
         animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
         play_layout.setAnimation(animation);
@@ -169,9 +169,7 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer s) throws Exception {
-                        bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
-                                ? utilities.compressBitmap(utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()))
-                                : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 50, 50);
+                        bitmap = utilities.setBitmapImage(audioList.get(trackPosition).getURL(), 100);
 
                     }
                 })
@@ -343,6 +341,7 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         super.onPause();
         if (serviceBound) {
             unbindService(serviceConnection);
+            serviceBound = false;
         }
 
     }
@@ -356,6 +355,9 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (serviceBound) {
+            unbindService(serviceConnection);
+        }
 
         disposable.dispose();
     }
@@ -378,19 +380,22 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         Cursor cursor = getContentResolver().query(uri, null, selection, null, sortOrder);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                do {
-                    String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
-                    String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
-                    String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                    String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-                    String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                    String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-                    String genres = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
+                String isMP3 = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                if (isMP3.contains(".mp3") || isMP3.contains(".MP3")) {
+                    do {
+                        String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
+                        String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
+                        String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                        String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                        String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+                        String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+                        String genres = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
 
-                    Audio audio = new Audio(id, title, artist, url, album, duration, genres);
-                    audios.add(audio);
+                        Audio audio = new Audio(id, title, artist, url, album, duration, genres);
+                        audios.add(audio);
 
-                } while (cursor.moveToNext());
+                    } while (cursor.moveToNext());
+                }
             }
             cursor.close();
         }
@@ -406,19 +411,22 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         Cursor cursor = getContentResolver().query(uri, null, selection, null, sortOrder);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                do {
-                    String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
-                    String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
-                    String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                    String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-                    String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                    String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-                    String genres = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
+                String isMP3 = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                if (isMP3.contains(".mp3")) {
+                    do {
+                        String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
+                        String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+                        String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                        String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                        String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+                        String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+                        String genres = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
 
-                    Audio audio = new Audio(id, title, artist, url, album, duration, genres);
-                    audios.add(audio);
+                        Audio audio = new Audio(id, title, artist, url, album, duration, genres);
+                        audios.add(audio);
 
-                } while (cursor.moveToNext());
+                    } while (cursor.moveToNext());
+                }
             }
             cursor.close();
         }

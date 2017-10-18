@@ -35,7 +35,6 @@ import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
@@ -48,8 +47,8 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     private OnFragmentInteractionListener mListener;
     private List<Audio> audioList;
     private AudioRecyclerAdapter audioRecyclerAdapter;
-    private StorageUtil storageUtil;
     private CompositeDisposable disposable;
+    private StorageUtil storageUtil;
 
     private View view;
 
@@ -62,15 +61,14 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         view = inflater.inflate(R.layout.fragment_home, container, false);
         ButterKnife.bind(this, view);
         audioList = new ArrayList<>();
+        storageUtil = new StorageUtil(getActivity());
+//        disposable = new CompositeDisposable();
 
-        storageUtil = new StorageUtil(getContext());
-        disposable = new CompositeDisposable();
-        if (storageUtil.loadAudioIndex() != -1) {
-            Load_AudioFiles();
-        } else {
+        if (storageUtil.loadAudioIndex() == -1) {
             checkPermission();
+        } else {
+            Load_AudioFiles();
         }
-
         return view;
     }
 
@@ -103,18 +101,14 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     }
 
     private void Load_AudioFiles() {
+        disposable = new CompositeDisposable();
         disposable.add(getAudio()
-                .subscribeOn(Schedulers.io())
-                .doOnNext(new Consumer<List<Audio>>() {
-                    @Override
-                    public void accept(List<Audio> audioList) throws Exception {
-                    }
-                })
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<List<Audio>>() {
                     @Override
-                    public void onNext(@io.reactivex.annotations.NonNull List<Audio> audios) {
-                        setDataIntoAdapter(audios);
+                    public void onNext(@io.reactivex.annotations.NonNull List<Audio> audioList) {
+                        setDataIntoAdapter(audioList);
                     }
 
                     @Override
@@ -134,12 +128,12 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         return Observable.fromCallable(new Callable<List<Audio>>() {
             @Override
             public List<Audio> call() throws Exception {
-                return loadAudioFiles();
+                return loadAudios();
             }
         });
     }
 
-    public List<Audio> loadAudioFiles() {
+    public List<Audio> loadAudios() {
         List<Audio> audios = new ArrayList<>();
         Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String selection = MediaStore.Audio.Media.IS_MUSIC + "!=0";
@@ -147,24 +141,28 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         Cursor cursor = getActivity().getContentResolver().query(uri, null, selection, null, sortOrder);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                do {
-                    String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
-                    String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
-                    String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                    String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-                    String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                    String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-                    String genres = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
+                String isMP3 = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                if (isMP3.contains(".mp3") || isMP3.contains(".MP3")) {
+                    do {
+                        String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
+                        String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
+                        String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                        String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                        String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+                        String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+                        String genres = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
 
-                    Audio audio = new Audio(id, title, artist, url, album, duration, genres);
-                    audios.add(audio);
-                } while (cursor.moveToNext());
+                        Audio audio = new Audio(id, title, artist, url, album, duration, genres);
+                        audios.add(audio);
+                    } while (cursor.moveToNext());
+                }
             }
             cursor.close();
         }
 
         return audios;
     }
+
 
     private void setDataIntoAdapter(List<Audio> audios) {
         audioList = audios;
@@ -230,3 +228,5 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     }
 
 }
+
+
