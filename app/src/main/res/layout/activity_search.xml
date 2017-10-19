@@ -4,6 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.santoshkumarsingh.gxmusicplayer.Activities.RecorderActivity">
+    tools:context="com.santoshkumarsingh.gxmusicplayer.Activities.SearchActivity">
 
 </android.support.constraint.ConstraintLayout>

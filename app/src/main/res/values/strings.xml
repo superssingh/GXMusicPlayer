@@ -83,5 +83,9 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="videoURL">VIDEO_URL</string>
+    <string name="app_label">SearchBar</string>
+    <string name="search_hint">song name</string>
+    <string name="searchedSongName">searchedTitle</string>
+    <string name="list_menu">songs list</string>
 
 </resources>

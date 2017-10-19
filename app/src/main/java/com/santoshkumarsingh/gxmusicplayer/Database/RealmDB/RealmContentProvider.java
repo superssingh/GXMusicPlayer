@@ -35,7 +35,6 @@ public class RealmContentProvider {
                 favoriteBook.setURL(audio.getURL());
                 favoriteBook.setALBUM(audio.getALBUM());
                 favoriteBook.setDURATION(audio.getDURATION());
-                favoriteBook.setGENRES(audio.getGENRES());
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override

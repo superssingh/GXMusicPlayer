@@ -22,10 +22,11 @@ public class Audio implements Parcelable {
             return new Audio[size];
         }
     };
-    private String ID, TITLE, ARTIST, URL, ALBUM, DURATION, GENRES;
+    private String ID, TITLE, ARTIST, URL, ALBUM, DURATION;
 
     public Audio() {
     }
+
 
     public Audio(FavoriteAudio audios) {
         this.ID = audios.getID();
@@ -34,18 +35,16 @@ public class Audio implements Parcelable {
         this.URL = audios.getURL();
         this.ALBUM = audios.getALBUM();
         this.DURATION = audios.getDURATION();
-        this.GENRES = audios.getGENRES();
     }
 
 
-    public Audio(String ID, String TITLE, String ARTIST, String URL, String ALBUM, String DURATION, String GENRES) {
+    public Audio(String ID, String TITLE, String ARTIST, String URL, String ALBUM, String DURATION) {
         this.ID = ID;
         this.TITLE = TITLE;
         this.ARTIST = ARTIST;
         this.URL = URL;
         this.ALBUM = ALBUM;
         this.DURATION = DURATION;
-        this.GENRES = GENRES;
     }
 
     protected Audio(Parcel in) {
@@ -55,23 +54,6 @@ public class Audio implements Parcelable {
         URL = in.readString();
         ALBUM = in.readString();
         DURATION = in.readString();
-        GENRES = in.readString();
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(ID);
-        dest.writeString(TITLE);
-        dest.writeString(ARTIST);
-        dest.writeString(URL);
-        dest.writeString(ALBUM);
-        dest.writeString(DURATION);
-        dest.writeString(GENRES);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
     }
 
     public String getID() {
@@ -122,11 +104,18 @@ public class Audio implements Parcelable {
         this.DURATION = DURATION;
     }
 
-    public String getGENRES() {
-        return GENRES;
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
-    public void setGENRES(String GENRES) {
-        this.GENRES = GENRES;
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(ID);
+        dest.writeString(TITLE);
+        dest.writeString(ARTIST);
+        dest.writeString(URL);
+        dest.writeString(ALBUM);
+        dest.writeString(DURATION);
     }
 }

@@ -107,9 +107,8 @@ public class VideoFragment extends Fragment implements VideoOnClickListener {
                     String url = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
                     String album = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.ALBUM));
                     String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DURATION));
-                    String thumbnail = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.MINI_THUMB_MAGIC));
 
-                    Video video = new Video(title, url, album, duration, thumbnail);
+                    Video video = new Video(title, url, album, duration);
                     videos.add(video);
                 } while (cursor.moveToNext());
             }

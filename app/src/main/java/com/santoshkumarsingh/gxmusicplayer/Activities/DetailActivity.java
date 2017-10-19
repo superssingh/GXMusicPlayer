@@ -465,7 +465,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         builder.setItems(presets, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
                 setEqualizer((short) which);
                 dialog.dismiss();
             }

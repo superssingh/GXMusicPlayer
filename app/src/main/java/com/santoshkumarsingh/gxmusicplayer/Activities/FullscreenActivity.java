@@ -19,18 +19,17 @@ import com.santoshkumarsingh.gxmusicplayer.Utilities.FullScreenVideoView;
  * status bar and navigation/system bar) with user interaction.
  */
 public class FullscreenActivity extends AppCompatActivity {
+
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
      */
     private static final boolean AUTO_HIDE = true;
-
     /**
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
      * user interaction before hiding the system UI.
      */
     private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
-
     /**
      * Some older devices needs a small delay between UI widget updates
      * and a change of the status and navigation bar.
@@ -53,6 +52,7 @@ public class FullscreenActivity extends AppCompatActivity {
     };
     FullScreenVideoView fullScreenVideoView;
     VideoView videoView;
+    private String videoURL;
     private View mContentView;
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -90,17 +90,21 @@ public class FullscreenActivity extends AppCompatActivity {
             hide();
         }
     };
-    private String videoURL;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_fullscreen);
+        Bundle bundle = getIntent().getExtras();
+        videoURL = bundle.getString(getString(R.string.videoURL));
+        fullScreenVideoView = new FullScreenVideoView(this);
+        videoView = findViewById(R.id.fullVideoView);
+        videoPlayer(videoURL);
 
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
-        mContentView = findViewById(R.id.fullscreen_content);
+        mContentView = findViewById(R.id.fullVideoView);
 
 
         // Set up the user interaction to manually show or hide the system UI.
@@ -115,18 +119,9 @@ public class FullscreenActivity extends AppCompatActivity {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
-
-        Bundle bundle = getIntent().getExtras();
-        videoURL = bundle.getString(getString(R.string.videoURL));
-        videoView = findViewById(R.id.fullVideoView);
-
-        fullScreenVideoView = new FullScreenVideoView(this);
-        videoPlayer(videoURL);
     }
 
     private void videoPlayer(String URL) {
-        videoView = findViewById(R.id.fullVideoView);
-
         //Creating MediaController
         MediaController mediaController = new MediaController(this);
         mediaController.setAnchorView(videoView);

@@ -20,17 +20,17 @@ public class Video implements Parcelable {
             return new Video[size];
         }
     };
-    private String TITLE, URL, ALBUM, DURATION, THUMBNAIL;
+    private String TITLE, URL, ALBUM, DURATION;
 
     public Video() {
     }
 
-    public Video(String TITLE, String URL, String ALBUM, String DURATION, String THUMBNAIL) {
+
+    public Video(String TITLE, String URL, String ALBUM, String DURATION) {
         this.TITLE = TITLE;
         this.URL = URL;
         this.ALBUM = ALBUM;
         this.DURATION = DURATION;
-        this.THUMBNAIL = THUMBNAIL;
     }
 
     protected Video(Parcel in) {
@@ -38,7 +38,6 @@ public class Video implements Parcelable {
         URL = in.readString();
         ALBUM = in.readString();
         DURATION = in.readString();
-        THUMBNAIL = in.readString();
     }
 
     public String getTITLE() {
@@ -73,14 +72,6 @@ public class Video implements Parcelable {
         this.DURATION = DURATION;
     }
 
-    public String getTHUMBNAIL() {
-        return THUMBNAIL;
-    }
-
-    public void setTHUMBNAIL(String THUMBNAIL) {
-        this.THUMBNAIL = THUMBNAIL;
-    }
-
     @Override
     public int describeContents() {
         return 0;
@@ -92,7 +83,6 @@ public class Video implements Parcelable {
         dest.writeString(URL);
         dest.writeString(ALBUM);
         dest.writeString(DURATION);
-        dest.writeString(THUMBNAIL);
     }
 
 

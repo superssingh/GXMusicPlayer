@@ -5,11 +5,13 @@ import android.os.Bundle;
 
 import com.santoshkumarsingh.gxmusicplayer.R;
 
-public class RecorderActivity extends AppCompatActivity {
+public class OtherActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_recorder);
+        setContentView(R.layout.activity_other);
     }
+
+
 }

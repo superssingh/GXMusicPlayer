@@ -12,6 +12,7 @@ import io.realm.annotations.PrimaryKey;
 
 public class FavoriteAudio extends RealmObject implements Parcelable {
 
+
     public static final Creator<FavoriteAudio> CREATOR = new Creator<FavoriteAudio>() {
         @Override
         public FavoriteAudio createFromParcel(Parcel in) {
@@ -25,19 +26,18 @@ public class FavoriteAudio extends RealmObject implements Parcelable {
     };
     @PrimaryKey
     private String ID;
-    private String TITLE, ARTIST, URL, ALBUM, DURATION, GENRES;
+    private String TITLE, ARTIST, URL, ALBUM, DURATION;
 
     public FavoriteAudio() {
     }
 
-    public FavoriteAudio(String ID, String TITLE, String ARTIST, String URL, String ALBUM, String DURATION, String GENRES) {
+    public FavoriteAudio(String ID, String TITLE, String ARTIST, String URL, String ALBUM, String DURATION) {
         this.ID = ID;
         this.TITLE = TITLE;
         this.ARTIST = ARTIST;
         this.URL = URL;
         this.ALBUM = ALBUM;
         this.DURATION = DURATION;
-        this.GENRES = GENRES;
     }
 
     protected FavoriteAudio(Parcel in) {
@@ -47,7 +47,11 @@ public class FavoriteAudio extends RealmObject implements Parcelable {
         URL = in.readString();
         ALBUM = in.readString();
         DURATION = in.readString();
-        GENRES = in.readString();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     @Override
@@ -58,12 +62,6 @@ public class FavoriteAudio extends RealmObject implements Parcelable {
         dest.writeString(URL);
         dest.writeString(ALBUM);
         dest.writeString(DURATION);
-        dest.writeString(GENRES);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
     }
 
     public String getID() {
@@ -114,11 +112,4 @@ public class FavoriteAudio extends RealmObject implements Parcelable {
         this.DURATION = DURATION;
     }
 
-    public String getGENRES() {
-        return GENRES;
-    }
-
-    public void setGENRES(String GENRES) {
-        this.GENRES = GENRES;
-    }
 }
