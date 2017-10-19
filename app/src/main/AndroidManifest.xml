@@ -3,13 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.santoshkumarsingh.gxmusicplayer">
 
-    <!-- <uses-permission android:name="android.permission.INTERNET" /> -->
-    <permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
-
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
 
     <application
         android:allowBackup="true"
@@ -46,7 +47,13 @@
             android:configChanges="orientation|screenSize"
             tools:ignore="InnerclassSeparator" />
         <activity android:name=".Activities.ListActivity" />
-        <activity android:name=".Activities.VideoActivity"></activity>
+        <activity android:name=".Activities.VideoActivity" />
+        <activity android:name=".Activities.RecorderActivity" />
+        <activity
+            android:name=".Activities.FullscreenActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_fullscreen"
+            android:theme="@style/FullscreenTheme"></activity>
     </application>
 
 </manifest>

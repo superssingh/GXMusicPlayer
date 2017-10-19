@@ -4,7 +4,6 @@
     android:id="@+id/ArtistPlaceHolder"
     android:layout_width="140dp"
     android:layout_height="160sp"
-    android:layout_gravity="center_horizontal"
     android:layout_margin="10dp"
     android:clickable="true"
     android:orientation="vertical">

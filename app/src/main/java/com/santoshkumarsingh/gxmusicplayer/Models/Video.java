@@ -3,8 +3,6 @@ package com.santoshkumarsingh.gxmusicplayer.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
-
 /**
  * Created by santoshsingh (santoshkumarsingh.com) on 17/08/17.
  */
@@ -22,64 +20,25 @@ public class Video implements Parcelable {
             return new Video[size];
         }
     };
-    private String ID, TITLE, ARTIST, URL, ALBUM, DURATION, GENRES;
+    private String TITLE, URL, ALBUM, DURATION, THUMBNAIL;
 
     public Video() {
     }
 
-    public Video(FavoriteAudio audios) {
-        this.ID = audios.getID();
-        this.TITLE = audios.getTITLE();
-        this.ARTIST = audios.getARTIST();
-        this.URL = audios.getURL();
-        this.ALBUM = audios.getALBUM();
-        this.DURATION = audios.getDURATION();
-        this.GENRES = audios.getGENRES();
-    }
-
-
-    public Video(String ID, String TITLE, String ARTIST, String URL, String ALBUM, String DURATION, String GENRES) {
-        this.ID = ID;
+    public Video(String TITLE, String URL, String ALBUM, String DURATION, String THUMBNAIL) {
         this.TITLE = TITLE;
-        this.ARTIST = ARTIST;
         this.URL = URL;
         this.ALBUM = ALBUM;
         this.DURATION = DURATION;
-        this.GENRES = GENRES;
+        this.THUMBNAIL = THUMBNAIL;
     }
 
     protected Video(Parcel in) {
-        ID = in.readString();
         TITLE = in.readString();
-        ARTIST = in.readString();
         URL = in.readString();
         ALBUM = in.readString();
         DURATION = in.readString();
-        GENRES = in.readString();
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(ID);
-        dest.writeString(TITLE);
-        dest.writeString(ARTIST);
-        dest.writeString(URL);
-        dest.writeString(ALBUM);
-        dest.writeString(DURATION);
-        dest.writeString(GENRES);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    public String getID() {
-        return ID;
-    }
-
-    public void setID(String ID) {
-        this.ID = ID;
+        THUMBNAIL = in.readString();
     }
 
     public String getTITLE() {
@@ -88,14 +47,6 @@ public class Video implements Parcelable {
 
     public void setTITLE(String TITLE) {
         this.TITLE = TITLE;
-    }
-
-    public String getARTIST() {
-        return ARTIST;
-    }
-
-    public void setARTIST(String ARTIST) {
-        this.ARTIST = ARTIST;
     }
 
     public String getURL() {
@@ -122,11 +73,27 @@ public class Video implements Parcelable {
         this.DURATION = DURATION;
     }
 
-    public String getGENRES() {
-        return GENRES;
+    public String getTHUMBNAIL() {
+        return THUMBNAIL;
     }
 
-    public void setGENRES(String GENRES) {
-        this.GENRES = GENRES;
+    public void setTHUMBNAIL(String THUMBNAIL) {
+        this.THUMBNAIL = THUMBNAIL;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(TITLE);
+        dest.writeString(URL);
+        dest.writeString(ALBUM);
+        dest.writeString(DURATION);
+        dest.writeString(THUMBNAIL);
+    }
+
+
 }

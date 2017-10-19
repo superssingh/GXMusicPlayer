@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.customToolbar);
         setSupportActionBar(toolbar);
 
         // Realm Initialization
@@ -181,10 +181,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void InitializedView() {
-        //------Tab & View pager init...
-        pager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
-        tabLayout.setupWithViewPager(pager);
-        pager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        initTabLayout();
 
         //------OnClickedListenters
         play_layout.setOnClickListener(new View.OnClickListener() {
@@ -224,7 +221,9 @@ public class MainActivity extends AppCompatActivity
                             audioList = storageUtil.loadAudio();
                             trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
                             categoryState = storageUtil.loadCategoryIndex() == -1 ? 0 : storageUtil.loadCategoryIndex();
-                            bitmap = utilities.setBitmapImage(audioList.get(trackPosition).getURL(), 50);
+                            bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
+                                    ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())
+                                    : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 50, 50);
                             playerIntent = new Intent(MainActivity.this, MediaPlayerService.class);
                             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
                         }
@@ -396,10 +395,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        switch (id) {
-            case R.id.my_search_bar:
-        }
-
         if (id == R.id.action_settings) {
             return true;
         }
@@ -438,13 +433,14 @@ public class MainActivity extends AppCompatActivity
 
     public void UI_update(List<Audio> audio, int position, Bitmap bitmap) {
         if (bitmap == null) {
-            bitmap = utilities.setBitmapImage(audio.get(position).getURL(), 50);
+            bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
+                    ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())
+                    : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 50, 50);
         }
 
         audioList = audio;
         trackPosition = position;
         setPlayPauseState(playerService.ismAudioIsPlaying());
-
 
         trackThumbnail.setImageBitmap(bitmap);
         songTitle.setText(audioList.get(trackPosition).getTITLE());
@@ -484,11 +480,18 @@ public class MainActivity extends AppCompatActivity
                     public void accept(Long aLong) throws Exception {
                     }
                 }).observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<Long>() {
+                    @Override
+                    public void accept(Long aLong) throws Exception {
+                        if (serviceBound) {
+                            int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
+                            seekBar.setProgress(i);
+                        }
+                    }
+                })
                 .subscribeWith(new DisposableObserver<Long>() {
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
-                        int i = playerService.mediaPlayer == null ? 0 : playerService.mediaPlayer.getCurrentPosition();
-                        seekBar.setProgress(i);
                     }
 
                     @Override
@@ -527,7 +530,6 @@ public class MainActivity extends AppCompatActivity
         play_layout.setVisibility(View.VISIBLE);
         playerService.setAudioList(audioList);
         playAudio(position, categoryState);
-//        trackThumbnail.setImageBitmap(utilities.setBitmapImage(audioList.get(trackPosition).getURL(),50));
     }
 
     @Override
@@ -578,9 +580,32 @@ public class MainActivity extends AppCompatActivity
     }
 
     //*****Tab Layout------------
+
+    private void initTabLayout() {
+        //------Tab & View pager init...
+        pager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
+        tabLayout.setupWithViewPager(pager);
+        int[] icons = {
+                R.drawable.ic_library_music_24dp,
+                R.drawable.ic_favorite_24dp,
+                R.drawable.ic_album_24dp,
+                R.drawable.ic_artist_black_24dp,
+                R.drawable.ic_video_library_24dp
+        };
+
+        for (int i = 0; i < icons.length; i++) {
+            tabLayout.getTabAt(i).setIcon(icons[i]);
+        }
+
+        pager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+
+    }
+
+
     @Override
     public void onTabSelected(TabLayout.Tab tab) {
         pager.setCurrentItem(tab.getPosition());
+
     }
 
     @Override
@@ -601,7 +626,7 @@ public class MainActivity extends AppCompatActivity
 
         play_layout.setVisibility(View.GONE);
 
-        Intent intent = new Intent(MainActivity.this, VideoActivity.class)
+        Intent intent = new Intent(MainActivity.this, FullscreenActivity.class)
                 .putExtra(getString(R.string.videoURL), videoURL);
         startActivity(intent);
 
@@ -609,6 +634,7 @@ public class MainActivity extends AppCompatActivity
 
     private class ViewPagerAdapter extends FragmentPagerAdapter {
         String[] tabs;
+
 
         public ViewPagerAdapter(FragmentManager fm) {
             super(fm);

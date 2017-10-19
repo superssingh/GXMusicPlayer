@@ -45,7 +45,6 @@ public class VideoFragment extends Fragment implements VideoOnClickListener {
         // Required empty public constructor
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,34 +96,28 @@ public class VideoFragment extends Fragment implements VideoOnClickListener {
 
     public List<Video> loadVideo() {
         List<Video> videos = new ArrayList<>();
-        Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Audio.Media.IS_MUSIC + "!=0";
-        String sortOrder = "LOWER(" + MediaStore.Audio.Media.DISPLAY_NAME + ") ASC";
+        Uri uri = android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Video.Media.ALBUM + "!=0";
+        String sortOrder = "LOWER(" + MediaStore.Video.Media.DISPLAY_NAME + ") ASC";
         Cursor cursor = getActivity().getContentResolver().query(uri, null, selection, null, sortOrder);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                String isVideo = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-                if (isVideo.contains(".mp4") || isVideo.contains(".3gp")) {
-                    do {
-                        String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
-                        String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
-                        String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                        String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-                        String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                        String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-                        String genres = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
+                do {
+                    String title = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
+                    String url = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
+                    String album = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.ALBUM));
+                    String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DURATION));
+                    String thumbnail = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.MINI_THUMB_MAGIC));
 
-                        Video video = new Video(id, title, artist, url, album, duration, genres);
-                        videos.add(video);
-                    } while (cursor.moveToNext());
-                }
+                    Video video = new Video(title, url, album, duration, thumbnail);
+                    videos.add(video);
+                } while (cursor.moveToNext());
             }
             cursor.close();
         }
 
         return videos;
     }
-
 
     private void setDataIntoAdapter(List<Video> videos) {
         this.videos = videos;

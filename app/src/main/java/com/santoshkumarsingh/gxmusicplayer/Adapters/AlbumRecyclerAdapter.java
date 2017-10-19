@@ -47,18 +47,14 @@ public class AlbumRecyclerAdapter extends RecyclerView.Adapter<AlbumRecyclerAdap
     @Override
     public void onBindViewHolder(final AlbumRecyclerAdapter.ViewHolder holder, int position) {
         holder.Album_title.setText(albumList.get(position).getALBUM());
-        holder.Album_artrist.setText(albumList.get(position).getARTIST());
         final int i = position;
-        bitmap = utilities.getTrackThumbnail(albumList.get(i).getALBUM_ART()) != null
-                ? utilities.compressBitmap(utilities.getTrackThumbnail(albumList.get(i).getALBUM_ART()))
-                : null;
+        bitmap = utilities.getTrackThumbnail(albumList.get(position).getALBUM_ART());
 
         if (bitmap != null) {
             holder.albumImage.setImageBitmap(bitmap);
         } else {
             holder.albumImage.setImageResource(R.drawable.ic_audiotrack);
         }
-
         holder.albumImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -82,8 +78,6 @@ public class AlbumRecyclerAdapter extends RecyclerView.Adapter<AlbumRecyclerAdap
         ImageView albumImage;
         @BindView(R.id.A_Title)
         TextView Album_title;
-        @BindView(R.id.A_Artist)
-        TextView Album_artrist;
 
         public ViewHolder(View itemView) {
             super(itemView);

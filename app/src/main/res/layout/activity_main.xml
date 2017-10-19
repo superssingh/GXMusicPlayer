@@ -19,7 +19,6 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@drawable/black_transparent"
-        android:theme="@style/AlertDialog.AppCompat.Light"
         app:elevation="5dp"
         app:headerLayout="@layout/nav_header_main"
         app:itemIconTint="@color/colorWhite"

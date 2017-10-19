@@ -12,10 +12,15 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -62,7 +67,6 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         ButterKnife.bind(this, view);
         audioList = new ArrayList<>();
         storageUtil = new StorageUtil(getActivity());
-//        disposable = new CompositeDisposable();
 
         if (storageUtil.loadAudioIndex() == -1) {
             checkPermission();
@@ -223,10 +227,42 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         }
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+        MenuItem searchItem = menu.findItem(R.id.Home_recyclerView);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                newText = newText.toLowerCase();
+                List<Audio> audios = new ArrayList<Audio>();
+
+                for (Audio audio : audios) {
+                    String name = audio.getTITLE();
+                    if (name.contains(newText)) {
+                        audios.add(audio);
+                    }
+                }
+
+                audioRecyclerAdapter.setFilter(audios);
+                recyclerView.notify();
+                return true;
+            }
+        });
+
+    }
+
     public interface OnFragmentInteractionListener {
         void onHomeFragmentInteraction(List<Audio> audios, int position);
     }
-
 }
 
 

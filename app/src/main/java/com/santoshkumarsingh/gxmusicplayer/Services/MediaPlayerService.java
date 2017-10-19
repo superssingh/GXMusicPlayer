@@ -355,7 +355,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         // replace with medias albumArt
 
         albumArt = utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
-                ? utilities.compressBitmap(utilities.getTrackThumbnail(activeAudio.getURL()))
+                ? utilities.getTrackThumbnail(activeAudio.getURL())
                 : utilities.decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.ic_headset, 50, 50);
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
@@ -437,9 +437,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
         }
 
-        albumArt = (utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
-                ? utilities.compressBitmap(utilities.getTrackThumbnail(activeAudio.getURL()))
-                : utilities.decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.audio_image, 100, 100));
+        albumArt = utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
+                ? utilities.getTrackThumbnail(activeAudio.getURL())
+                : utilities.decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.audio_image, 150, 150);
 
         // Create a new Notification
         NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(this)

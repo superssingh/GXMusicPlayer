@@ -12,9 +12,9 @@ import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatSeekBar;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
@@ -43,8 +43,6 @@ import java.util.concurrent.TimeUnit;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -74,7 +72,7 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
     FrameLayout play_layout;
     private Utilities utilities;
     private int trackPosition = 0;
-    private List<Audio> audioList;
+    private List<Audio> audioList, storeAudioList;
     private boolean serviceBound = false;
     private Intent playerIntent;
     private Bitmap bitmap;
@@ -104,18 +102,25 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
     };
     private int category;
     private String keyword;
+    private Toolbar toolbar;
+    private String toolbarTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-        ButterKnife.bind(this);
         Bundle bundle = getIntent().getExtras();
         keyword = bundle.getString(getString(R.string.Keyword));
         category = bundle.getInt(getString(R.string.category));
 
+        toolbar = findViewById(R.id.customToolbar);
+        toolbar.setTitleTextColor(getResources().getColor(android.R.color.background_light));
+//        toolbar.setTitle("List");
+        ButterKnife.bind(this);
+
         disposable = new CompositeDisposable();
         audioList = new ArrayList<>();
+        storeAudioList = new ArrayList<>();
         utilities = new Utilities(getApplicationContext());
         storageUtil = new StorageUtil(this);
         animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
@@ -123,23 +128,27 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         songTitle.setSelected(true);
         playerService = new MediaPlayerService();
 
-        Load_Audio_Data();
+        if (storageUtil.loadAudioIndex() == -1) {
+            audioList = storageUtil.loadAudio();
+            trackPosition = storageUtil.loadAudioIndex();
+            Log.d("TrackPosition", audioList.get(trackPosition).getTITLE());
+            Load_Audio_Data();
+        }
+
     }
 
-
     private void setDataIntoAdapter(List<Audio> audios) {
-        audioList = audios;
         audioRecyclerAdapter = new AudioRecyclerAdapter(this, audios);
         audioRecyclerAdapter.notifyDataSetChanged();
         configRecycleView();
     }
 
+
     private void configRecycleView() {
+        audioRecyclerAdapter = new AudioRecyclerAdapter(this, audioList);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(audioRecyclerAdapter);
-        final DividerItemDecoration itemDecoration = new DividerItemDecoration(recyclerView.getContext(), linearLayoutManager.getOrientation());
-        recyclerView.addItemDecoration(itemDecoration);
 
         playPause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -163,58 +172,6 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         });
     }
 
-    private void ConnectMediaPlayer() {
-        disposable.add(observable()
-                .subscribeOn(Schedulers.io())
-                .doOnNext(new Consumer<Integer>() {
-                    @Override
-                    public void accept(Integer s) throws Exception {
-                        bitmap = utilities.setBitmapImage(audioList.get(trackPosition).getURL(), 100);
-
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(new Consumer<Integer>() {
-                    @Override
-                    public void accept(Integer s) throws Exception {
-
-                    }
-                })
-                .subscribeWith(new DisposableObserver<Integer>() {
-
-                    @Override
-                    public void onNext(@io.reactivex.annotations.NonNull Integer s) {
-                        playAudio(s, categoryState);
-                    }
-
-                    @Override
-                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        Log.e("Service_bound_Error-", e.toString());
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        Log.d("Service_Bound- ", "Completed ");
-                    }
-                }));
-    }
-
-    private Observable<Integer> observable() {
-        return Observable.create(new ObservableOnSubscribe<Integer>() {
-            @Override
-            public void subscribe(@io.reactivex.annotations.NonNull ObservableEmitter<Integer> e) throws Exception {
-                do {
-                    if (playerService == null) {
-                        playerService = MediaPlayerService.getInstance(getApplicationContext());
-                        playerService.setAudioList(audioList);
-                    }
-                    e.onNext(trackPosition);
-                } while (playerService == null);
-
-                e.onComplete();
-            }
-        });
-    }
 
     private void playAudio(int audioIndex, int categoryIndex) {
         //Check is service is active
@@ -263,15 +220,15 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
 
     }
 
-    public void UI_update(List<Audio> audioList, int trackPosition, Bitmap bitmap) {
-        this.audioList = audioList;
+    public void UI_update(List<Audio> audio, int position, Bitmap bitmap) {
+
         setPlayPauseState(playerService.ismAudioIsPlaying());
 
         trackThumbnail.setImageBitmap(bitmap);
-        songTitle.setText(audioList.get(trackPosition).getTITLE());
-        songArtist.setText(audioList.get(trackPosition).getARTIST());
+        songTitle.setText(audio.get(position).getTITLE());
+        songArtist.setText(audio.get(position).getARTIST());
 
-        seekBar.setMax(Integer.parseInt(audioList.get(trackPosition).getDURATION()));
+        seekBar.setMax(Integer.parseInt(audio.get(position).getDURATION()));
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -412,7 +369,7 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 String isMP3 = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-                if (isMP3.contains(".mp3")) {
+                if (isMP3.contains(".mp3") || isMP3.contains(".MP3")) {
                     do {
                         String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
                         String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
@@ -436,20 +393,31 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
 
     private void Load_Audio_Data() {
         disposable.add(getAudio()
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer integer) throws Exception {
-
                         if (integer == 3) {
-                            getSupportActionBar().setTitle("Songs of album");
+                            toolbarTitle = "Album Songs";
                             audioList = loadAlbumFiles(keyword);
                         } else if (integer == 4) {
-                            getSupportActionBar().setTitle("Songs of artist");
+                            toolbarTitle = "Artist Songs";
                             audioList = loadArtistFiles(keyword);
                         }
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        toolbar.setTitle(toolbarTitle);
                         setDataIntoAdapter(audioList);
-
+                    }
+                })
+                .subscribeOn(Schedulers.newThread())
+                .doOnNext(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
                         if (storageUtil.loadAudioIndex() != -1) {
                             categoryState = storageUtil.loadCategoryIndex();
                             trackPosition = storageUtil.loadAudioIndex();

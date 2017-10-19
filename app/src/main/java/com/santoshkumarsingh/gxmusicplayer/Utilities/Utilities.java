@@ -6,8 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 
-import com.santoshkumarsingh.gxmusicplayer.R;
-
 import java.io.ByteArrayOutputStream;
 import java.util.Random;
 
@@ -69,7 +67,7 @@ public class Utilities {
             metaRetriver = new MediaMetadataRetriever();
             metaRetriver.setDataSource(URL);
             byte[] art = metaRetriver.getEmbeddedPicture();
-            return BitmapFactory.decodeByteArray(art, 0, art.length);
+            return compressBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
         } catch (Exception e) {
             return null;
         }
@@ -136,6 +134,7 @@ public class Utilities {
     }
 
 
+    //random selection for Shuffle option
     public int randomSelection(int trackPosition, int size) {
         Random random = new Random();
         int i = random.nextInt(size);
@@ -193,14 +192,6 @@ public class Utilities {
         // Display the compressed bitmap in ImageView
 //        iv_compressed.setImageBitmap(compressedBitmap);
 
-    }
-
-    public Bitmap setBitmapImage(String ImageUrl, int pixelSize) {
-        Bitmap bitmap;
-        bitmap = (getTrackThumbnail(ImageUrl) != null
-                ? compressBitmap(getTrackThumbnail(ImageUrl))
-                : decodeSampledBitmapFromResource(context.getResources(), R.drawable.audio_image, pixelSize, pixelSize));
-        return bitmap;
     }
 
 }

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/placeNameHolder"
     android:layout_width="140dp"
-    android:layout_height="180sp"
+    android:layout_height="160sp"
     android:layout_margin="10dp"
     android:clickable="true"
     android:orientation="vertical">
@@ -38,16 +38,6 @@
         android:text="@string/Song_Title"
         android:textSize="15sp" />
 
-    <TextView
-        android:id="@+id/A_Artist"
-        style="@style/TextAppearance.AppCompat.Body1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxLines="1"
-        android:paddingLeft="5dp"
-        android:text="@string/Song_Artist"
-        android:textColor="@color/DarkGray"
-        android:textSize="12sp" />
 
 </LinearLayout>
 

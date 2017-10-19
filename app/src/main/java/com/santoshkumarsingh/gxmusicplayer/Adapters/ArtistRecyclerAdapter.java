@@ -48,10 +48,7 @@ public class ArtistRecyclerAdapter extends RecyclerView.Adapter<ArtistRecyclerAd
     public void onBindViewHolder(final ArtistRecyclerAdapter.ViewHolder holder, int position) {
         holder.Album_artrist.setText(albumList.get(position).getARTIST());
         final int i = position;
-
-        bitmap = utilities.getTrackThumbnail(albumList.get(i).getALBUM_ART()) != null
-                ? utilities.compressBitmap(utilities.getTrackThumbnail(albumList.get(i).getALBUM_ART()))
-                : null;
+        bitmap = utilities.getTrackThumbnail(albumList.get(position).getALBUM_ART());
 
         if (bitmap != null) {
             holder.albumImage.setImageBitmap(bitmap);

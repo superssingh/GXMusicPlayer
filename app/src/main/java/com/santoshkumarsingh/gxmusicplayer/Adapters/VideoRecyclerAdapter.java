@@ -1,6 +1,8 @@
 package com.santoshkumarsingh.gxmusicplayer.Adapters;
 
 import android.graphics.Bitmap;
+import android.media.ThumbnailUtils;
+import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,16 +32,18 @@ public class VideoRecyclerAdapter extends RecyclerView.Adapter<VideoRecyclerAdap
     private List<Video> videoList = new ArrayList<>();
     private VideoOnClickListener videoOnClickListener;
     private Bitmap bitmap;
+    private ThumbnailUtils thumbnailUtils;
 
     public VideoRecyclerAdapter(VideoOnClickListener videoOnClickListener, List<Video> videos) {
         this.videoOnClickListener = videoOnClickListener;
         this.videoList = videos;
+        thumbnailUtils = new ThumbnailUtils();
     }
 
     @Override
     public VideoRecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.song_item, parent, false);
+                .inflate(R.layout.video_item, parent, false);
 
         return new ViewHolder(view);
     }
@@ -47,21 +51,18 @@ public class VideoRecyclerAdapter extends RecyclerView.Adapter<VideoRecyclerAdap
     @Override
     public void onBindViewHolder(final VideoRecyclerAdapter.ViewHolder holder, int position) {
         final Video video = videoList.get(position);
-        final int videoPosition = position;
-        holder.mTitle.setText(video.getTITLE());
-        holder.mAlbum.setText(video.getALBUM());
         long duration = Long.parseLong(video.getDURATION());
-        holder.duration.setText(utilities.milliSecondsToTimer(duration));
 
-        bitmap = utilities.getTrackThumbnail(video.getURL()) != null
-                ? utilities.compressBitmap(utilities.getTrackThumbnail(video.getURL()))
-                : null;
-
+        bitmap = ThumbnailUtils.createVideoThumbnail(video.getURL(), MediaStore.Video.Thumbnails.MICRO_KIND);
         if (bitmap != null) {
             holder.thumbnail.setImageBitmap(bitmap);
         } else {
             holder.thumbnail.setImageResource(R.drawable.ic_ondemand_video_24dp);
         }
+
+        holder.mTitle.setText(video.getTITLE());
+        holder.mAlbum.setText(video.getALBUM());
+        holder.duration.setText(utilities.milliSecondsToTimer(duration));
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

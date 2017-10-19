@@ -26,8 +26,10 @@
                 android:layout_gravity="top"
                 android:background="@drawable/orange_gradient"
                 android:elevation="8dp"
-                app:tabGravity="fill"
+                app:tabGravity="center"
                 app:tabIndicatorColor="@color/colorWhite"
+                app:tabIndicatorHeight="2dp"
+                app:tabPadding="-1dp"
                 app:tabSelectedTextColor="@color/cardview_light_background"
                 app:tabTextColor="@color/LightGray">
             </android.support.design.widget.TabLayout>

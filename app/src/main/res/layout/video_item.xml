@@ -4,7 +4,7 @@
     android:id="@+id/placeNameHolder"
     android:layout_width="match_parent"
     android:layout_height="70dp"
-    android:layout_marginBottom="0.6dp"
+    android:layout_marginBottom="0.5dp"
     android:background="@color/cardview_light_background"
     android:clickable="true"
     app:cardBackgroundColor="@color/cardview_light_background"
@@ -65,18 +65,18 @@
                         android:maxLines="1"
                         android:text="@string/Song_Artist"
                         android:textColor="@color/DarkGray"
-                        android:textSize="13dp" />
+                        android:textSize="14dp" />
 
                     <TextView
                         android:id="@+id/V_Duration"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
+                        android:layout_marginRight="10dp"
                         android:maxLines="1"
                         android:text="00:00"
                         android:textColor="@color/DarkGray"
-                        android:textSize="13dp" />
+                        android:textSize="14dp" />
                 </LinearLayout>
             </LinearLayout>
 

@@ -50,17 +50,15 @@ public class AudioListRecyclerAdapter extends RecyclerView.Adapter<AudioListRecy
     public void onBindViewHolder(final AudioListRecyclerAdapter.ViewHolder holder, int position) {
         final Audio audio = audioList.get(position);
         final int audioPosition = position;
-        holder.mTitle.setText(audio.getTITLE());
-        holder.mArtist.setText(audio.getARTIST());
-        bitmap = utilities.getTrackThumbnail(audio.getURL()) != null
-                ? utilities.compressBitmap(utilities.getTrackThumbnail(audio.getURL()))
-                : null;
+        bitmap = utilities.getTrackThumbnail(audio.getURL());
 
         if (bitmap != null) {
             holder.thumbnail.setImageBitmap(bitmap);
         } else {
             holder.thumbnail.setImageResource(R.drawable.ic_audiotrack);
         }
+        holder.mTitle.setText(audio.getTITLE());
+        holder.mArtist.setText(audio.getARTIST());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -103,7 +101,6 @@ public class AudioListRecyclerAdapter extends RecyclerView.Adapter<AudioListRecy
         ImageView thumbnail;
         @BindView(R.id.love)
         ShineButton love;
-
 
         public ViewHolder(View itemView) {
             super(itemView);

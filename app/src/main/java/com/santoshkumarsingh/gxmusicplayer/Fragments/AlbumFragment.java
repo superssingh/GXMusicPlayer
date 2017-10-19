@@ -19,7 +19,6 @@ import com.santoshkumarsingh.gxmusicplayer.Adapters.AlbumRecyclerAdapter;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.AlbumOnClickListener;
 import com.santoshkumarsingh.gxmusicplayer.Models.Album;
 import com.santoshkumarsingh.gxmusicplayer.R;
-import com.santoshkumarsingh.gxmusicplayer.Utilities.AutofitGridlayout;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -99,7 +98,7 @@ public class AlbumFragment extends Fragment implements AlbumOnClickListener {
     }
 
     private void configRecycleView(List<Album> albumList) {
-        AutofitGridlayout gridlayout = new AutofitGridlayout(getContext(), 280);
+//        AutofitGridlayout gridlayout = new AutofitGridlayout(getContext(), 320);
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager();
         layoutManager.setFlexWrap(FlexWrap.WRAP);
         recyclerAdapter = new AlbumRecyclerAdapter(this, albumList);

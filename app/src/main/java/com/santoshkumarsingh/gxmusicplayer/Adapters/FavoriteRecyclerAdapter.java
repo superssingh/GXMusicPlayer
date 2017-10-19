@@ -30,6 +30,7 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     private RealmResults<FavoriteAudio> favoriteAudios;
     private Utilities utilities;
     private FavoriteOnClickListener onClickListener;
+    private Bitmap bitmap;
 
     public FavoriteRecyclerAdapter(FavoriteOnClickListener listener, RealmResults<FavoriteAudio> audios) {
         onClickListener = listener;
@@ -46,25 +47,20 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     @Override
     public void onBindViewHolder(final FavoriteRecyclerAdapter.ViewHolder holder, int position) {
         holder.favoriteAudio = favoriteAudios.get(position);
-        holder.mTitle.setText(holder.favoriteAudio.getTITLE());
-        holder.mArtist.setText(holder.favoriteAudio.getARTIST());
         long duration = Long.parseLong(holder.favoriteAudio.getDURATION());
-        holder.duration.setText(utilities.milliSecondsToTimer(duration));
-
-        final Bitmap bitmap = utilities.getTrackThumbnail(holder.favoriteAudio.getURL()) != null
-                ? utilities.compressBitmap(utilities.getTrackThumbnail(holder.favoriteAudio.getURL()))
-                : null;
+        bitmap = utilities.getTrackThumbnail(holder.favoriteAudio.getURL());
 
         if (bitmap != null) {
             holder.thumbnail.setImageBitmap(bitmap);
         } else {
             holder.thumbnail.setImageResource(R.drawable.ic_audiotrack);
         }
-
+        holder.mTitle.setText(holder.favoriteAudio.getTITLE());
+        holder.mArtist.setText(holder.favoriteAudio.getARTIST());
+        holder.duration.setText(utilities.milliSecondsToTimer(duration));
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if (onClickListener != null) {
                     onClickListener.OnClick(favoriteAudios, holder.getAdapterPosition());
                 }
@@ -89,13 +85,6 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     @Override
     public int getItemCount() {
         return favoriteAudios.size();
-    }
-
-    public void refreshList() {
-        Realm realm = Realm.getDefaultInstance();
-        favoriteAudios = realm.where(FavoriteAudio.class).findAllAsync();
-        notifyDataSetChanged();
-        realm.close();
     }
 
     private void delete(int position) {
