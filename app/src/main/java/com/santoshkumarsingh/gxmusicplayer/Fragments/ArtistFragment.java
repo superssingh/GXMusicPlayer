@@ -116,7 +116,6 @@ public class ArtistFragment extends Fragment implements ArtistOnClickListener {
     }
 
     private void configRecycleView(List<Artist> ArtistList) {
-//        AutofitGridlayout gridlayout = new AutofitGridlayout(getContext(), 320);
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager();
         layoutManager.setFlexWrap(FlexWrap.WRAP);
         recyclerAdapter = new ArtistRecyclerAdapter(this, ArtistList);

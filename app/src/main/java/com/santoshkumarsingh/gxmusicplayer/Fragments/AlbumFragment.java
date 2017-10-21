@@ -56,7 +56,7 @@ public class AlbumFragment extends Fragment implements AlbumOnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_album, container, false);
+        view = inflater.inflate(R.layout.fragment_category, container, false);
         ButterKnife.bind(this, view);
         albumList = new ArrayList<>();
         disposable = new CompositeDisposable();
@@ -98,7 +98,6 @@ public class AlbumFragment extends Fragment implements AlbumOnClickListener {
     }
 
     private void configRecycleView(List<Album> albumList) {
-//        AutofitGridlayout gridlayout = new AutofitGridlayout(getContext(), 320);
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager();
         layoutManager.setFlexWrap(FlexWrap.WRAP);
         recyclerAdapter = new AlbumRecyclerAdapter(this, albumList);

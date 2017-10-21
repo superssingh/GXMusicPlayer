@@ -22,11 +22,16 @@ public class Utilities {
 
     //get image into byte[] format for Glide and Picasso library
     public byte[] getImageIntoByteArray(String URL) {
-        MediaMetadataRetriever metaRetriver;
-        metaRetriver = new MediaMetadataRetriever();
-        metaRetriver.setDataSource(URL);
-        byte[] art = metaRetriver.getEmbeddedPicture();
-        return art;
+        try {
+            MediaMetadataRetriever metaRetriver;
+            metaRetriver = new MediaMetadataRetriever();
+            metaRetriver.setDataSource(URL);
+            byte[] art = metaRetriver.getEmbeddedPicture();
+            return art;
+        } catch (Exception e) {
+            return null;
+        }
+
     }
 
 

@@ -156,6 +156,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
         ButterKnife.bind(this);
+        bmb = findViewById(R.id.bmb);
+        rippleBackground = findViewById(R.id.content);
         disposable = new CompositeDisposable();
         disposable1 = new CompositeDisposable();
         disposable2 = new CompositeDisposable();
@@ -172,7 +174,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         artist.setAnimation(animation);
         album.setAnimation(animation);
         bassSeekbar.setMax(bassMaxStrength);
-        rippleBackground = findViewById(R.id.content);
         initRecorder();
         initBoomMemu();
         setClickedListeners();
@@ -187,7 +188,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     }
 
     private void initBoomMemu() {
-        bmb = findViewById(R.id.bmb);
+
         assert bmb != null;
 
         recorderIcons = new int[]{R.drawable.ic_mic_black_24dp, R.drawable.ic_record_voice_over_black_24dp,
