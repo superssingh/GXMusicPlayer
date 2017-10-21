@@ -1,95 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/play_layout"
-    android:layout_width="match_parent"
-    android:layout_height="70dp"
-    android:background="@drawable/orange_gradient"
-    android:elevation="8dp">
+<!--<?xml version="1.0" encoding="utf-8"?>--><!--<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"--><!--xmlns:app="http://schemas.android.com/apk/res-auto"--><!--android:id="@+id/play_layout"--><!--android:layout_width="match_parent"--><!--android:layout_height="70dp"--><!--android:background="@drawable/orange_gradient"--><!--android:elevation="8dp">-->
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
+<!--<LinearLayout--><!--android:layout_width="match_parent"--><!--android:layout_height="match_parent"--><!--android:orientation="horizontal">-->
 
-        <ImageView
-            android:id="@+id/track_Thumbnail"
-            android:layout_width="70dp"
-            android:layout_height="match_parent"
-            android:contentDescription="@string/Album_thumb"
-            android:scaleType="fitXY" />
+<!--<ImageView--><!--android:id="@+id/track_Thumbnail"--><!--android:layout_width="70dp"--><!--android:layout_height="match_parent"--><!--android:contentDescription="@string/Album_thumb"--><!--android:scaleType="fitXY" />-->
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
+<!--<LinearLayout--><!--android:layout_width="match_parent"--><!--android:layout_height="match_parent"--><!--android:orientation="horizontal">-->
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
+<!--<LinearLayout--><!--android:layout_width="0dp"--><!--android:layout_height="match_parent"--><!--android:layout_weight="1"--><!--android:gravity="center"--><!--android:orientation="vertical">-->
 
-                <TextView
-                    android:id="@+id/trackTitle"
-                    style="@style/TextAppearance.AppCompat.Title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:ellipsize="marquee"
-                    android:fadingEdge="horizontal"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:marqueeRepeatLimit="marquee_forever"
-                    android:scrollHorizontally="true"
-                    android:singleLine="true"
-                    android:text="SongTitle"
-                    android:textColor="@color/colorWhite"
-                    android:textSize="16dp"
-                    android:textStyle="bold" />
+<!--<TextView--><!--android:id="@+id/trackTitle"--><!--style="@style/TextAppearance.AppCompat.Title"--><!--android:layout_width="match_parent"--><!--android:layout_height="wrap_content"--><!--android:layout_marginLeft="5dp"--><!--android:ellipsize="marquee"--><!--android:fadingEdge="horizontal"--><!--android:focusable="true"--><!--android:focusableInTouchMode="true"--><!--android:marqueeRepeatLimit="marquee_forever"--><!--android:scrollHorizontally="true"--><!--android:singleLine="true"--><!--android:text="SongTitle"--><!--android:textColor="@color/colorWhite"--><!--android:textSize="16dp"--><!--android:textStyle="bold" />-->
 
-                <TextView
-                    android:id="@+id/trackArtist"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:maxLines="1"
-                    android:text="@string/Song_Artist"
-                    android:textColor="@color/LightGray"
-                    android:textSize="13dp" />
+<!--<TextView--><!--android:id="@+id/trackArtist"--><!--android:layout_width="match_parent"--><!--android:layout_height="wrap_content"--><!--android:layout_marginLeft="5dp"--><!--android:maxLines="1"--><!--android:text="@string/Song_Artist"--><!--android:textColor="@color/LightGray"--><!--android:textSize="13dp" />-->
 
-                <android.support.v7.widget.AppCompatSeekBar
-                    android:id="@+id/current_seekBar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="2dp"
-                    android:progressBackgroundTint="#333"
-                    android:progressTint="@color/cardview_light_background"
-                    android:thumbTint="@color/cardview_light_background" />
+<!--<android.support.v7.widget.AppCompatSeekBar--><!--android:id="@+id/current_seekBar"--><!--android:layout_width="match_parent"--><!--android:layout_height="wrap_content"--><!--android:layout_marginBottom="2dp"--><!--android:progressBackgroundTint="#333"--><!--android:progressTint="@color/cardview_light_background"--><!--android:thumbTint="@color/cardview_light_background" />-->
 
-            </LinearLayout>
+<!--</LinearLayout>-->
 
-            <!--<ImageButton-->
-            <!--android:id="@+id/Current_Play_Pause"-->
-            <!--android:layout_width="50dp"-->
-            <!--android:layout_height="50dp"-->
-            <!--android:layout_gravity="center"-->
-            <!--android:layout_marginRight="5dp"-->
-            <!--android:contentDescription="@string/play_pauseButton"-->
-            <!--android:src="@drawable/ic_play_circle_outline" />-->
+<!--&lt;!&ndash;<ImageButton&ndash;&gt;--><!--&lt;!&ndash;android:id="@+id/Current_Play_Pause"&ndash;&gt;--><!--&lt;!&ndash;android:layout_width="50dp"&ndash;&gt;--><!--&lt;!&ndash;android:layout_height="50dp"&ndash;&gt;--><!--&lt;!&ndash;android:layout_gravity="center"&ndash;&gt;--><!--&lt;!&ndash;android:layout_marginRight="5dp"&ndash;&gt;--><!--&lt;!&ndash;android:contentDescription="@string/play_pauseButton"&ndash;&gt;--><!--&lt;!&ndash;android:src="@drawable/ic_play_circle_outline" />&ndash;&gt;-->
 
-            <be.rijckaert.tim.animatedvector.FloatingMusicActionButton
-                android:id="@+id/playfab"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginRight="5dp"
-                app:backgroundTint="#ff004d"
-                app:mode="playToPause" />
+<!--<be.rijckaert.tim.animatedvector.FloatingMusicActionButton--><!--android:id="@+id/playfab"--><!--android:layout_width="wrap_content"--><!--android:layout_height="wrap_content"--><!--android:layout_gravity="center"--><!--android:layout_marginRight="5dp"--><!--app:backgroundTint="#ff004d"--><!--app:mode="playToPause" />-->
 
-        </LinearLayout>
+<!--</LinearLayout>-->
 
-    </LinearLayout>
+<!--</LinearLayout>-->
 
-</FrameLayout>
+<!--</FrameLayout>-->
