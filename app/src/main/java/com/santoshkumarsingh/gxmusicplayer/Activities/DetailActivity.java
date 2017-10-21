@@ -47,6 +47,7 @@ import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
 import com.santoshkumarsingh.gxmusicplayer.R;
 import com.santoshkumarsingh.gxmusicplayer.Services.MediaPlayerService;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
+import com.skyfishjy.library.RippleBackground;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -82,8 +83,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     ImageButton previous;
     @BindView(R.id.d_repeatOne)
     ImageButton repeatBTN;
-    @BindView(R.id.d_BassBTN)
-    ImageButton BassBTN;
+    @BindView(R.id.d_equalizer)
+    ImageButton d_equalizer;
     @BindView(R.id.d_seekBar)
     SeekBar seekBar;
     @BindView(R.id.d_songThumbnail)
@@ -99,13 +100,15 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     @BindView(R.id.d_trackAlbum)
     TextView album;
     @BindView(R.id.stopFab)
-    FloatingActionButton stopFab;
+    ImageButton stopFab;
     @BindView(R.id.bassFrame)
     LinearLayout bassFrame;
     @BindView(R.id.bassSeekbar)
     SeekBar bassSeekbar;
     @BindView(R.id.stopFrame)
     FrameLayout stopFrame;
+    @BindView(R.id.d_BassBTN)
+    FloatingActionButton BassBTN;
     int[] recorderIcons, recorderTitle, recordersubTitle;
     private Utilities utilities;
     private int trackPosition = 0;
@@ -125,7 +128,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
     private String[] permissions = {Manifest.permission.RECORD_AUDIO};
-    private BoomMenuButton bmb, bmb1;
+    private BoomMenuButton bmb;
     private ArrayList<Pair> piecesAndButtons = new ArrayList<>();
     // Media PlayerService-------
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -147,7 +150,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         }
     };
 
-
+    private RippleBackground rippleBackground;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -169,9 +172,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         artist.setAnimation(animation);
         album.setAnimation(animation);
         bassSeekbar.setMax(bassMaxStrength);
-        Date date = new Date();
-        String recordFilename = "/karaoke" + date.getTime() + ".3gp";
-        mFileName = getExternalCacheDir().getAbsolutePath() + recordFilename;
+        rippleBackground = findViewById(R.id.content);
+        initRecorder();
         initBoomMemu();
         setClickedListeners();
 
@@ -206,7 +208,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         bmb.setOnBoomListener(new OnBoomListener() {
             @Override
             public void onClicked(int index, BoomButton boomButton) {
-                initRecorder();
                 if (index == 0) {
                     recording = true;
                     if (playerService.mediaPlayer.isPlaying()) {
@@ -214,7 +215,10 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                         setPlayPauseState();
                     }
 
+                    rippleBackground.startRippleAnimation();
                     onRecord(recording);
+                    BassBTN.setVisibility(View.GONE);
+                    stopFab.setBackgroundResource(R.drawable.ic_mic_black_24dp);
                     stopFrame.setVisibility(View.VISIBLE);
                 } else if (index == 1) {
                     recording = true;
@@ -223,13 +227,17 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                         setPlayPauseState();
                     }
 
-                    startRecording();
+                    rippleBackground.startRippleAnimation();
+                    onRecord(recording);
+                    BassBTN.setVisibility(View.GONE);
+                    stopFab.setBackgroundResource(R.drawable.ic_mic_black_24dp);
                     stopFrame.setVisibility(View.VISIBLE);
                     Toast.makeText(DetailActivity.this, "Start Recording", Toast.LENGTH_LONG).show();
 
                 } else if (index == 2) {
                     recording = false;
                     startPlaying();
+                    stopFab.setBackgroundResource(R.drawable.ic_stop_24dp);
                     stopFrame.setVisibility(View.VISIBLE);
                     Toast.makeText(DetailActivity.this, "Start playing.", Toast.LENGTH_LONG).show();
 
@@ -270,19 +278,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     }
 
     private void setClickedListeners() {
-//        detail_fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(DetailActivity.this, ListActivity.class)
-//                        .putExtra(getString(R.string.category), category);
-//                startActivity(intent);
-//
-////                mFileName += "/Karaoke-" + audioList.get(trackPosition).getTITLE();
-////                initRecorder();
-////                showBassBoost();
-//            }
-//        });
-
 
         BassBTN.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -388,14 +383,26 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             @Override
             public void onClick(View v) {
                 if (recording) {
+                    stopFab.setBackgroundResource(R.drawable.ic_mic_black_24dp);
                     onRecord(false);
+                    rippleBackground.stopRippleAnimation();
+                    BassBTN.setVisibility(View.VISIBLE);
                     Snackbar.make(v, "Recording Stop", Snackbar.LENGTH_LONG).show();
                 } else {
+                    stopFab.setBackgroundResource(R.drawable.ic_stop_24dp);
                     onPlay(false);
+                    BassBTN.setVisibility(View.VISIBLE);
                     Snackbar.make(v, "Record playing Stop", Snackbar.LENGTH_LONG).show();
                 }
 
                 stopFrame.setVisibility(View.GONE);
+            }
+        });
+
+        d_equalizer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showPresets();
             }
         });
 
@@ -612,7 +619,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         );
     }
 
-
     private void showPresets() {
         presets = getResources().getStringArray(R.array.PRESETS);
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -623,7 +629,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         ListView lv = convertView.findViewById(R.id.listView);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(DetailActivity.this, android.R.layout.simple_list_item_1, presets);
         lv.setAdapter(adapter);
-        lv.setBackground(getDrawable(R.drawable.orange_gradient));
 
         builder.setItems(presets, new DialogInterface.OnClickListener() {
             @Override
@@ -712,55 +717,12 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         mRecorder = null;
     }
 
-//    class RecordButton extends Button {
-//        boolean mStartRecording = true;
-//
-//        OnClickListener clicker = new OnClickListener() {
-//            public void onClick(View v) {
-//                onRecord(mStartRecording);
-//                if (mStartRecording) {
-//                    setText("Stop recording");
-//                } else {
-//                    setText("Start recording");
-//                }
-//                mStartRecording = !mStartRecording;
-//            }
-//        };
-//
-//        public RecordButton(Context ctx) {
-//            super(ctx);
-//            setText("Start recording");
-//            setOnClickListener(clicker);
-//        }
-//    }
-
-//    class PlayButton extends Button {
-//        boolean mStartPlaying = true;
-//
-//        OnClickListener clicker = new OnClickListener() {
-//            public void onClick(View v) {
-//                onPlay(mStartPlaying);
-//                if (mStartPlaying) {
-//                    setText("Stop playing");
-//                } else {
-//                    setText("Start playing");
-//                }
-//                mStartPlaying = !mStartPlaying;
-//            }
-//        };
-//
-//        public PlayButton(Context ctx) {
-//            super(ctx);
-//            setText("Start playing");
-//            setOnClickListener(clicker);
-//        }
-//    }
-
-
     public void initRecorder() {
+        Date date = new Date();
         // Record to the external cache directory for visibility
         mFileName = getExternalCacheDir().getAbsolutePath();
-        mFileName += "/audiorecordtest.3gp";
+        mFileName += "/karaoke" + date.getTime() + ".3gp";
+        Log.i("filePath:", mFileName);
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
 

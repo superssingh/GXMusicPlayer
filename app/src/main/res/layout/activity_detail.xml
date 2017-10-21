@@ -142,13 +142,12 @@
                             android:padding="3dp">
 
                             <ImageButton
-                                android:id="@+id/d_BassBTN"
+                                android:id="@+id/d_equalizer"
                                 android:layout_width="42dp"
                                 android:layout_height="42dp"
                                 android:autofillHints="Hop"
-                                android:background="@drawable/ic_wifi_black_24dp"
+                                android:background="@drawable/ic_equalizer_24dp"
                                 android:contentDescription="@string/nextButton"
-                                android:rotation="90"
                                 android:textColor="@color/colorWhite" />
 
                         </LinearLayout>
@@ -201,7 +200,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:background="#d28e8e8c"
+            android:background="#d2454544"
             android:orientation="vertical"
             android:padding="10dp"
             android:visibility="gone">
@@ -217,21 +216,19 @@
                 android:id="@+id/bassSeekbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:progressBackgroundTint="@color/cardview_dark_background"
+                android:progressBackgroundTint="@color/cardview_light_background"
                 android:progressTint="@color/colorWhite"
                 android:thumbTint="@color/colorWhite" />
         </LinearLayout>
+
     </FrameLayout>
 
-    <!--<com.nightonke.boommenu.BoomMenuButton-->
-    <!--android:id="@+id/bmb_equalizer"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--app:bmb_buttonEnum="ham"-->
-    <!--app:bmb_buttonPlaceEnum="buttonPlace_ham_4"-->
-    <!--app:bmb_piecePlaceEnum="piecePlace_ham_4"-->
-    <!--app:layout_anchor="@+id/d_details"-->
-    <!--app:layout_anchorGravity="start" />-->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </FrameLayout>
+
 
     <com.nightonke.boommenu.BoomMenuButton
         android:id="@+id/bmb"
@@ -242,6 +239,17 @@
         app:bmb_piecePlaceEnum="piecePlace_ham_4"
         app:layout_anchor="@+id/d_details"
         app:layout_anchorGravity="end" />
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/d_BassBTN"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginLeft="10dp"
+        android:rotation="90"
+        android:src="@drawable/ic_wifi_black_24dp"
+        app:layout_anchor="@+id/d_details"
+        app:layout_anchorGravity="start" />
 
     <FrameLayout
         android:id="@+id/stopFrame"
@@ -256,12 +264,39 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/stopFab"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:src="@drawable/ic_stop_24dp"
-                app:elevation="8dp" />
+            <com.skyfishjy.library.RippleBackground xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                app:rb_color="#f80ecfd6"
+                app:rb_duration="3000"
+                app:rb_radius="32dp"
+                app:rb_rippleAmount="5"
+                app:rb_scale="6">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageButton
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/background_round" />
+
+                    <ImageButton
+                        android:id="@+id/stopFab"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/ic_mic_black_24dp"
+                        app:elevation="8dp" />
+
+                </FrameLayout>
+
+            </com.skyfishjy.library.RippleBackground>
 
         </LinearLayout>
     </FrameLayout>

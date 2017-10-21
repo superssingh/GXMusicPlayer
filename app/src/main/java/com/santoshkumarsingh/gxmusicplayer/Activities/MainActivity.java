@@ -209,13 +209,9 @@ public class MainActivity extends AppCompatActivity
                     if (playerService.ismAudioIsPlaying()) {
                         playerService.pause();
                         setPlayPauseState();
-//                        playPauseFab.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
-//                        playPause.setImageResource(R.drawable.ic_play_circle_outline);
                     } else {
                         playerService.resume();
                         setPlayPauseState();
-//                        playPauseFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
-//                        playPause.setImageResource(R.drawable.ic_pause_circle_outline);
                     }
                 }
             }
@@ -422,7 +418,6 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-
         return true;
     }
 
@@ -430,10 +425,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -625,7 +616,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     //*****Tab Layout------------
-
     private void initTabLayout() {
         //------Tab & View pager init...
         pager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
@@ -680,7 +670,6 @@ public class MainActivity extends AppCompatActivity
     private void runShare() {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType(getString(R.string.MessageType));
-
         shareIntent.putExtra(Intent.EXTRA_SUBJECT, R.string.ExtraSubject);
         shareIntent.putExtra(Intent.EXTRA_TEXT, R.string.ExtraText);
         startActivity(Intent.createChooser(shareIntent, getString(R.string.Share)));

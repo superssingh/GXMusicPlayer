@@ -120,5 +120,6 @@
     <string name="record_with_song_sub">Record your speech or karaoke with song</string>
     <string name="listen_karaoke_sub">Play your recorded speech or karaoke</string>
     <string name="current_playlist_sub">Open the list of songs that playing</string>
+    <string name="refresh">refresh</string>
 
 </resources>
