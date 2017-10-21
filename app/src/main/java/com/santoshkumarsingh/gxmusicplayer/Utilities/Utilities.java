@@ -20,6 +20,16 @@ public class Utilities {
         this.context = context;
     }
 
+    //get image into byte[] format for Glide and Picasso library
+    public byte[] getImageIntoByteArray(String URL) {
+        MediaMetadataRetriever metaRetriver;
+        metaRetriver = new MediaMetadataRetriever();
+        metaRetriver.setDataSource(URL);
+        byte[] art = metaRetriver.getEmbeddedPicture();
+        return art;
+    }
+
+
     // Best way to decode and compress image into bitmap
     public Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
                                                   int reqWidth, int reqHeight) {
@@ -193,5 +203,6 @@ public class Utilities {
 //        iv_compressed.setImageBitmap(compressedBitmap);
 
     }
+
 
 }

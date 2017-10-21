@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.audiofx.BassBoost;
 import android.media.audiofx.Equalizer;
 import android.media.session.MediaSessionManager;
 import android.os.Binder;
@@ -84,7 +85,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener;
     private boolean mReceiverRegistered = false;
     private Equalizer equalizer;
-    private short presetLevel = 0;
+    private BassBoost bassBoost;
+    private short presetLevel = 0, bassLevel = 0;
 
     //BroadcastReceiver for Becoming noisy (any other interruption)
     private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
@@ -664,7 +666,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         //Invoked when the media source is ready for playback.
         playMedia();
         if (serviceCallback != null) {
-            serviceCallback.doSomething(audioList, audioIndex, albumArt);
+            serviceCallback.doSomething(audioList, audioIndex);
         }
     }
 
@@ -767,6 +769,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         presetLevel = equalizer.getCurrentPreset();
     }
 
+    private void BassBoostSetup(short value) {
+        bassBoost = new BassBoost(0, mediaPlayer.getAudioSessionId());
+        bassBoost.setEnabled(true);
+        Log.i("ppt: ", bassBoost.getProperties().toString() + " || " + bassBoost.getProperties().strength);
+        bassBoost.setStrength(value);
+        bassLevel = bassBoost.getRoundedStrength();
+    }
+
     private void forceMusicStop() {
         AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (am.isMusicActive()) {
@@ -800,6 +810,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             //Forced Stop any mediaplayer
             forceMusicStop();
         }
+    }
+
+    public short getBassLevel() {
+        return bassLevel;
+    }
+
+    public void setBassLevel(short bassLevel) {
+        BassBoostSetup(bassLevel);
     }
 
     public int getRepeat() {

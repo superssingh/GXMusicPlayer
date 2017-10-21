@@ -30,7 +30,8 @@
             android:layout_weight="1"
             android:gravity="left"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:padding="8dp"
+            android:paddingEnd="0dp">
 
             <TextView
                 android:id="@+id/F_Title"
@@ -66,8 +67,6 @@
                     android:text="00:00" />
 
             </LinearLayout>
-
-
         </LinearLayout>
 
         <ImageButton

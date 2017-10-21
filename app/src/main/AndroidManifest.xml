@@ -52,23 +52,7 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen"
             android:theme="@style/FullscreenTheme" />
-        <activity
-            android:name=".Activities.SearchActivity"
-            android:launchMode="singleTop">
-            <intent-filter>
-                <action android:name="android.intent.action.SEARCH" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.app.seeachable"
-                android:resource="@xml/searchable" />
-        </activity>
-        <activity android:name=".Activities.OtherActivity">
-            <!-- enable the search dialog to send searches to SearchableActivity -->
-            <meta-data
-                android:name="android.app.default_searchable"
-                android:value=".SearchableActivity" />
-
+        <activity android:name=".Activities.SearchActivity">
         </activity>
     </application>
 

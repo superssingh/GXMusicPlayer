@@ -1,8 +1,6 @@
 package com.santoshkumarsingh.gxmusicplayer.Adapters;
 
-import android.graphics.Bitmap;
-import android.media.ThumbnailUtils;
-import android.provider.MediaStore;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,11 +8,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.VideoOnClickListener;
 import com.santoshkumarsingh.gxmusicplayer.Models.Video;
 import com.santoshkumarsingh.gxmusicplayer.R;
 import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,13 +32,10 @@ public class VideoRecyclerAdapter extends RecyclerView.Adapter<VideoRecyclerAdap
     private Utilities utilities;
     private List<Video> videoList = new ArrayList<>();
     private VideoOnClickListener videoOnClickListener;
-    private Bitmap bitmap;
-    private ThumbnailUtils thumbnailUtils;
 
     public VideoRecyclerAdapter(VideoOnClickListener videoOnClickListener, List<Video> videos) {
         this.videoOnClickListener = videoOnClickListener;
         this.videoList = videos;
-        thumbnailUtils = new ThumbnailUtils();
     }
 
     @Override
@@ -53,12 +51,11 @@ public class VideoRecyclerAdapter extends RecyclerView.Adapter<VideoRecyclerAdap
         final Video video = videoList.get(position);
         long duration = Long.parseLong(video.getDURATION());
 
-        bitmap = ThumbnailUtils.createVideoThumbnail(video.getURL(), MediaStore.Video.Thumbnails.MICRO_KIND);
-        if (bitmap != null) {
-            holder.thumbnail.setImageBitmap(bitmap);
-        } else {
-            holder.thumbnail.setImageResource(R.drawable.ic_ondemand_video_24dp);
-        }
+        Glide.with(holder.itemView.getContext())
+                .asBitmap()
+                .load(Uri.fromFile(new File(video.getURL())))
+                .apply(RequestOptions.fitCenterTransform().error(R.drawable.ic_ondemand_video_24dp))
+                .into(holder.thumbnail);
 
         holder.mTitle.setText(video.getTITLE());
         holder.mAlbum.setText(video.getALBUM());
@@ -72,7 +69,6 @@ public class VideoRecyclerAdapter extends RecyclerView.Adapter<VideoRecyclerAdap
                 }
             }
         });
-
     }
 
     @Override
@@ -105,4 +101,5 @@ public class VideoRecyclerAdapter extends RecyclerView.Adapter<VideoRecyclerAdap
         }
 
     }
+
 }

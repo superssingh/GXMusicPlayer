@@ -1,6 +1,5 @@
 package com.santoshkumarsingh.gxmusicplayer.Adapters;
 
-import android.graphics.Bitmap;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -10,6 +9,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.FavoriteOnClickListener;
 import com.santoshkumarsingh.gxmusicplayer.R;
@@ -30,7 +31,6 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     private RealmResults<FavoriteAudio> favoriteAudios;
     private Utilities utilities;
     private FavoriteOnClickListener onClickListener;
-    private Bitmap bitmap;
 
     public FavoriteRecyclerAdapter(FavoriteOnClickListener listener, RealmResults<FavoriteAudio> audios) {
         onClickListener = listener;
@@ -48,13 +48,13 @@ public class FavoriteRecyclerAdapter extends RecyclerView.Adapter<FavoriteRecycl
     public void onBindViewHolder(final FavoriteRecyclerAdapter.ViewHolder holder, int position) {
         holder.favoriteAudio = favoriteAudios.get(position);
         long duration = Long.parseLong(holder.favoriteAudio.getDURATION());
-        bitmap = utilities.getTrackThumbnail(holder.favoriteAudio.getURL());
 
-        if (bitmap != null) {
-            holder.thumbnail.setImageBitmap(bitmap);
-        } else {
-            holder.thumbnail.setImageResource(R.drawable.ic_audiotrack);
-        }
+        Glide.with(holder.itemView.getContext())
+                .asBitmap()
+                .load(utilities.getImageIntoByteArray(holder.favoriteAudio.getURL()))
+                .apply(RequestOptions.centerCropTransform().error(R.drawable.ic_audiotrack))
+                .into(holder.thumbnail);
+
         holder.mTitle.setText(holder.favoriteAudio.getTITLE());
         holder.mArtist.setText(holder.favoriteAudio.getARTIST());
         holder.duration.setText(utilities.milliSecondsToTimer(duration));

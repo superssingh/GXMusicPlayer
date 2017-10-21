@@ -12,4 +12,5 @@
     <color name="orange">#acff1e00</color>
 
     <color name="black_overlay">#66000000</color>
+    <color name="whiteTransparent">#333</color>
 </resources>

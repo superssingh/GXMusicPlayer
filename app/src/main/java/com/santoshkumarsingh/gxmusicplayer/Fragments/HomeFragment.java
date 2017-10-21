@@ -7,7 +7,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -179,9 +178,9 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        if (audioList != null) {
-            savedInstanceState.putParcelableArrayList(getString(R.string.All_Audio), (ArrayList<? extends Parcelable>) audioRecyclerAdapter.getAudioList());
-        }
+//        if (audioList != null) {
+//            savedInstanceState.putParcelableArrayList(getString(R.string.All_Audio), (ArrayList<? extends Parcelable>) audioRecyclerAdapter.getAudioList());
+//        }
     }
 
     @Override

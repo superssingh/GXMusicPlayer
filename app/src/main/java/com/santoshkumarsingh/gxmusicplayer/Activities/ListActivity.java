@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -20,12 +19,14 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.GenericTransitionOptions;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.santoshkumarsingh.gxmusicplayer.Adapters.AudioRecyclerAdapter;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import be.rijckaert.tim.animatedvector.FloatingMusicActionButton;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
@@ -51,16 +53,12 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
-import static android.icu.text.MessagePattern.ArgType.SELECT;
 import static com.santoshkumarsingh.gxmusicplayer.Activities.MainActivity.Broadcast_PLAY_NEW_AUDIO;
-
 public class ListActivity extends AppCompatActivity implements ServiceCallback, SongOnClickListener {
 
     private static MediaPlayerService playerService;
     @BindView(R.id.List_recyclerView)
     RecyclerView recyclerView;
-    @BindView(R.id.Current_Play_Pause)
-    ImageButton playPause;
     @BindView(R.id.track_Thumbnail)
     ImageView trackThumbnail;
     @BindView(R.id.trackTitle)
@@ -71,12 +69,13 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
     AppCompatSeekBar seekBar;
     @BindView(R.id.play_layout)
     FrameLayout play_layout;
+    @BindView(R.id.playfab)
+    FloatingMusicActionButton playPauseFab;
     private Utilities utilities;
     private int trackPosition = 0;
-    private List<Audio> audioList, storeAudioList;
+    private List<Audio> audioList;
     private boolean serviceBound = false;
     private Intent playerIntent;
-    private Bitmap bitmap;
     private CompositeDisposable disposable;
     private StorageUtil storageUtil;
     private Animation animation;
@@ -92,7 +91,7 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
             playerService.setCallback(ListActivity.this);
             serviceBound = true;
             Toast.makeText(ListActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
-            UI_update(audioList, trackPosition, bitmap);
+            UI_update(audioList, trackPosition);
         }
 
         @Override
@@ -121,7 +120,6 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
 
         disposable = new CompositeDisposable();
         audioList = new ArrayList<>();
-        storeAudioList = new ArrayList<>();
         utilities = new Utilities(getApplicationContext());
         storageUtil = new StorageUtil(this);
         animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
@@ -151,15 +149,15 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(audioRecyclerAdapter);
 
-        playPause.setOnClickListener(new View.OnClickListener() {
+        playPauseFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (playerService.ismAudioIsPlaying()) {
                     playerService.pause();
-                    playPause.setImageResource(R.drawable.ic_play_circle_outline);
+                    playPauseFab.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
                 } else {
                     playerService.resume();
-                    playPause.setImageResource(R.drawable.ic_pause_circle_outline);
+                    playPauseFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
                 }
             }
         });
@@ -167,8 +165,12 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         play_layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(ListActivity.this, DetailActivity.class);
-                startActivity(intent);
+                if (categoryState == 5) {
+                    ListActivity.this.finish();
+                } else {
+                    Intent intent = new Intent(ListActivity.this, DetailActivity.class);
+                    startActivity(intent);
+                }
             }
         });
     }
@@ -211,19 +213,27 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
 
         trackPosition = audioIndex;
         categoryState = categoryIndex;
-        playPause.setImageResource(R.drawable.ic_pause_circle_outline);
+        playPauseFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
 
     }
 
     @Override
-    public void doSomething(List<Audio> audioList, int position, Bitmap bitmap) {
-        UI_update(audioList, position, bitmap);
+    public void doSomething(List<Audio> audioList, int position) {
+        UI_update(audioList, position);
 
     }
 
-    public void UI_update(List<Audio> audio, int position, Bitmap bitmap) {
+    public void UI_update(List<Audio> audio, int position) {
+        this.audioList = audio;
+        trackPosition = position;
         setPlayPauseState(playerService.ismAudioIsPlaying());
-        trackThumbnail.setImageBitmap(bitmap);
+
+        Glide.with(ListActivity.this)
+                .asBitmap()
+                .load(utilities.getImageIntoByteArray(audio.get(position).getURL()))
+                .apply(RequestOptions.fitCenterTransform().error(R.drawable.ic_audiotrack))
+                .transition(GenericTransitionOptions.with(R.anim.fade_in))
+                .into(trackThumbnail);
         songTitle.setText(audio.get(position).getTITLE());
         songArtist.setText(audio.get(position).getARTIST());
 
@@ -286,9 +296,9 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
 
     private void setPlayPauseState(boolean playPauseState) {
         if (playPauseState) {
-            playPause.setImageResource(R.drawable.ic_pause_circle_outline);
+            playPauseFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
         } else {
-            playPause.setImageResource(R.drawable.ic_play_circle_outline);
+            playPauseFab.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
         }
     }
 
@@ -320,12 +330,12 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
 
     @Override
     public void OnItemClicked(List<Audio> audios, int position) {
-        categoryState = 0;
         trackPosition = position;
         audioList = audios;
         storageUtil.storeAudio(audioList);
         playerService.setAudioList(audios);
         playAudio(position, categoryState);
+
     }
 
     private List<Audio> loadAlbumFiles(String albumId) {
@@ -401,8 +411,9 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
                             toolbarTitle = "Artist Songs";
                             audioList = loadArtistFiles(keyword);
                         } else if (integer == 5) {
-                            toolbarTitle = "Search Result";
-                            audioList = loadSearchedFile(keyword);
+                            toolbarTitle = "Current Playlist";
+                            audioList = storageUtil.loadAudio();
+                            trackPosition = storageUtil.loadAudioIndex();
                         }
                     }
                 })
@@ -422,10 +433,6 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
                             categoryState = storageUtil.loadCategoryIndex();
                             trackPosition = storageUtil.loadAudioIndex();
                             audioList = storageUtil.loadAudio();
-                            bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
-                                    ? utilities.compressBitmap(utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()))
-                                    : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 50, 50);
-
                             playerIntent = new Intent(ListActivity.this, MediaPlayerService.class);
                             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
                         } else {
@@ -465,7 +472,7 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         List<Audio> audios = new ArrayList<>();
         Toast.makeText(this, "Hiiii", Toast.LENGTH_LONG).show();
         Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Audio.Media.IS_MUSIC + "!=0 and " + MediaStore.Audio.Media.DISPLAY_NAME + " like '" + searchSongName + "'";
+        String selection = MediaStore.Audio.Media.IS_MUSIC + "!=0 and " + MediaStore.Audio.Media.DISPLAY_NAME + " = '" + searchSongName + "'";
         String sortOrder = "LOWER(" + MediaStore.Audio.Media.DISPLAY_NAME + ") ASC";
         Cursor cursor = getContentResolver().query(uri, null, selection, null, sortOrder);
         if (cursor != null) {

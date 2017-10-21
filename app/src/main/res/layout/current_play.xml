@@ -70,15 +70,23 @@
 
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/Current_Play_Pause"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+            <!--<ImageButton-->
+            <!--android:id="@+id/Current_Play_Pause"-->
+            <!--android:layout_width="50dp"-->
+            <!--android:layout_height="50dp"-->
+            <!--android:layout_gravity="center"-->
+            <!--android:layout_marginRight="5dp"-->
+            <!--android:contentDescription="@string/play_pauseButton"-->
+            <!--android:src="@drawable/ic_play_circle_outline" />-->
+
+            <be.rijckaert.tim.animatedvector.FloatingMusicActionButton
+                android:id="@+id/playfab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginRight="5dp"
-                android:background="@drawable/orange_round"
-                android:contentDescription="@string/play_pauseButton"
-                android:src="@drawable/ic_play_circle_outline" />
+                app:backgroundTint="#ff004d"
+                app:mode="playToPause" />
 
         </LinearLayout>
 

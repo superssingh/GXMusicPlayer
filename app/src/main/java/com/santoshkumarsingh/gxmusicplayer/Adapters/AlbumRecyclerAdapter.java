@@ -1,6 +1,5 @@
 package com.santoshkumarsingh.gxmusicplayer.Adapters;
 
-import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +9,8 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.AlbumOnClickListener;
 import com.santoshkumarsingh.gxmusicplayer.Models.Album;
 import com.santoshkumarsingh.gxmusicplayer.R;
@@ -27,7 +28,6 @@ import butterknife.ButterKnife;
 @SuppressWarnings("ObjectEqualsNull")
 public class AlbumRecyclerAdapter extends RecyclerView.Adapter<AlbumRecyclerAdapter.ViewHolder> {
 
-    Bitmap bitmap;
     private Utilities utilities;
     private List<Album> albumList;
     private AlbumOnClickListener onClickListener;
@@ -48,13 +48,11 @@ public class AlbumRecyclerAdapter extends RecyclerView.Adapter<AlbumRecyclerAdap
     public void onBindViewHolder(final AlbumRecyclerAdapter.ViewHolder holder, int position) {
         holder.Album_title.setText(albumList.get(position).getALBUM());
         final int i = position;
-        bitmap = utilities.getTrackThumbnail(albumList.get(position).getALBUM_ART());
-
-        if (bitmap != null) {
-            holder.albumImage.setImageBitmap(bitmap);
-        } else {
-            holder.albumImage.setImageResource(R.drawable.ic_audiotrack);
-        }
+        Glide.with(holder.itemView.getContext())
+                .asBitmap()
+                .load(utilities.getImageIntoByteArray(albumList.get(position).getALBUM_ART()))
+                .apply(RequestOptions.centerCropTransform().error(R.drawable.ic_album_24dp))
+                .into(holder.albumImage);
         holder.albumImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

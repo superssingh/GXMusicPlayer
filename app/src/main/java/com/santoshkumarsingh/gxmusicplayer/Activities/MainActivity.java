@@ -4,7 +4,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -28,12 +27,14 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.GenericTransitionOptions;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.santoshkumarsingh.gxmusicplayer.Database.RealmDB.FavoriteAudio;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Fragments.AlbumFragment;
@@ -52,6 +53,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import be.rijckaert.tim.animatedvector.FloatingMusicActionButton;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
@@ -72,8 +74,7 @@ public class MainActivity extends AppCompatActivity
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.santoshkumarsingh.gxmusicplayer.PlayNewAudio";
     private static MediaPlayerService playerService;
-    @BindView(R.id.Current_Play_Pause)
-    ImageButton playPause;
+
     @BindView(R.id.track_Thumbnail)
     ImageView trackThumbnail;
     @BindView(R.id.trackTitle)
@@ -88,8 +89,10 @@ public class MainActivity extends AppCompatActivity
     TabLayout tabLayout;
     @BindView(R.id.View_Pager)
     ViewPager pager;
+    @BindView(R.id.playfab)
+    FloatingMusicActionButton playPauseFab;
 
-    Animation animation;
+    private Animation animation;
     private Utilities utilities;
     private int trackPosition = 0, categoryState = 0;
     private List<Audio> audioList;
@@ -99,7 +102,6 @@ public class MainActivity extends AppCompatActivity
     private CompositeDisposable disposable, disposable1, disposable2, disposable3;
     private StorageUtil storageUtil;
     private RealmConfiguration config;
-    private Bitmap bitmap;
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -110,7 +112,8 @@ public class MainActivity extends AppCompatActivity
             playerService.setCallback(MainActivity.this);
             serviceBound = true;
             Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
-            UI_update(audioList, trackPosition, bitmap);
+            UI_update(audioList, trackPosition);
+            setPlayPauseState();
             play_layout.setVisibility(View.VISIBLE);
 
         }
@@ -149,6 +152,7 @@ public class MainActivity extends AppCompatActivity
         audioList = new ArrayList<>();
         utilities = new Utilities(getApplicationContext());
         storageUtil = new StorageUtil(this);
+        playPauseFab.playAnimation();
         animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
         play_layout.setAnimation(animation);
         songTitle.setSelected(true);
@@ -196,7 +200,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        playPause.setOnClickListener(new View.OnClickListener() {
+        playPauseFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (playerService.isPlayerStop()) {
@@ -204,10 +208,14 @@ public class MainActivity extends AppCompatActivity
                 } else {
                     if (playerService.ismAudioIsPlaying()) {
                         playerService.pause();
-                        playPause.setImageResource(R.drawable.ic_play_circle_outline);
+                        setPlayPauseState();
+//                        playPauseFab.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
+//                        playPause.setImageResource(R.drawable.ic_play_circle_outline);
                     } else {
                         playerService.resume();
-                        playPause.setImageResource(R.drawable.ic_pause_circle_outline);
+                        setPlayPauseState();
+//                        playPauseFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
+//                        playPause.setImageResource(R.drawable.ic_pause_circle_outline);
                     }
                 }
             }
@@ -225,19 +233,22 @@ public class MainActivity extends AppCompatActivity
                             audioList = storageUtil.loadAudio();
                             trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
                             categoryState = storageUtil.loadCategoryIndex() == -1 ? 0 : storageUtil.loadCategoryIndex();
-                            bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
-                                    ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())
-                                    : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 50, 50);
                             playerIntent = new Intent(MainActivity.this, MediaPlayerService.class);
                             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
                         }
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        setPlayPauseState();
+                    }
+                })
                 .subscribeWith(new DisposableObserver<Integer>() {
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull Integer position) {
-                        trackThumbnail.setImageBitmap(bitmap);
+
                     }
 
                     @Override
@@ -267,8 +278,6 @@ public class MainActivity extends AppCompatActivity
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer s) throws Exception {
-
-
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
@@ -276,6 +285,7 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void accept(Integer integer) throws Exception {
                         playAudio(integer, categoryState);
+                        setPlayPauseState();
                     }
                 })
                 .subscribeWith(new DisposableObserver<Integer>() {
@@ -305,7 +315,6 @@ public class MainActivity extends AppCompatActivity
                     if (playerService == null) {
                         playerService = MediaPlayerService.getInstance(MainActivity.this);
                         playerService.setAudioList(audioList);
-
                     }
                     e.onNext(trackPosition);
                 } while (audioList == null);
@@ -364,7 +373,6 @@ public class MainActivity extends AppCompatActivity
 
         trackPosition = audioIndex;
         categoryState = categoryIndex;
-
     }
 
     @Override
@@ -398,9 +406,8 @@ public class MainActivity extends AppCompatActivity
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                Intent intent = new Intent(MainActivity.this, ListActivity.class)
-                        .putExtra(getString(R.string.Keyword), query)
-                        .putExtra(getString(R.string.category), "5");
+                Intent intent = new Intent(MainActivity.this, SearchActivity.class)
+                        .putExtra(getString(R.string.Keyword), query);
                 searchView.setQuery("", false);
                 if (menu != null) {
                     (menu.findItem(R.id.action_search)).collapseActionView();
@@ -438,6 +445,10 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_favorite) {
 
+        } else if (id == R.id.nav_send) {
+            sendMessage();
+        } else if (id == R.id.nav_share) {
+            runShare();
         } else if (id == R.id.nav_exit) {
             if (serviceBound || playerService.mediaPlayer != null) {
                 stopService(playerIntent);
@@ -454,23 +465,27 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    @Override
-    public void doSomething(List<Audio> audioList, int position, Bitmap bitmap) {
-        UI_update(audioList, position, bitmap);
+    private void sendMessage() {
+        //To send message about app promotion.
     }
 
-    public void UI_update(List<Audio> audio, int position, Bitmap bitmap) {
-        if (bitmap == null) {
-            bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
-                    ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())
-                    : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 50, 50);
-        }
+    @Override
+    public void doSomething(List<Audio> audioList, int position) {
+        UI_update(audioList, position);
+    }
 
-        audioList = audio;
-        trackPosition = position;
-        setPlayPauseState(playerService.ismAudioIsPlaying());
+    public void UI_update(List<Audio> audioList, int trackPosition) {
+        this.audioList = audioList;
+        this.trackPosition = trackPosition;
+        setPlayPauseState();
 
-        trackThumbnail.setImageBitmap(bitmap);
+        Glide.with(MainActivity.this)
+                .asBitmap()
+                .load(utilities.getImageIntoByteArray(audioList.get(trackPosition).getURL()))
+                .apply(RequestOptions.centerCropTransform().error(R.drawable.ic_audiotrack))
+                .transition(GenericTransitionOptions.with(R.anim.fade_in))
+                .into(trackThumbnail);
+
         songTitle.setText(audioList.get(trackPosition).getTITLE());
         songArtist.setText(audioList.get(trackPosition).getARTIST());
         seekBar.setMax(Integer.parseInt(audioList.get(trackPosition).getDURATION()));
@@ -599,11 +614,13 @@ public class MainActivity extends AppCompatActivity
         return audioList;
     }
 
-    private void setPlayPauseState(boolean playPauseState) {
-        if (playPauseState) {
-            playPause.setImageResource(R.drawable.ic_pause_circle_outline);
-        } else {
-            playPause.setImageResource(R.drawable.ic_play_circle_outline);
+    private void setPlayPauseState() {
+        if (playerService.mediaPlayer != null) {
+            if (!playerService.mediaPlayer.isPlaying()) {
+                playPauseFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
+            } else {
+                playPauseFab.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
+            }
         }
     }
 
@@ -660,13 +677,22 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    private void runShare() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType(getString(R.string.MessageType));
+
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, R.string.ExtraSubject);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, R.string.ExtraText);
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.Share)));
+    }
+
     private class ViewPagerAdapter extends FragmentPagerAdapter {
         String[] tabs;
 
 
         public ViewPagerAdapter(FragmentManager fm) {
             super(fm);
-            tabs = getResources().getStringArray(R.array.Tabs);
+            tabs = getResources().getStringArray(R.array.Tabs1);
         }
 
         @Override

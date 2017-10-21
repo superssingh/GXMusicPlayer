@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#3b3a3a"
     android:orientation="vertical"
     tools:context="com.santoshkumarsingh.gxmusicplayer.Activities.DetailActivity">
 
@@ -16,7 +17,7 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <include layout="@layout/custom_toolbar" />
+            <!--<include layout="@layout/custom_toolbar" />-->
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -55,6 +56,7 @@
                             android:focusableInTouchMode="true"
                             android:gravity="center"
                             android:marqueeRepeatLimit="marquee_forever"
+                            android:padding="10dp"
                             android:scrollHorizontally="true"
                             android:singleLine="true"
                             android:text="Title"
@@ -141,21 +143,13 @@
 
                             <ImageButton
                                 android:id="@+id/d_equalizer"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="42dp"
+                                android:layout_height="42dp"
                                 android:autofillHints="Hop"
                                 android:background="@drawable/ic_equalizer_24dp"
                                 android:contentDescription="@string/nextButton"
-                                android:tooltipText="Jazz" />
+                                android:textColor="@color/colorWhite" />
 
-                            <TextView
-                                android:id="@+id/presetText"
-                                android:layout_width="0dp"
-                                android:layout_height="match_parent"
-                                android:layout_weight="1"
-                                android:text="[0]"
-                                android:textColor="#fff"
-                                android:textSize="16dp" />
 
                         </LinearLayout>
 
@@ -166,11 +160,12 @@
                             android:background="@drawable/ic_first"
                             android:contentDescription="@string/previousButton" />
 
-                        <ImageButton
+                        <be.rijckaert.tim.animatedvector.FloatingMusicActionButton
                             android:id="@+id/d_play_pause"
-                            android:layout_width="70dp"
-                            android:layout_height="70dp"
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
                             android:background="@drawable/ic_play_circle_filled"
+                            android:backgroundTint="#ff2200"
                             android:contentDescription="@string/play_pauseButton"
                             android:elevation="8dp" />
 
@@ -197,30 +192,57 @@
                                 android:contentDescription="@string/nextButton" />
                         </LinearLayout>
                     </LinearLayout>
-
                 </LinearLayout>
-
             </FrameLayout>
 
-            <!--<com.nightonke.boommenu.BoomMenuButton-->
-            <!--android:id="@+id/bmb"-->
-            <!--app:layout_anchor="@+id/d_details"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--app:bmb_buttonEnum="textInsideCircle"-->
-            <!--app:bmb_piecePlaceEnum="piecePlace_dot_9_1"-->
-            <!--app:bmb_buttonPlaceEnum="buttonPlace_sc_9_1"-->
-            <!--/>-->
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/bassFrame"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#d28e8e8c"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dp"
+                android:text="@string/BassBooster"
+                android:textColor="@color/colorWhite" />
+
+            <SeekBar
+                android:id="@+id/bassSeekbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progressBackgroundTint="@color/cardview_dark_background"
+                android:progressTint="@color/colorWhite"
+                android:thumbTint="@color/colorWhite" />
         </LinearLayout>
     </FrameLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/d_fab"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:layout_margin="10dp"
+        android:src="@drawable/ic_playlist_play_24dp"
         app:elevation="8dp"
         app:layout_anchor="@+id/d_details"
         app:layout_anchorGravity="end" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/d_Bassfab"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_margin="10dp"
+        android:rotation="90"
+        android:src="@drawable/ic_wifi_black_24dp"
+        app:elevation="8dp"
+        app:layout_anchor="@+id/d_details"
+        app:layout_anchorGravity="start" />
 
 </android.support.design.widget.CoordinatorLayout>

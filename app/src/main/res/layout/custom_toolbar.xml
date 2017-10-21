@@ -5,6 +5,10 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+    <android.support.v7.widget.ActionBarContainer
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/customToolbar"
         android:layout_width="match_parent"
@@ -15,5 +19,8 @@
         app:elevation="4dp">
 
     </android.support.v7.widget.Toolbar>
+
+    </android.support.v7.widget.ActionBarContainer>
+
 
 </LinearLayout>

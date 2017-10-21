@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/recorderLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="right"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="right|center"
+            android:orientation="horizontal">
+
+            <android.support.v7.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                app:cardElevation="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:text="Record your voice without song" />
+
+            </android.support.v7.widget.CardView>
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/RecordVoiceFab"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center"
+                android:layout_margin="10dp"
+                android:padding="10dp"
+                android:src="@drawable/ic_record_voice_over_black_24dp"
+                app:elevation="8dp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="right|center"
+            android:orientation="horizontal">
+
+            <android.support.v7.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                app:cardElevation="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:text="Record your karaoke with song" />
+
+            </android.support.v7.widget.CardView>
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/RecordSongFab"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center"
+                android:layout_margin="10dp"
+                android:backgroundTint="#00c4ff"
+                android:padding="10dp"
+                android:src="@drawable/ic_record_voice_over_black_24dp"
+                app:elevation="8dp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <android.support.v7.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                app:cardElevation="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:text="Listen your recorded karaoke or voice" />
+            </android.support.v7.widget.CardView>
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/ListenRecording"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center"
+                android:layout_margin="10dp"
+                android:backgroundTint="#08af26"
+                android:padding="10dp"
+                android:src="@drawable/ic_hearing__24dp"
+                app:elevation="8dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

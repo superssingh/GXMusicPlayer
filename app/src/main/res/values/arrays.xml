@@ -7,4 +7,5 @@
         <item>@drawable/ic_artist_black_24dp</item>
         <item>@drawable/ic_video_library_24dp</item>
     </string-array>
+    <string-array name="BassBoost">Bass Booster</string-array>
 </resources>

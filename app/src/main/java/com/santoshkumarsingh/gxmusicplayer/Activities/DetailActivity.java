@@ -7,19 +7,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -32,6 +33,9 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.bumptech.glide.GenericTransitionOptions;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
@@ -44,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import be.rijckaert.tim.animatedvector.FloatingMusicActionButton;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
@@ -64,7 +69,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     private static MediaPlayerService playerService;
     private static String mFileName = null;
     @BindView(R.id.d_play_pause)
-    ImageButton play;
+    FloatingMusicActionButton play;
     @BindView(R.id.d_next)
     ImageButton next;
     @BindView(R.id.d_previous)
@@ -87,32 +92,36 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     TextView currentTime;
     @BindView(R.id.d_trackAlbum)
     TextView album;
-    @BindView(R.id.presetText)
-    TextView presetText;
     @BindView(R.id.d_fab)
     FloatingActionButton detail_fab;
-    Toolbar toolbar;
+    @BindView(R.id.bassFrame)
+    LinearLayout bassFrame;
+    @BindView(R.id.bassSeekbar)
+    SeekBar bassBoosterBTN;
+    @BindView(R.id.d_Bassfab)
+    FloatingActionButton bassFab;
+
     private Utilities utilities;
     private int trackPosition = 0;
     private List<Audio> audioList;
     private boolean serviceBound = false;
     private Intent playerIntent;
-    private Bitmap bitmap;
     private CompositeDisposable disposable, disposable1, disposable2;
     private StorageUtil storageUtil;
-    private Animation animation;
+    private Animation animation, animation1;
     private String[] presets;
     private AlertDialog dialog;
     private RecordButton mRecordButton = null;
     private MediaRecorder mRecorder = null;
     private PlayButton mPlayButton = null;
     private MediaPlayer mPlayer = null;
-    private boolean recording = false;
+    private boolean recording = false, bass = false;
+    private int bassMaxStrength = 1000;
+    private int category = 5;
 
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
     private String[] permissions = {Manifest.permission.RECORD_AUDIO};
-
 
     // Media PlayerService-------
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -124,7 +133,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             playerService.setCallback(DetailActivity.this);
             serviceBound = true;
             Log.d("DetailActivity:", "Service Bound");
-            UI_update(audioList, trackPosition, bitmap);
+            UI_update(audioList, trackPosition);
         }
 
         @Override
@@ -134,13 +143,11 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         }
     };
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-        toolbar = findViewById(R.id.customToolbar);
-        toolbar.setTitle("Playing");
-        toolbar.setTitleTextColor(getResources().getColor(android.R.color.background_light));
         ButterKnife.bind(this);
         disposable = new CompositeDisposable();
         disposable1 = new CompositeDisposable();
@@ -149,11 +156,15 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         utilities = new Utilities(getApplicationContext());
         storageUtil = new StorageUtil(this);
         playerService = new MediaPlayerService();
+        bassFrame.setAnimation(animation);
+        play.playAnimation();
         animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+        animation1 = AnimationUtils.loadAnimation(this, R.anim.fade_out);
         d_thumbnail.setAnimation(animation);
         title.setAnimation(animation);
         artist.setAnimation(animation);
         album.setAnimation(animation);
+        bassBoosterBTN.setMax(bassMaxStrength);
 
         setClickedListeners();
 
@@ -171,9 +182,28 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         detail_fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mFileName += "/Karaoke-" + audioList.get(trackPosition).getTITLE();
-                initRecorder();
+                Intent intent = new Intent(DetailActivity.this, ListActivity.class)
+                        .putExtra(getString(R.string.category), category);
+                startActivity(intent);
+//                mFileName += "/Karaoke-" + audioList.get(trackPosition).getTITLE();
+//                initRecorder();
+//                showBassBoost();
+            }
+        });
 
+
+        bassFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (bass) {
+                    bassFrame.setAnimation(animation1);
+                    bassFrame.setVisibility(View.GONE);
+                    bass = false;
+                } else {
+                    bassFrame.setAnimation(animation);
+                    bassFrame.setVisibility(View.VISIBLE);
+                    bass = true;
+                }
             }
         });
 
@@ -182,10 +212,10 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             public void onClick(View v) {
                 if (playerService.ismAudioIsPlaying()) {
                     playerService.pause();
-                    play.setBackgroundResource(R.drawable.ic_play_circle_filled);
+                    setPlayPauseState();
                 } else {
                     playerService.resume();
-                    play.setBackgroundResource(R.drawable.ic_pause_circle_filled);
+                    setPlayPauseState();
                 }
             }
         });
@@ -255,7 +285,51 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             }
         });
 
+        bassBoosterBTN.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (playerService.mediaPlayer != null) {
+                    setBass((short) progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                timer();
+            }
+        });
+
     }
+
+    private void timer() {
+        new CountDownTimer(5000, 1000) {
+            public void onTick(long millisUntilFinished) {
+            }
+
+            public void onFinish() {
+                bassFrame.setAnimation(animation1);
+                bass = false;
+            }
+
+        }.start();
+    }
+
+
+    private void setPlayPauseState() {
+        if (playerService.mediaPlayer != null) {
+            if (!playerService.mediaPlayer.isPlaying()) {
+                play.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
+            } else {
+                play.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
+            }
+        }
+    }
+
 
     private void ConnectMediaPlayer() {
         disposable.add(observable()
@@ -263,9 +337,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer s) throws Exception {
-                        bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
-                                ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())
-                                : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_image, 150, 150);
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
@@ -273,10 +344,10 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
                     @Override
                     public void accept(Integer integer) throws Exception {
                         playAudio(integer);
+                        setPlayPauseState();
                     }
                 })
                 .subscribeWith(new DisposableObserver<Integer>() {
-
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull Integer s) {
 
@@ -341,8 +412,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     }
 
     @Override
-    public void doSomething(List<Audio> audioList, int position, Bitmap bitmap) {
-        UI_update(audioList, position, bitmap);
+    public void doSomething(List<Audio> audioList, int position) {
+        UI_update(audioList, position);
     }
 
     private void setRepeatButtonIcon(int repeat) {
@@ -367,13 +438,18 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         }
     }
 
-    private void UI_update(List<Audio> audioList, int trackPosition, Bitmap bitmap) {
+    private void UI_update(List<Audio> audioList, int trackPosition) {
         this.audioList = audioList;
+        this.trackPosition = trackPosition;
         setRepeatButtonIcon(playerService.getRepeat());
-        setPlayPauseState(playerService.ismAudioIsPlaying());
-        presetText.setText("[" + playerService.getPresetLevel() + "]");
-
-        d_thumbnail.setImageBitmap(bitmap);
+        setPlayPauseState();
+        bassBoosterBTN.setProgress(playerService.getBassLevel());
+        Glide.with(DetailActivity.this)
+                .asBitmap()
+                .load(utilities.getImageIntoByteArray(audioList.get(trackPosition).getURL()))
+                .apply(RequestOptions.fitCenterTransform().error(R.drawable.ic_audiotrack))
+                .transition(GenericTransitionOptions.with(R.anim.fade_in))
+                .into(d_thumbnail);
         title.setText(audioList.get(trackPosition).getTITLE());
         artist.setText(audioList.get(trackPosition).getARTIST());
         album.setText(audioList.get(trackPosition).getALBUM());
@@ -461,6 +537,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         ListView lv = convertView.findViewById(R.id.listView);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(DetailActivity.this, android.R.layout.simple_list_item_1, presets);
         lv.setAdapter(adapter);
+        lv.setBackground(getDrawable(R.drawable.orange_gradient));
 
         builder.setItems(presets, new DialogInterface.OnClickListener() {
             @Override
@@ -476,8 +553,10 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
     private void setEqualizer(Short level) {
         playerService.setPresetLevel(level);
-        presetText.setText("[" + level + "]");
+    }
 
+    private void setBass(Short level) {
+        playerService.setBassLevel(level);
     }
 
     //Media Recorder implementation-------
@@ -490,6 +569,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
 
         LinearLayout ll = new LinearLayout(this);
+        ll.setBackground(getResources().getDrawable(R.drawable.background1));
         mRecordButton = new RecordButton(this);
         ll.addView(mRecordButton,
                 new LinearLayout.LayoutParams(
@@ -585,6 +665,32 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             mPlayer = null;
         }
 
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        menu.clear();    //remove all items
+        getMenuInflater().inflate(R.menu.list_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.list_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+        if (id == R.id.list_menu) {
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     class RecordButton extends android.support.v7.widget.AppCompatButton {
