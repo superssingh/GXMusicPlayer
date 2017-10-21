@@ -142,14 +142,14 @@
                             android:padding="3dp">
 
                             <ImageButton
-                                android:id="@+id/d_equalizer"
+                                android:id="@+id/d_BassBTN"
                                 android:layout_width="42dp"
                                 android:layout_height="42dp"
                                 android:autofillHints="Hop"
-                                android:background="@drawable/ic_equalizer_24dp"
+                                android:background="@drawable/ic_wifi_black_24dp"
                                 android:contentDescription="@string/nextButton"
+                                android:rotation="90"
                                 android:textColor="@color/colorWhite" />
-
 
                         </LinearLayout>
 
@@ -164,7 +164,6 @@
                             android:id="@+id/d_play_pause"
                             android:layout_width="60dp"
                             android:layout_height="60dp"
-                            android:background="@drawable/ic_play_circle_filled"
                             android:backgroundTint="#ff2200"
                             android:contentDescription="@string/play_pauseButton"
                             android:elevation="8dp" />
@@ -224,25 +223,47 @@
         </LinearLayout>
     </FrameLayout>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/d_fab"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_margin="10dp"
-        android:src="@drawable/ic_playlist_play_24dp"
-        app:elevation="8dp"
+    <!--<com.nightonke.boommenu.BoomMenuButton-->
+    <!--android:id="@+id/bmb_equalizer"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--app:bmb_buttonEnum="ham"-->
+    <!--app:bmb_buttonPlaceEnum="buttonPlace_ham_4"-->
+    <!--app:bmb_piecePlaceEnum="piecePlace_ham_4"-->
+    <!--app:layout_anchor="@+id/d_details"-->
+    <!--app:layout_anchorGravity="start" />-->
+
+    <com.nightonke.boommenu.BoomMenuButton
+        android:id="@+id/bmb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:bmb_buttonEnum="ham"
+        app:bmb_buttonPlaceEnum="buttonPlace_ham_4"
+        app:bmb_piecePlaceEnum="piecePlace_ham_4"
         app:layout_anchor="@+id/d_details"
         app:layout_anchorGravity="end" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/d_Bassfab"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_margin="10dp"
-        android:rotation="90"
-        android:src="@drawable/ic_wifi_black_24dp"
-        app:elevation="8dp"
-        app:layout_anchor="@+id/d_details"
-        app:layout_anchorGravity="start" />
+    <FrameLayout
+        android:id="@+id/stopFrame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#d0032945"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/stopFab"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/ic_stop_24dp"
+                app:elevation="8dp" />
+
+        </LinearLayout>
+    </FrameLayout>
 
 </android.support.design.widget.CoordinatorLayout>

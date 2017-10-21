@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="Tab_Icons">
-        <item>@drawable/ic_library_music_24dp</item>
-        <item>@drawable/ic_favorite_24dp</item>
-        <item>@drawable/ic_album_24dp</item>
-        <item>@drawable/ic_artist_black_24dp</item>
-        <item>@drawable/ic_video_library_24dp</item>
-    </string-array>
-    <string-array name="BassBoost">Bass Booster</string-array>
+
+    <integer-array name="RecordMenu_Icons">
+        <item>@drawable/ic_mic_black_24dp</item>
+        <item>@drawable/ic_record_voice_over_black_24dp</item>
+        <item>@drawable/ic_hearing__24dp</item>
+        <item>@drawable/ic_playlist_play_24dp</item>
+    </integer-array>
 </resources>

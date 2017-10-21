@@ -111,5 +111,14 @@
     <string name="play_icon_group_bottom">play_icon_bottom_path</string>
     <string name="play_icon_bottom_path_name">playicon_bottom</string>
     <string name="BassBooster">Bass Booster</string>
+    <string name="butterfly">Little butter Doesn\'t fly, either!</string>
+    <string name="record_without_song">Record without song</string>
+    <string name="record_with_song">Record with song</string>
+    <string name="listen_karaoke">Play record</string>
+    <string name="current_playlist">Playlist</string>
+    <string name="record_without_song_sub">Record your speech or karaoke without song</string>
+    <string name="record_with_song_sub">Record your speech or karaoke with song</string>
+    <string name="listen_karaoke_sub">Play your recorded speech or karaoke</string>
+    <string name="current_playlist_sub">Open the list of songs that playing</string>
 
 </resources>

@@ -76,8 +76,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginRight="5dp"
-                app:backgroundTint="#ff004d"
-                app:mode="playToPause" />
+                app:backgroundTint="#ff004d" />
 
         </LinearLayout>
 

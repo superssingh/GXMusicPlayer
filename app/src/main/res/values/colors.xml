@@ -9,8 +9,10 @@
     <color name="DarkGray">#807e7e</color>
     <color name="black_transparent">#94060606</color>
     <color name="Red_transparent">#b10a0909</color>
-    <color name="orange">#acff1e00</color>
-
+    <color name="orange">#faff4d00</color>
+    <color name="red">#fbff005e</color>
+    <color name="blue">#fb0a61a9</color>
+    <color name="green">#fb07960e</color>
     <color name="black_overlay">#66000000</color>
     <color name="whiteTransparent">#333</color>
 </resources>

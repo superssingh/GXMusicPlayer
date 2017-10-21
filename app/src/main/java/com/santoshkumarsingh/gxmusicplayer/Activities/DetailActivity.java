@@ -14,28 +14,33 @@ import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.GenericTransitionOptions;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.nightonke.boommenu.BoomButtons.BoomButton;
+import com.nightonke.boommenu.BoomButtons.HamButton;
+import com.nightonke.boommenu.BoomMenuButton;
+import com.nightonke.boommenu.OnBoomListener;
 import com.santoshkumarsingh.gxmusicplayer.Database.SharedPreferenceDB.StorageUtil;
 import com.santoshkumarsingh.gxmusicplayer.Interfaces.ServiceCallback;
 import com.santoshkumarsingh.gxmusicplayer.Models.Audio;
@@ -45,6 +50,7 @@ import com.santoshkumarsingh.gxmusicplayer.Utilities.Utilities;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -76,8 +82,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     ImageButton previous;
     @BindView(R.id.d_repeatOne)
     ImageButton repeatBTN;
-    @BindView(R.id.d_equalizer)
-    ImageButton equalizerBTN;
+    @BindView(R.id.d_BassBTN)
+    ImageButton BassBTN;
     @BindView(R.id.d_seekBar)
     SeekBar seekBar;
     @BindView(R.id.d_songThumbnail)
@@ -92,15 +98,15 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     TextView currentTime;
     @BindView(R.id.d_trackAlbum)
     TextView album;
-    @BindView(R.id.d_fab)
-    FloatingActionButton detail_fab;
+    @BindView(R.id.stopFab)
+    FloatingActionButton stopFab;
     @BindView(R.id.bassFrame)
     LinearLayout bassFrame;
     @BindView(R.id.bassSeekbar)
-    SeekBar bassBoosterBTN;
-    @BindView(R.id.d_Bassfab)
-    FloatingActionButton bassFab;
-
+    SeekBar bassSeekbar;
+    @BindView(R.id.stopFrame)
+    FrameLayout stopFrame;
+    int[] recorderIcons, recorderTitle, recordersubTitle;
     private Utilities utilities;
     private int trackPosition = 0;
     private List<Audio> audioList;
@@ -111,18 +117,16 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     private Animation animation, animation1;
     private String[] presets;
     private AlertDialog dialog;
-    private RecordButton mRecordButton = null;
     private MediaRecorder mRecorder = null;
-    private PlayButton mPlayButton = null;
     private MediaPlayer mPlayer = null;
     private boolean recording = false, bass = false;
     private int bassMaxStrength = 1000;
     private int category = 5;
-
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
     private String[] permissions = {Manifest.permission.RECORD_AUDIO};
-
+    private BoomMenuButton bmb, bmb1;
+    private ArrayList<Pair> piecesAndButtons = new ArrayList<>();
     // Media PlayerService-------
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -164,8 +168,11 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         title.setAnimation(animation);
         artist.setAnimation(animation);
         album.setAnimation(animation);
-        bassBoosterBTN.setMax(bassMaxStrength);
-
+        bassSeekbar.setMax(bassMaxStrength);
+        Date date = new Date();
+        String recordFilename = "/karaoke" + date.getTime() + ".3gp";
+        mFileName = getExternalCacheDir().getAbsolutePath() + recordFilename;
+        initBoomMemu();
         setClickedListeners();
 
         if (storageUtil.loadAudioIndex() != -1) {
@@ -177,23 +184,107 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         }
     }
 
-    private void setClickedListeners() {
+    private void initBoomMemu() {
+        bmb = findViewById(R.id.bmb);
+        assert bmb != null;
 
-        detail_fab.setOnClickListener(new View.OnClickListener() {
+        recorderIcons = new int[]{R.drawable.ic_mic_black_24dp, R.drawable.ic_record_voice_over_black_24dp,
+                R.drawable.ic_hearing__24dp, R.drawable.ic_playlist_play_24dp};
+        recorderTitle = new int[]{R.string.record_without_song, R.string.record_with_song,
+                R.string.listen_karaoke, R.string.current_playlist};
+        recordersubTitle = new int[]{R.string.record_without_song_sub, R.string.record_with_song_sub,
+                R.string.listen_karaoke_sub, R.string.current_playlist_sub};
+
+        for (int i = 0; i < bmb.getPiecePlaceEnum().pieceNumber(); i++) {
+            HamButton.Builder builder = new HamButton.Builder()
+                    .normalImageDrawable(getResources().getDrawable(recorderIcons[i]))
+                    .normalTextRes(recorderTitle[i])
+                    .subNormalTextRes(recordersubTitle[i]);
+            bmb.addBuilder(builder);
+        }
+
+        bmb.setOnBoomListener(new OnBoomListener() {
             @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(DetailActivity.this, ListActivity.class)
-                        .putExtra(getString(R.string.category), category);
-                startActivity(intent);
+            public void onClicked(int index, BoomButton boomButton) {
+                initRecorder();
+                if (index == 0) {
+                    recording = true;
+                    if (playerService.mediaPlayer.isPlaying()) {
+                        playerService.pause();
+                        setPlayPauseState();
+                    }
 
-//                mFileName += "/Karaoke-" + audioList.get(trackPosition).getTITLE();
-//                initRecorder();
-//                showBassBoost();
+                    onRecord(recording);
+                    stopFrame.setVisibility(View.VISIBLE);
+                } else if (index == 1) {
+                    recording = true;
+                    if (!playerService.mediaPlayer.isPlaying()) {
+                        playerService.resume();
+                        setPlayPauseState();
+                    }
+
+                    startRecording();
+                    stopFrame.setVisibility(View.VISIBLE);
+                    Toast.makeText(DetailActivity.this, "Start Recording", Toast.LENGTH_LONG).show();
+
+                } else if (index == 2) {
+                    recording = false;
+                    startPlaying();
+                    stopFrame.setVisibility(View.VISIBLE);
+                    Toast.makeText(DetailActivity.this, "Start playing.", Toast.LENGTH_LONG).show();
+
+                } else if (index == 3) {
+                    Intent intent = new Intent(DetailActivity.this, ListActivity.class)
+                            .putExtra(getString(R.string.category), category);
+                    startActivity(intent);
+                    Toast.makeText(DetailActivity.this, "Open", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onBackgroundClick() {
+
+            }
+
+            @Override
+            public void onBoomWillHide() {
+
+            }
+
+            @Override
+            public void onBoomDidHide() {
+
+            }
+
+            @Override
+            public void onBoomWillShow() {
+
+            }
+
+            @Override
+            public void onBoomDidShow() {
+
             }
         });
 
+    }
 
-        bassFab.setOnClickListener(new View.OnClickListener() {
+    private void setClickedListeners() {
+//        detail_fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(DetailActivity.this, ListActivity.class)
+//                        .putExtra(getString(R.string.category), category);
+//                startActivity(intent);
+//
+////                mFileName += "/Karaoke-" + audioList.get(trackPosition).getTITLE();
+////                initRecorder();
+////                showBassBoost();
+//            }
+//        });
+
+
+        BassBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (bass) {
@@ -230,7 +321,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
                 playerService.skipToPrevious();
                 playerService.playMedia();
-                play.setBackgroundResource(R.drawable.ic_pause_circle_filled);
                 trackPosition = playerService.getAudioIndex();
                 storageUtil.storeAudioIndex(trackPosition);
             }
@@ -245,7 +335,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
                 playerService.skipToNext();
                 playerService.playMedia();
-                play.setBackgroundResource(R.drawable.ic_pause_circle_filled);
                 trackPosition = playerService.getAudioIndex();
                 storageUtil.storeAudioIndex(trackPosition);
             }
@@ -275,18 +364,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             }
         });
 
-        equalizerBTN.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!serviceBound) {
-                    return;
-                } else {
-                    showPresets();
-                }
-            }
-        });
 
-        bassBoosterBTN.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        bassSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (playerService.mediaPlayer != null) {
@@ -302,6 +381,21 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 timer();
+            }
+        });
+
+        stopFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (recording) {
+                    onRecord(false);
+                    Snackbar.make(v, "Recording Stop", Snackbar.LENGTH_LONG).show();
+                } else {
+                    onPlay(false);
+                    Snackbar.make(v, "Record playing Stop", Snackbar.LENGTH_LONG).show();
+                }
+
+                stopFrame.setVisibility(View.GONE);
             }
         });
 
@@ -409,7 +503,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         }
 
         trackPosition = audioIndex;
-        play.setBackgroundResource(R.drawable.ic_pause_circle_filled);
     }
 
     @Override
@@ -431,20 +524,12 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         }
     }
 
-    private void setPlayPauseState(boolean playPauseState) {
-        if (playPauseState) {
-            play.setBackgroundResource(R.drawable.ic_pause_circle_filled);
-        } else {
-            play.setBackgroundResource(R.drawable.ic_play_circle_filled);
-        }
-    }
-
     private void UI_update(List<Audio> audioList, int trackPosition) {
         this.audioList = audioList;
         this.trackPosition = trackPosition;
         setRepeatButtonIcon(playerService.getRepeat());
         setPlayPauseState();
-        bassBoosterBTN.setProgress(playerService.getBassLevel());
+        bassSeekbar.setProgress(playerService.getBassLevel());
         Glide.with(DetailActivity.this)
                 .asBitmap()
                 .load(utilities.getImageIntoByteArray(audioList.get(trackPosition).getURL()))
@@ -560,33 +645,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         playerService.setBassLevel(level);
     }
 
-    //Media Recorder implementation-------
-
-    private void initRecorder() {
-        // Record to the external cache directory for visibility
-        mFileName = getExternalCacheDir().getAbsolutePath();
-        mFileName += "/gxrecording";
-
-        ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
-
-        LinearLayout ll = new LinearLayout(this);
-        ll.setBackground(getResources().getDrawable(R.drawable.background1));
-        mRecordButton = new RecordButton(this);
-        ll.addView(mRecordButton,
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        0));
-        mPlayButton = new PlayButton(this);
-        ll.addView(mPlayButton,
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        0));
-        setContentView(ll);
-
-    }
-
+    //---------------
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -653,8 +712,62 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         mRecorder = null;
     }
 
+//    class RecordButton extends Button {
+//        boolean mStartRecording = true;
+//
+//        OnClickListener clicker = new OnClickListener() {
+//            public void onClick(View v) {
+//                onRecord(mStartRecording);
+//                if (mStartRecording) {
+//                    setText("Stop recording");
+//                } else {
+//                    setText("Start recording");
+//                }
+//                mStartRecording = !mStartRecording;
+//            }
+//        };
+//
+//        public RecordButton(Context ctx) {
+//            super(ctx);
+//            setText("Start recording");
+//            setOnClickListener(clicker);
+//        }
+//    }
+
+//    class PlayButton extends Button {
+//        boolean mStartPlaying = true;
+//
+//        OnClickListener clicker = new OnClickListener() {
+//            public void onClick(View v) {
+//                onPlay(mStartPlaying);
+//                if (mStartPlaying) {
+//                    setText("Stop playing");
+//                } else {
+//                    setText("Start playing");
+//                }
+//                mStartPlaying = !mStartPlaying;
+//            }
+//        };
+//
+//        public PlayButton(Context ctx) {
+//            super(ctx);
+//            setText("Start playing");
+//            setOnClickListener(clicker);
+//        }
+//    }
+
+
+    public void initRecorder() {
+        // Record to the external cache directory for visibility
+        mFileName = getExternalCacheDir().getAbsolutePath();
+        mFileName += "/audiorecordtest.3gp";
+
+        ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
+
+    }
+
     @Override
-    protected void onStop() {
+    public void onStop() {
         super.onStop();
         if (mRecorder != null) {
             mRecorder.release();
@@ -665,76 +778,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             mPlayer.release();
             mPlayer = null;
         }
-
     }
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        menu.clear();    //remove all items
-        getMenuInflater().inflate(R.menu.list_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.list_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        int id = item.getItemId();
-        if (id == R.id.list_menu) {
-
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    class RecordButton extends android.support.v7.widget.AppCompatButton {
-        boolean mStartRecording = true;
-
-        OnClickListener clicker = new OnClickListener() {
-            public void onClick(View v) {
-                onRecord(mStartRecording);
-                if (mStartRecording) {
-                    setText("Stop recording");
-                } else {
-                    setText("Start recording");
-                }
-                mStartRecording = !mStartRecording;
-            }
-        };
-
-        public RecordButton(Context ctx) {
-            super(ctx);
-            setText("Start recording");
-            setOnClickListener(clicker);
-        }
-    }
-
-    class PlayButton extends android.support.v7.widget.AppCompatButton {
-        boolean mStartPlaying = true;
-
-        OnClickListener clicker = new OnClickListener() {
-            public void onClick(View v) {
-                onPlay(mStartPlaying);
-                if (mStartPlaying) {
-                    setText("Stop playing");
-                } else {
-                    setText("Start playing");
-                }
-                mStartPlaying = !mStartPlaying;
-            }
-        };
-
-        public PlayButton(Context ctx) {
-            super(ctx);
-            setText("Start playing");
-            setOnClickListener(clicker);
-        }
-    }
 }
