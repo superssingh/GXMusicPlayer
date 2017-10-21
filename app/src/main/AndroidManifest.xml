@@ -46,14 +46,14 @@
             android:name=".Activities.DetailActivity"
             android:configChanges="orientation|screenSize"
             tools:ignore="InnerclassSeparator" />
-        <activity android:name=".Activities.ListActivity" />
+        <activity android:name=".Activities.ListActivity"></activity>
         <activity
             android:name=".Activities.FullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen"
             android:theme="@style/FullscreenTheme" />
-        <activity android:name=".Activities.SearchActivity">
-        </activity>
+        <activity android:name=".Activities.SearchActivity"></activity>
+        <activity android:name=".Activities.AudioListActivity"></activity>
     </application>
 
 </manifest>
