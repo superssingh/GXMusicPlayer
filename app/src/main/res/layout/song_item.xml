@@ -90,6 +90,20 @@
             app:siShape="@raw/heart"
             app:small_shine_color="#c799cc"
             app:small_shine_offset_angle="20" />
+
+        <com.nightonke.boommenu.BoomMenuButton
+            android:id="@+id/bmb1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:bmb_backgroundEffect="@bool/default_bmb_autoBoomImmediately"
+            app:bmb_buttonEnum="ham"
+            app:bmb_buttonPlaceEnum="buttonPlace_ham_5"
+            app:bmb_inList="true"
+            app:bmb_normalColor="@color/colorAccent"
+            app:bmb_piecePlaceEnum="piecePlace_ham_5"
+            app:layout_anchor="@+id/d_details"
+            app:layout_anchorGravity="end" />
+
     </LinearLayout>
 </android.support.v7.widget.CardView>
 

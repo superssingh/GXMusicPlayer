@@ -4,11 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#3b3a3a"
+    android:background="@color/black"
     android:orientation="vertical"
-    tools:context="com.santoshkumarsingh.gxmusicplayer.Activities.DetailActivity">
+    tools:context="com.santoshkumarsingh.gxplayer.Activities.DetailActivity">
 
-    <RelativeLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -19,12 +19,14 @@
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="0dp"
+                android:layout_weight="1">
 
                 <ImageView
                     android:id="@+id/d_songThumbnail"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:layout_weight="1"
                     android:contentDescription="@string/Album_thumb"
                     android:scaleType="fitXY" />
 
@@ -39,7 +41,7 @@
                         android:id="@+id/d_details"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/orange_transparent"
+                        android:background="@color/blackTransparent"
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="10dp">
@@ -54,13 +56,13 @@
                             android:focusableInTouchMode="true"
                             android:gravity="center"
                             android:marqueeRepeatLimit="marquee_forever"
-                            android:padding="10dp"
+                            android:paddingBottom="8dp"
+                            android:paddingTop="15dp"
                             android:scrollHorizontally="true"
                             android:singleLine="true"
                             android:text="Title"
                             android:textColor="#ffffff"
-                            android:textSize="20dp"
-                            android:textStyle="bold" />
+                            android:textSize="26dp" />
 
                         <TextView
                             android:id="@+id/d_trackArtist"
@@ -71,7 +73,7 @@
                             android:maxLines="1"
                             android:text="@string/Song_Artist"
                             android:textColor="#dededd"
-                            android:textSize="16dp"
+                            android:textSize="18dp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -83,13 +85,13 @@
                             android:maxLines="1"
                             android:text="Launched Date"
                             android:textColor="#dfffffff"
-                            android:textSize="14dp" />
+                            android:textSize="16dp" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/orange_gradient"
+                        android:background="@drawable/orange_transparent"
                         android:gravity="center"
                         android:orientation="horizontal"
                         android:padding="5dp">
@@ -99,7 +101,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:paddingLeft="10dp"
-                            android:textColor="@color/colorWhite" />
+                            android:textColor="@color/white" />
 
                         <android.support.v7.widget.AppCompatSeekBar
                             android:id="@+id/d_seekBar"
@@ -108,7 +110,7 @@
                             android:layout_weight="1"
                             android:progressBackgroundTint="#530404"
                             android:progressTint="#ffffff"
-                            android:thumbTint="@color/colorWhite" />
+                            android:thumbTint="@color/white" />
 
                         <TextView
                             android:id="@+id/d_trackDuration"
@@ -117,108 +119,82 @@
                             android:layout_weight="0"
                             android:paddingRight="10dp"
                             android:text="00:00"
-                            android:textColor="@color/colorWhite" />
+                            android:textColor="@color/white" />
 
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/orange_gradient"
-                        android:clickable="true"
-                        android:divider="@color/cardview_light_background"
-                        android:dividerPadding="5dp"
-                        android:gravity="center"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:gravity="left|center"
-                            android:orientation="horizontal"
-                            android:padding="3dp">
-
-                            <ImageButton
-                                android:id="@+id/d_equalizer"
-                                android:layout_width="42dp"
-                                android:layout_height="42dp"
-                                android:autofillHints="Hop"
-                                android:background="@drawable/ic_equalizer_24dp"
-                                android:contentDescription="@string/nextButton"
-                                android:textColor="@color/colorWhite" />
-
-                        </LinearLayout>
-
-                        <ImageButton
-                            android:id="@+id/d_previous"
-                            android:layout_width="40dp"
-                            android:layout_height="50dp"
-                            android:background="@drawable/ic_first"
-                            android:contentDescription="@string/previousButton" />
-
-                        <be.rijckaert.tim.animatedvector.FloatingMusicActionButton
-                            android:id="@+id/d_play_pause"
-                            android:layout_width="60dp"
-                            android:layout_height="60dp"
-                            android:contentDescription="@string/play_pauseButton"
-                            android:elevation="8dp" />
-
-                        <ImageButton
-                            android:id="@+id/d_next"
-                            android:layout_width="40dp"
-                            android:layout_height="50dp"
-                            android:background="@drawable/ic_last"
-                            android:contentDescription="@string/nextButton" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:gravity="right|center"
-                            android:orientation="horizontal"
-                            android:padding="3dp">
-
-                            <ImageButton
-                                android:id="@+id/d_repeatOne"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
-                                android:background="@drawable/ic_repeat_all"
-                                android:contentDescription="@string/nextButton" />
-                        </LinearLayout>
-                    </LinearLayout>
                 </LinearLayout>
             </FrameLayout>
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/bassFrame"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="#d2454544"
-            android:orientation="vertical"
-            android:padding="10dp"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingLeft="10dp"
-                android:text="@string/BassBooster"
-                android:textColor="@color/colorWhite" />
-
-            <SeekBar
-                android:id="@+id/bassSeekbar"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:progressBackgroundTint="@color/cardview_light_background"
-                android:progressTint="@color/colorWhite"
-                android:thumbTint="@color/colorWhite" />
+                android:background="@drawable/orange_gradient"
+                android:clickable="true"
+                android:dividerPadding="5dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="left|center"
+                    android:orientation="horizontal"
+                    android:padding="3dp">
+
+                    <ImageButton
+                        android:id="@+id/d_equalizer"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:autofillHints="Hop"
+                        android:background="@drawable/ic_equalizer_24dp"
+                        android:contentDescription="@string/nextButton"
+                        android:textColor="@color/white" />
+
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/d_previous"
+                    android:layout_width="40dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/ic_first"
+                    android:contentDescription="@string/previousButton" />
+
+                <be.rijckaert.tim.animatedvector.FloatingMusicActionButton
+                    android:id="@+id/d_play_pause"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:contentDescription="@string/play_pauseButton"
+                    android:elevation="8dp" />
+
+                <ImageButton
+                    android:id="@+id/d_next"
+                    android:layout_width="40dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/ic_last"
+                    android:contentDescription="@string/nextButton" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="right|center"
+                    android:orientation="horizontal"
+                    android:padding="3dp">
+
+                    <ImageButton
+                        android:id="@+id/d_repeatOne"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/ic_repeat_all"
+                        android:contentDescription="@string/nextButton" />
+                </LinearLayout>
+            </LinearLayout>
+
         </LinearLayout>
 
-    </RelativeLayout>
+    </FrameLayout>
 
     <com.nightonke.boommenu.BoomMenuButton
         android:id="@+id/bmb"
@@ -226,6 +202,7 @@
         android:layout_height="wrap_content"
         app:bmb_buttonEnum="ham"
         app:bmb_buttonPlaceEnum="buttonPlace_ham_4"
+        app:bmb_normalColor="@color/colorAccent"
         app:bmb_piecePlaceEnum="piecePlace_ham_4"
         app:layout_anchor="@+id/d_details"
         app:layout_anchorGravity="end" />
@@ -241,4 +218,39 @@
         app:layout_anchorGravity="start" />
 
     <include layout="@layout/record_layout" />
+
+    <FrameLayout
+        android:id="@+id/bassFrame"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="270dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#d2454544"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dp"
+                android:text="@string/BassBooster"
+                android:textColor="@color/white" />
+
+            <SeekBar
+                android:id="@+id/bassSeekbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progressBackgroundTint="@color/cardview_light_background"
+                android:progressTint="@color/white"
+                android:thumbTint="@color/white" />
+        </LinearLayout>
+
+
+    </FrameLayout>
+
+
 </android.support.design.widget.CoordinatorLayout>

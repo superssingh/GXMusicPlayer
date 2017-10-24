@@ -4,5 +4,5 @@
     <!-- Exclude the shared preferences file that contains the GCM registrationId -->
     <exclude
         domain="sharedpref"
-        path="com.santoshkumarsingh.gxmusicplayer.STORAGE.xml" />
+        path="com.santoshkumarsingh.gxplayer.STORAGE.xml" />
 </full-backup-content>

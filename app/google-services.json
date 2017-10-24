@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1057434167036",
+    "firebase_url": "https://gxmediaplayer.firebaseio.com",
+    "project_id": "gxmediaplayer",
+    "storage_bucket": "gxmediaplayer.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1057434167036:android:e7e72e7b53fe0aab",
+        "android_client_info": {
+          "package_name": "com.santoshkumarsingh.gxmusicplayer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1057434167036-6kad2obh0281klhau18f371s9vsjauv6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvsKqlwOSm4yJ0gBeTX-gEq9f_bcDNM6s"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

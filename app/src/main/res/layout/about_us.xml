@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/aboutUs"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/blue"
+    android:orientation="vertical"
+    android:visibility="gone">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/aqua"
+        android:padding="16dp"
+        android:text="About Us"
+        android:textColor="@color/cardview_light_background"
+        android:textSize="18dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/blue"
+        android:padding="16dp"
+        android:text="@string/aboutus"
+        android:textColor="@color/cardview_light_background"
+        android:textSize="14dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingEnd="16dp"
+        android:paddingLeft="16dp"
+        android:text="@string/rights"
+        android:textColor="@color/cardview_light_background"
+        android:textSize="14dp" />
+
+    <Button
+        android:id="@+id/closeAbout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:background="@color/aqua"
+        android:text="Close"
+        android:textColor="@color/white"
+        android:textSize="14dp" />
+
+</LinearLayout>

@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#363636"
-    tools:context="com.santoshkumarsingh.gxmusicplayer.Activities.FullscreenActivity">
+    tools:context="com.santoshkumarsingh.gxplayer.Activities.FullscreenActivity">
 
     <TextView
         android:id="@+id/fullscreen_content"
@@ -15,7 +15,7 @@
         android:textSize="50sp"
         android:textStyle="bold" />
 
-    <com.santoshkumarsingh.gxmusicplayer.Utilities.FullScreenVideoView
+    <com.santoshkumarsingh.gxplayer.Utilities.FullScreenVideoView
         android:id="@+id/fullVideoView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

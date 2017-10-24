@@ -3,13 +3,13 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_favorite"
-            android:icon="@drawable/ic_favorite_24dp"
-            android:title="Favorite Songs" />
+            android:id="@+id/nav_aboutUs"
+            android:icon="@drawable/ic_info_black_24dp"
+            android:title="About Us" />
         <item
-            android:id="@+id/nav_playlist"
-            android:icon="@drawable/ic_album_24dp"
-            android:title="My Albums" />
+            android:id="@+id/nav_credits"
+            android:icon="@drawable/ic_announcement_black_24dp"
+            android:title="Credits" />
     </group>
 
     <item android:title="Communicate">
@@ -18,10 +18,6 @@
                 android:id="@+id/nav_share"
                 android:icon="@drawable/ic_menu_share"
                 android:title="Share" />
-            <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
-                android:title="Send" />
             <item
                 android:id="@+id/nav_exit"
                 android:icon="@drawable/ic_exit"

@@ -1,0 +1,15 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    tools:context="com.santoshkumarsingh.gxplayer.Fragments.AlbumFragment">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/album_recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbarFadeDuration="5000"
+        android:scrollbars="vertical" />
+
+</FrameLayout>

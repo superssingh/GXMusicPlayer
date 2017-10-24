@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/background1"
         android:subtitleTextColor="@color/LightGray"
-        android:titleTextColor="@color/colorWhite"
+        android:titleTextColor="@color/white"
         app:elevation="4dp">
 
     </android.support.v7.widget.Toolbar>

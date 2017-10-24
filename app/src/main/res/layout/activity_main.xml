@@ -21,8 +21,9 @@
         android:background="@drawable/background1"
         app:elevation="5dp"
         app:headerLayout="@layout/nav_header_main"
-        app:itemIconTint="@color/colorWhite"
-        app:itemTextColor="@color/colorWhite"
+        app:itemIconTint="@color/white"
+        app:itemTextColor="@color/white"
         app:menu="@menu/activity_main_drawer" />
+
 
 </android.support.v4.widget.DrawerLayout>

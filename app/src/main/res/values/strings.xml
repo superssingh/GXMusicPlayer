@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GXMusicPlayer</string>
+    <string name="app_name">GXPlayer</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -114,12 +114,45 @@
     <string name="butterfly">Little butter Doesn\'t fly, either!</string>
     <string name="record_without_song">Record without song</string>
     <string name="record_with_song">Record with song</string>
-    <string name="listen_karaoke">Play record</string>
+    <string name="listen_karaoke">Play recording</string>
     <string name="current_playlist">Playlist</string>
     <string name="record_without_song_sub">Record your speech or karaoke without song</string>
     <string name="record_with_song_sub">Record your speech or karaoke with song</string>
     <string name="listen_karaoke_sub">Play your recorded speech or karaoke</string>
     <string name="current_playlist_sub">Open the list of songs that playing</string>
     <string name="refresh">refresh</string>
+    <string name="title_activity_interstitial">InterstitialActivity</string>
 
+    <string name="interstitial_ad_sample">Interstitial Ad Sample</string>
+    <string name="start_level">Level 1</string>
+    <string name="next_level">Next Level</string>
+    <!-- -
+        This is an ad unit ID for an interstitial test ad. Replace with your own interstitial ad unit id.
+        For more information, see https://support.google.com/admob/answer/3052638
+    <!- -->
+    <string name="interstitial_ad_unit_id">ca-app-pub-1940925551314668/4282211470</string>
+    <string name="banner_ad_unit_id">ca-app-pub-1940925551314668/1253912828</string>
+    <string name="native_ad_unit_id">ca-app-pub-1940925551314668/6681020391</string>
+    <string name="rewarded_ad_unit_id">ca-app-pub-1940925551314668/9272837791</string>
+    <string name="AppID">ca-app-pub-1940925551314668~6506417115</string>
+    <string name="aboutus">GXPlayer is a multimedia player that allows you to listen audio, watch video and record your karaoke with or without song.</string>
+    <string name="rights">All Rights Reserved 2017.</string>
+    <string name="developer">Santosh Kumar Singh\nEmail: superssingh@gmail.com\nWebsite: www.santoshkumarsingh.com</string>
+    <string name="other_credits">Other libraries from Github that used in app by developer:\n1. BoomMenu– Weiping Huang Nightwonke\nEmail: Nightonke@outlook.com 2584541288@qq.com\nWebsite: http://HuangWeiping.me\n2. Shine Button- Chad Song ChadCSong\nEmail: sackcentury@gmail.com\nWebsite: http://www.sackcentury.com\n3. Ripple effect-  Jason Yu, skyfishjy</string>
+    <string name="other_credits1">Other libraries from Github that used in app by developer:\n1. BoomMenu– Weiping Huang Nightwonke\n2. Shine Button- Chad Song ChadCSong\n3. Ripple effect-  Jason Yu, skyfishjy</string>
+    <string name="file_not_found">Media file not found.</string>
+    <string name="list_empty">List is empty.</string>
+    <string name="NewAudio">New Songs</string>
+    <string name="PartyAudio">Party Songs</string>
+    <string name="RelaxedAudio">Soul Songs</string>
+    <string name="Motivational">Motivational Songs</string>
+    <string name="NewAudioSub">Add new song in this list</string>
+    <string name="PartyAudioSub">Add party, disco, rock song in this list.</string>
+    <string name="MotivationalSub">Add any motivational song or speech in this list.</string>
+    <string name="RelaxedAudioSub">Add any peaceful, relaxing song in this list.</string>
+    <string name="Instrumental">Instrumental Songs</string>
+    <string name="InstrumentalSub">Add instrumental song in this list</string>
+    <string name="Already_added">Song already added.</string>
+    <string name="added">Song added.</string>
+    <string name="favorite">Favorite Songs</string>
 </resources>

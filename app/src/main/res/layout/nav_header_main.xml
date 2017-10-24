@@ -14,11 +14,11 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:contentDescription="@string/App_icon"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        app:srcCompat="@drawable/ic_headset" />
+        app:srcCompat="@drawable/audio_placeholder" />
 
     <TextView
         android:layout_width="match_parent"
@@ -27,7 +27,7 @@
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:text="@string/app_name"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/colorWhite"
+        android:textColor="#ffffff"
         android:textSize="18dp"
         android:textStyle="bold" />
 
@@ -36,7 +36,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/website_name"
-        android:textColor="@color/colorWhite"
+        android:textColor="@color/white"
         android:textSize="14dp"
         android:textStyle="bold" />
 

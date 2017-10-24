@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/cardview_light_background"
     android:orientation="vertical"
-    tools:context="com.santoshkumarsingh.gxmusicplayer.Fragments.HomeFragment">
+    tools:context="com.santoshkumarsingh.gxplayer.Fragments.HomeFragment">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/Home_recyclerView"
@@ -16,5 +16,11 @@
             android:scrollbarFadeDuration="2000"
             android:scrollbarStyle="insideOverlay"
             android:scrollbars="vertical" />
+
+    <ProgressBar
+        android:id="@id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
 
 </FrameLayout>
