@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
@@ -20,8 +21,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.google.android.flexbox.FlexWrap;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.gms.ads.AdRequest;
@@ -152,8 +151,6 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager();
         layoutManager.setFlexWrap(FlexWrap.WRAP);
         recyclerView.setLayoutManager(layoutManager);
-        getList(keyword);
-
         disposable = new CompositeDisposable();
         utilities = new Utilities(getApplicationContext());
         storageUtil = new StorageUtil(this);
@@ -161,6 +158,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         play_layout.setAnimation(animation);
         songTitle.setSelected(true);
         playerService = new MediaPlayerService();
+        getList(keyword);
 
         if (storageUtil.loadAudioIndex() == -1) {
             audioList = storageUtil.loadAudio();
@@ -246,20 +244,20 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
             case 0:
                 toolbar.setTitle(Title[keyword]);
                 RealmResults<FavoriteAudio> favoriteAudios = realm.where(FavoriteAudio.class).findAll();
-                favoriteRecyclerAdapter = new FavoriteRecyclerAdapter(this, favoriteAudios);
-                recyclerView.setAdapter(favoriteRecyclerAdapter);
-                Audio audio = new Audio();
-                if (audio.getFavAudio(favoriteAudios) == null) {
-                    Toast.makeText(FavoritesActivity.this, "Not Audio Found", Toast.LENGTH_LONG).show();
+                if (favoriteAudios.size() == 0) {
+                    Log.d("Data 0", "0");
+                    Toast.makeText(FavoritesActivity.this, getString(R.string.list_empty), Toast.LENGTH_LONG).show();
+                } else {
+                    favoriteRecyclerAdapter = new FavoriteRecyclerAdapter(this, favoriteAudios);
+                    recyclerView.setAdapter(favoriteRecyclerAdapter);
+                    Audio audio = new Audio();
                 }
-
                 break;
             case 1:
                 toolbar.setTitle(Title[keyword]);
                 RealmResults<NewAudio> newAudios = realm.where(NewAudio.class).findAll();
-
-                if (newAudios == null) {
-                    Toast.makeText(FavoritesActivity.this, R.string.list_empty, Toast.LENGTH_LONG).show();
+                if (newAudios.size() == 0) {
+                    Toast.makeText(FavoritesActivity.this, getString(R.string.list_empty), Toast.LENGTH_LONG).show();
                 } else {
                     newRecyclerAdapter = new NewRecyclerAdapter(this, newAudios);
                     recyclerView.setAdapter(newRecyclerAdapter);
@@ -270,7 +268,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
                 toolbar.setTitle(Title[keyword]);
                 RealmResults<PartyAudio> partyAudios = realm.where(PartyAudio.class).findAll();
 
-                if (partyAudios == null) {
+                if (partyAudios.size() == 0) {
                     Toast.makeText(FavoritesActivity.this, R.string.list_empty, Toast.LENGTH_LONG).show();
                 } else {
                     partyRecyclerAdapter = new PartyRecyclerAdapter(this, partyAudios);
@@ -282,7 +280,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
                 toolbar.setTitle(Title[keyword]);
                 RealmResults<SoulAudio> soulAudios = realm.where(SoulAudio.class).findAll();
 
-                if (soulAudios == null) {
+                if (soulAudios.size() == 0) {
                     Toast.makeText(FavoritesActivity.this, R.string.list_empty, Toast.LENGTH_LONG).show();
                 } else {
                     soulRecyclerAdapter = new SoulRecyclerAdapter(this, soulAudios);
@@ -294,7 +292,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
                 toolbar.setTitle(Title[keyword]);
                 RealmResults<MotivationalAudio> motivationalAudios = realm.where(MotivationalAudio.class).findAll();
 
-                if (motivationalAudios == null) {
+                if (motivationalAudios.size() == 0) {
                     Toast.makeText(FavoritesActivity.this, R.string.list_empty, Toast.LENGTH_LONG).show();
                 } else {
                     motivationalRecyclerAdapter = new MotivationalRecyclerAdapter(this, motivationalAudios);
@@ -306,7 +304,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
                 toolbar.setTitle(Title[keyword]);
                 RealmResults<InstrumentalAudio> instrumentalAudios = realm.where(InstrumentalAudio.class).findAll();
 
-                if (instrumentalAudios == null) {
+                if (instrumentalAudios.size() == 0) {
                     Toast.makeText(FavoritesActivity.this, R.string.list_empty, Toast.LENGTH_LONG).show();
                 } else {
                     instrumentalRecyclerAdapter = new InstrumentalRecyclerAdapter(this, instrumentalAudios);
@@ -391,7 +389,6 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
             }
         });
 
-
         play_layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -455,11 +452,11 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         trackPosition = position;
         setPlayPauseState(playerService.ismAudioIsPlaying());
 
-        Glide.with(FavoritesActivity.this)
-                .asBitmap()
-                .load(utilities.getImageIntoByteArray(audio.get(position).getURL()))
-                .apply(RequestOptions.fitCenterTransform().error(R.drawable.audio_placeholder))
-                .into(trackThumbnail);
+        Bitmap bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
+                ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())
+                : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_placeholder, 150, 150);
+
+        trackThumbnail.setImageBitmap(bitmap);
         songTitle.setText(audio.get(position).getTITLE());
         songArtist.setText(audio.get(position).getARTIST());
 

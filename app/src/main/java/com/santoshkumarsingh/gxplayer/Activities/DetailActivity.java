@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -33,9 +35,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.GenericTransitionOptions;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.nightonke.boommenu.BoomButtons.BoomButton;
 import com.nightonke.boommenu.BoomButtons.HamButton;
 import com.nightonke.boommenu.BoomMenuButton;
@@ -156,6 +155,11 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
     private RippleBackground rippleBackground;
     private int[] bmbColor;
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return super.onCreateOptionsMenu(menu);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -564,12 +568,11 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         setRepeatButtonIcon(playerService.getRepeat());
         setPlayPauseState();
         bassSeekbar.setProgress(playerService.getBassLevel());
-        Glide.with(DetailActivity.this)
-                .asBitmap()
-                .load(utilities.getImageIntoByteArray(audioList.get(trackPosition).getURL()))
-                .apply(RequestOptions.fitCenterTransform().error(R.drawable.audio_placeholder))
-                .transition(GenericTransitionOptions.with(R.anim.fade_in))
-                .into(d_thumbnail);
+        Bitmap bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
+                ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())
+                : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.image, 200, 200);
+
+        d_thumbnail.setImageBitmap(bitmap);
         title.setText(audioList.get(trackPosition).getTITLE());
         artist.setText(audioList.get(trackPosition).getARTIST());
         album.setText(audioList.get(trackPosition).getALBUM());

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -24,8 +25,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
@@ -242,11 +241,11 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         trackPosition = position;
         setPlayPauseState(playerService.ismAudioIsPlaying());
 
-        Glide.with(ListActivity.this)
-                .asBitmap()
-                .load(utilities.getImageIntoByteArray(audio.get(position).getURL()))
-                .apply(RequestOptions.fitCenterTransform().error(R.drawable.audio_placeholder))
-                .into(trackThumbnail);
+        Bitmap bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
+                ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())
+                : utilities.decodeSampledBitmapFromResource(getResources(), R.drawable.audio_placeholder, 150, 150);
+
+        trackThumbnail.setImageBitmap(bitmap);
         songTitle.setText(audio.get(position).getTITLE());
         songArtist.setText(audio.get(position).getARTIST());
 

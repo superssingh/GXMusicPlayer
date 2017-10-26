@@ -147,10 +147,6 @@ public class AlbumFragment extends android.support.v4.app.Fragment implements It
             cursor.close();
         }
 
-        if (albumList == null) {
-            Toast.makeText(getActivity(), R.string.file_not_found, Toast.LENGTH_LONG).show();
-        }
-
         return removeDuplicates(albumList);
     }
 

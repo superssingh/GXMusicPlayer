@@ -28,6 +28,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -98,7 +99,10 @@ public class MainActivity extends AppCompatActivity
     LinearLayout aboutus;
     @BindView(R.id.credit)
     LinearLayout credits;
-
+    @BindView(R.id.policy)
+    LinearLayout PrivacyPolicy;
+    @BindView(R.id.PClose)
+    ImageButton PolicyClose;
 
     private Animation animation;
     private Utilities utilities;
@@ -234,10 +238,18 @@ public class MainActivity extends AppCompatActivity
                 aboutus.setVisibility(View.GONE);
             }
         });
+
         closeCredit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 credits.setVisibility(View.GONE);
+            }
+        });
+
+        PolicyClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PrivacyPolicy.setVisibility(View.GONE);
             }
         });
 
@@ -428,13 +440,19 @@ public class MainActivity extends AppCompatActivity
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                Intent intent = new Intent(MainActivity.this, SearchActivity.class)
-                        .putExtra(getString(R.string.Keyword), query);
-                searchView.setQuery("", false);
-                if (menu != null) {
-                    (menu.findItem(R.id.action_search)).collapseActionView();
+
+                if (query == null) {
+                } else {
+                    Intent intent = new Intent(MainActivity.this, SearchActivity.class)
+                            .putExtra(getString(R.string.Keyword), query);
+                    searchView.setQuery("", false);
+                    if (menu != null) {
+                        (menu.findItem(R.id.action_search)).collapseActionView();
+                    }
+                    startActivity(intent);
+
                 }
-                startActivity(intent);
+
                 return false;
             }
 
@@ -450,7 +468,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
         return super.onOptionsItemSelected(item);
     }
 
@@ -464,6 +481,8 @@ public class MainActivity extends AppCompatActivity
             aboutus.setVisibility(View.VISIBLE);
         } else if (id == R.id.nav_credits) {
             credits.setVisibility(View.VISIBLE);
+        } else if (id == R.id.nav_privacyPolicy) {
+            PrivacyPolicy.setVisibility(View.VISIBLE);
         } else if (id == R.id.nav_share) {
             runShare();
         } else if (id == R.id.nav_exit) {
@@ -598,16 +617,6 @@ public class MainActivity extends AppCompatActivity
         startActivity(intent);
     }
 
-
-//    @Override
-//    public void onFavoriteFragmentInteraction(RealmResults<FavoriteAudio> audios, int position) {
-//        categoryState = 2;
-//        trackPosition = position;
-//        audioList = convertList(audios);
-//        play_layout.setVisibility(View.VISIBLE);
-//        playerService.setAudioList(audioList);
-//        playAudio(position, categoryState);
-//    }
 
     @Override
     public void onAlbumFragmentInteraction(String id) {

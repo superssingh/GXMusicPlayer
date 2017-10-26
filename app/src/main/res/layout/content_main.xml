@@ -43,4 +43,6 @@
 
     <include layout="@layout/credits" />
 
+    <include layout="@layout/privacy_policy" />
+
 </FrameLayout>

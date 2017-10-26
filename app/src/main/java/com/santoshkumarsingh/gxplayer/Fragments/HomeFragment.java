@@ -146,7 +146,6 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
                     @Override
                     public void onComplete() {
                         Log.d("OnComplete:: ", "Completed");
-                        Toast.makeText(getActivity(), "(" + audioList.size() + ") Audio files found", LENGTH_LONG).show();
 
                     }
                 }));

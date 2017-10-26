@@ -82,7 +82,6 @@ public class VideoFragment extends Fragment implements ItemOnClickListener {
                     @Override
                     public void onComplete() {
                         Log.d("OnComplete:: ", "Completed");
-                        Toast.makeText(getActivity(), "(" + videos.size() + ") Video files found", Toast.LENGTH_LONG).show();
                     }
                 }));
     }

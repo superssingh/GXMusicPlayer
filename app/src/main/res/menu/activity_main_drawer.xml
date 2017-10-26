@@ -5,11 +5,18 @@
         <item
             android:id="@+id/nav_aboutUs"
             android:icon="@drawable/ic_info_black_24dp"
-            android:title="About Us" />
+            android:title="@string/aboutus1" />
+
+        <item
+            android:id="@+id/nav_privacyPolicy"
+            android:icon="@drawable/ic_content_paste_black_24dp"
+            android:title="@string/ppolicy" />
+
         <item
             android:id="@+id/nav_credits"
             android:icon="@drawable/ic_announcement_black_24dp"
-            android:title="Credits" />
+            android:title="@string/credit" />
+
     </group>
 
     <item android:title="Communicate">
