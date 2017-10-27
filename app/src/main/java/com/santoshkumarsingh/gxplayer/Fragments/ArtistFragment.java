@@ -60,6 +60,7 @@ public class ArtistFragment extends Fragment implements ArtistOnClickListener {
         ButterKnife.bind(this, view);
         artistList = new ArrayList<Artist>();
         disposable = new CompositeDisposable();
+        Log.d("Artist", "Bharat");
 
         Load_Artists();
 
@@ -78,24 +79,27 @@ public class ArtistFragment extends Fragment implements ArtistOnClickListener {
 
     private void Load_Artists() {
 
-        disposable.add(getArtist()
+        disposable.add(getAudio()
                 .subscribeOn(Schedulers.io())
-                .doOnNext(new Consumer<Integer>() {
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<List<Artist>>() {
                     @Override
-                    public void accept(Integer integer) throws Exception {
-                        artistList = loadArtistsList();
+                    public void accept(List<Artist> artists) throws Exception {
+                        Log.d("Artist", "Bharat");
+                        artistList = artists;
+                        configRecycleView(artistList);
+                        Log.d("Hi", "Ok ");
                     }
                 })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new DisposableObserver<Integer>() {
+                .subscribeWith(new DisposableObserver<List<Artist>>() {
                     @Override
-                    public void onNext(@io.reactivex.annotations.NonNull Integer integer) {
-                        configRecycleView(artistList);
+                    public void onNext(@io.reactivex.annotations.NonNull List<Artist> audios) {
+
                     }
 
                     @Override
                     public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        Log.e("Error::Artists ", e.getMessage());
+                        Log.e("Error::Albums ", e.getMessage());
                     }
 
                     @Override
@@ -144,24 +148,22 @@ public class ArtistFragment extends Fragment implements ArtistOnClickListener {
         List<Artist> artists = new ArrayList<>();
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String selection = MediaStore.Audio.Media.IS_MUSIC + "!=0";
-        String sortOrder = "lower(" + MediaStore.Audio.Media.ARTIST + ") ASC";
+        String sortOrder = "LOWER(" + MediaStore.Audio.Media.ARTIST + ") ASC";
         Cursor cursor = getActivity().getContentResolver().query(uri, null, selection, null, sortOrder);
 
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                String isMP3 = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-                if (isMP3.contains(".mp3") || isMP3.contains(".MP3")) {
-                    do {
-                        String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                        String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                        String art = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                do {
+                    String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                    String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+                    String art = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
-                        Artist data = new Artist(artist, name, art);
-                        artists.add(data);
+                    Artist data = new Artist(artist, name, art);
+                    artists.add(data);
 
-                    } while (cursor.moveToNext());
-                }
+                } while (cursor.moveToNext());
             }
+
             cursor.close();
         }
 
@@ -169,7 +171,6 @@ public class ArtistFragment extends Fragment implements ArtistOnClickListener {
     }
 
     private List<Artist> removeDuplicates(List<Artist> artists) {
-
         List<Artist> listContacts = new ArrayList<Artist>();
         //LinkedHashSet preserves the order of the original list
         Set<Artist> unique = new LinkedHashSet<Artist>(artists);
@@ -189,6 +190,7 @@ public class ArtistFragment extends Fragment implements ArtistOnClickListener {
         if (isVisibleToUser) {
             disposable = new CompositeDisposable();
             Load_Artists();
+
         }
     }
 

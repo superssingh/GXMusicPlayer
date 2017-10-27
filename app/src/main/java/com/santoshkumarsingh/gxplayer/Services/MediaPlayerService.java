@@ -168,7 +168,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         mAudioFocusGranted = true;
                         break;
                     default:
-                        //
                 }
             }
         };
@@ -357,7 +356,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         // replace with medias albumArt
 
         albumArt = utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
-                ? utilities.getTrackThumbnail(activeAudio.getURL())
+                ? utilities.getTrackThumbnail(audioList.get(audioIndex).getURL())
                 : utilities.decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.audio_placeholder, 100, 100);
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
@@ -589,7 +588,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         if (mediaPlayer != null) {
                             if (ongoingCall) {
                                 ongoingCall = false;
-                                resume();
+                                pause();
                             }
                         }
                         break;

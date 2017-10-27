@@ -773,45 +773,4 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     }
 
 
-//    private void update_Current_thumbnail() {
-//        disposable2.add(Observable.interval(5, TimeUnit.SECONDS)
-//                .subscribeOn(Schedulers.newThread())
-//                .doOnNext(new Consumer<Long>() {
-//                    @Override
-//                    public void accept(Long aLong) throws Exception {
-//                    }
-//                }).observeOn(AndroidSchedulers.mainThread())
-//                .doOnNext(new Consumer<Long>() {
-//                    @Override
-//                    public void accept(Long aLong) throws Exception {
-//                        trackThumbnail.setAnimation(animation);
-//                        if (thumbnailAnimation) {
-//                            trackThumbnail.setImageResource(R.drawable.green);
-//                            thumbnailAnimation=false;
-//                        }else if (!thumbnailAnimation){
-//                            trackThumbnail.setImageResource(R.drawable.pink);
-//                            thumbnailAnimation=true;
-//                        }
-//
-//                    }
-//                })
-//                .subscribeWith(new DisposableObserver<Long>() {
-//                    @Override
-//                    public void onNext(@io.reactivex.annotations.NonNull Long aLong) {
-//                    }
-//
-//                    @Override
-//                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-//                        Log.e("thumbAnim ", "error:" + e);
-//                    }
-//
-//                    @Override
-//                    public void onComplete() {
-//
-//                    }
-//                })
-//        );
-//    }
-
-
 }

@@ -35,14 +35,13 @@ public class SearchActivity extends AppCompatActivity {
         webView.setWebViewClient(new WebViewClient());
         webView.loadUrl(url);
 
-
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        webView.destroy();
     }
-
 
     private void initAds() {
         MobileAds.initialize(this, getString(R.string.AppID));
@@ -52,6 +51,5 @@ public class SearchActivity extends AppCompatActivity {
                 .build();
         mAdView.loadAd(adRequest);
     }
-
 
 }

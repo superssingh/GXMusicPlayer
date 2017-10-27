@@ -241,6 +241,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
                 if (favoriteAudios.size() == 0) {
                     Log.d("Data 0", "0");
                     Toast.makeText(FavoritesActivity.this, getString(R.string.list_empty), Toast.LENGTH_LONG).show();
+                    return;
                 } else {
                     favoriteRecyclerAdapter = new FavoriteRecyclerAdapter(this, favoriteAudios);
                     recyclerView.setAdapter(favoriteRecyclerAdapter);
@@ -251,6 +252,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
                 RealmResults<NewAudio> newAudios = realm.where(NewAudio.class).findAll();
                 if (newAudios.size() == 0) {
                     Toast.makeText(FavoritesActivity.this, getString(R.string.list_empty), Toast.LENGTH_LONG).show();
+                    return;
                 } else {
                     newRecyclerAdapter = new NewRecyclerAdapter(this, newAudios);
                     recyclerView.setAdapter(newRecyclerAdapter);
@@ -263,6 +265,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
 
                 if (partyAudios.size() == 0) {
                     Toast.makeText(FavoritesActivity.this, R.string.list_empty, Toast.LENGTH_LONG).show();
+                    return;
                 } else {
                     partyRecyclerAdapter = new PartyRecyclerAdapter(this, partyAudios);
                     recyclerView.setAdapter(partyRecyclerAdapter);
@@ -275,6 +278,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
 
                 if (soulAudios.size() == 0) {
                     Toast.makeText(FavoritesActivity.this, R.string.list_empty, Toast.LENGTH_LONG).show();
+                    return;
                 } else {
                     soulRecyclerAdapter = new SoulRecyclerAdapter(this, soulAudios);
                     recyclerView.setAdapter(soulRecyclerAdapter);
@@ -287,6 +291,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
 
                 if (motivationalAudios.size() == 0) {
                     Toast.makeText(FavoritesActivity.this, R.string.list_empty, Toast.LENGTH_LONG).show();
+                    return;
                 } else {
                     motivationalRecyclerAdapter = new MotivationalRecyclerAdapter(this, motivationalAudios);
                     recyclerView.setAdapter(motivationalRecyclerAdapter);
@@ -299,6 +304,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
 
                 if (instrumentalAudios.size() == 0) {
                     Toast.makeText(FavoritesActivity.this, R.string.list_empty, Toast.LENGTH_LONG).show();
+                    return;
                 } else {
                     instrumentalRecyclerAdapter = new InstrumentalRecyclerAdapter(this, instrumentalAudios);
                     recyclerView.setAdapter(instrumentalRecyclerAdapter);
@@ -314,6 +320,8 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         Audio audio = new Audio();
         audioList = audio.getFavAudio(audios);
         trackPosition = position;
+        storageUtil.storeAudio(audioList);
+        storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
     }
@@ -324,6 +332,8 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         Audio audio = new Audio();
         audioList = audio.getNewAudio(audios);
         trackPosition = position;
+        storageUtil.storeAudio(audioList);
+        storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
     }
@@ -334,6 +344,8 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         Audio audio = new Audio();
         audioList = audio.getPartyAudio(audios);
         trackPosition = position;
+        storageUtil.storeAudio(audioList);
+        storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
     }
@@ -344,6 +356,8 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         Audio audio = new Audio();
         audioList = audio.getSoulAudio(audios);
         trackPosition = position;
+        storageUtil.storeAudio(audioList);
+        storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
     }
@@ -354,6 +368,8 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         Audio audio = new Audio();
         audioList = audio.getMotivAudio(audios);
         trackPosition = position;
+        storageUtil.storeAudio(audioList);
+        storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
     }
@@ -364,6 +380,8 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         Audio audio = new Audio();
         audioList = audio.getInstAudio(audios);
         trackPosition = position;
+        storageUtil.storeAudio(audioList);
+        storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
     }
