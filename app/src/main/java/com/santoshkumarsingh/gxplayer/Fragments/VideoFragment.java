@@ -14,8 +14,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.santoshkumarsingh.gxplayer.Adapters.VideoRecyclerAdapter;
-import com.santoshkumarsingh.gxplayer.Interfaces.ItemOnClickListener;
+import com.santoshkumarsingh.gxplayer.Interfaces.VideoOnClickListener;
 import com.santoshkumarsingh.gxplayer.Models.Video;
 import com.santoshkumarsingh.gxplayer.R;
 
@@ -31,15 +34,17 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
-public class VideoFragment extends Fragment implements ItemOnClickListener {
+public class VideoFragment extends Fragment implements VideoOnClickListener {
 
     @BindView(R.id.Video_recyclerView)
     RecyclerView recyclerView;
+    @BindView(R.id.VideoAdView)
+    AdView mAdView;
+
     private OnFragmentInteractionListener mListener;
     private List<Video> videos;
     private VideoRecyclerAdapter videoRecyclerAdapter;
     private CompositeDisposable disposable;
-
     private View view;
 
     public VideoFragment() {
@@ -60,8 +65,21 @@ public class VideoFragment extends Fragment implements ItemOnClickListener {
         ButterKnife.bind(this, view);
         videos = new ArrayList<>();
         Load_VideoFiles();
+        initAds();
         return view;
     }
+
+    private void initAds() {
+        // Initialize the Mobile Ads SDK.
+        MobileAds.initialize(getActivity(), getString(R.string.AppID));
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                .build();
+
+        // Start loading the ad in the background.
+        mAdView.loadAd(adRequest);
+    }
+
 
     private void Load_VideoFiles() {
         disposable = new CompositeDisposable();
@@ -142,8 +160,8 @@ public class VideoFragment extends Fragment implements ItemOnClickListener {
     }
 
     @Override
-    public void OnItemClick(String videoURL) {
-        mListener.onVideoFragmentInteraction(videoURL);
+    public void OnItemClick(String videoURL, int position) {
+        mListener.onVideoFragmentInteraction(videoURL, position);
     }
 
     @Override
@@ -184,6 +202,6 @@ public class VideoFragment extends Fragment implements ItemOnClickListener {
     }
 
     public interface OnFragmentInteractionListener {
-        void onVideoFragmentInteraction(String videoURL);
+        void onVideoFragmentInteraction(String videoURL, int position);
     }
 }

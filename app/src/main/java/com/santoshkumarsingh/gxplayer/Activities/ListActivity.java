@@ -127,7 +127,7 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
         songTitle.setSelected(true);
         playerService = new MediaPlayerService();
 
-        if (storageUtil.loadAudioIndex() == -1) {
+        if (storageUtil.loadAudioIndex() != -1) {
             audioList = storageUtil.loadAudio();
             trackPosition = storageUtil.loadAudioIndex();
             Log.d("TrackPosition", audioList.get(trackPosition).getTITLE());

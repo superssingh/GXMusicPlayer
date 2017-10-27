@@ -14,7 +14,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -148,22 +147,12 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         disposable = new CompositeDisposable();
         utilities = new Utilities(getApplicationContext());
         storageUtil = new StorageUtil(this);
-        animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
-        play_layout.setAnimation(animation);
+        play_layout.setVisibility(View.GONE);
         songTitle.setSelected(true);
         playerService = new MediaPlayerService();
 
-        if (storageUtil.loadAudioIndex() == -1) {
-            audioList = storageUtil.loadAudio();
-            trackPosition = storageUtil.loadAudioIndex();
-            Log.d("TrackPosition", audioList.get(trackPosition).getTITLE());
+        Load_Audio_Data();
 
-            Load_Audio_Data();
-        }
-
-        getList(keyword);
-        AddListeners();
-        initAds();
     }
 
     private void Load_Audio_Data() {
@@ -173,9 +162,11 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
                     @Override
                     public void accept(Integer integer) throws Exception {
                         getList(integer);
+                        AddListeners();
+                        initAds();
                     }
                 })
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer integer) throws Exception {
@@ -239,7 +230,6 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
                 toolbar.setTitle(Title[keyword]);
                 RealmResults<FavoriteAudio> favoriteAudios = realm.where(FavoriteAudio.class).findAll();
                 if (favoriteAudios.size() == 0) {
-                    Log.d("Data 0", "0");
                     Toast.makeText(FavoritesActivity.this, getString(R.string.list_empty), Toast.LENGTH_LONG).show();
                     return;
                 } else {
@@ -324,6 +314,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
+        play_layout.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -336,6 +327,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
+        play_layout.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -348,6 +340,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
+        play_layout.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -360,6 +353,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
+        play_layout.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -372,6 +366,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
+        play_layout.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -384,6 +379,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         storageUtil.storeAudioIndex(trackPosition);
         playerService.setAudioList(audioList);
         playAudio(position, category);
+        play_layout.setVisibility(View.VISIBLE);
     }
 
     private void AddListeners() {

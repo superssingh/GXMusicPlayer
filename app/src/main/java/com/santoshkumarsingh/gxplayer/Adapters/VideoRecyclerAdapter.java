@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.santoshkumarsingh.gxplayer.Interfaces.ItemOnClickListener;
+import com.santoshkumarsingh.gxplayer.Interfaces.VideoOnClickListener;
 import com.santoshkumarsingh.gxplayer.Models.Video;
 import com.santoshkumarsingh.gxplayer.R;
 import com.santoshkumarsingh.gxplayer.Utilities.Utilities;
@@ -31,10 +31,10 @@ public class VideoRecyclerAdapter extends RecyclerView.Adapter<VideoRecyclerAdap
 
     private Utilities utilities;
     private List<Video> videoList = new ArrayList<>();
-    private ItemOnClickListener videoItemOnClickListener;
+    private VideoOnClickListener videoOnClickListener;
 
-    public VideoRecyclerAdapter(ItemOnClickListener videoItemOnClickListener, List<Video> videos) {
-        this.videoItemOnClickListener = videoItemOnClickListener;
+    public VideoRecyclerAdapter(VideoOnClickListener videoOnClickListener, List<Video> videos) {
+        this.videoOnClickListener = videoOnClickListener;
         this.videoList = videos;
     }
 
@@ -49,6 +49,7 @@ public class VideoRecyclerAdapter extends RecyclerView.Adapter<VideoRecyclerAdap
     @Override
     public void onBindViewHolder(final VideoRecyclerAdapter.ViewHolder holder, int position) {
         final Video video = videoList.get(position);
+        final int i = position;
         long duration = Long.parseLong(video.getDURATION());
 
         Glide.with(holder.itemView.getContext())
@@ -64,8 +65,8 @@ public class VideoRecyclerAdapter extends RecyclerView.Adapter<VideoRecyclerAdap
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (videoItemOnClickListener != null) {
-                    videoItemOnClickListener.OnItemClick(video.getURL());
+                if (videoOnClickListener != null) {
+                    videoOnClickListener.OnItemClick(video.getURL(), i);
                 }
             }
         });

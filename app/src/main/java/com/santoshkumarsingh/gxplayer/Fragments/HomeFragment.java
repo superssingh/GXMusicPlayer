@@ -54,7 +54,6 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     private StorageUtil storageUtil;
     private View view;
 
-
     public HomeFragment() {
     }
 
@@ -84,7 +83,7 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
         if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 24);
+                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 23);
                 return;
             }
         }
@@ -93,7 +92,7 @@ public class HomeFragment extends Fragment implements SongOnClickListener {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case 24:
+            case 23:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Load_AudioFiles();
                 } else {

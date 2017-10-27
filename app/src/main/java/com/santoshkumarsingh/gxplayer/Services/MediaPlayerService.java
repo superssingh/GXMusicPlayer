@@ -268,7 +268,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             playerStop = true;
             removeNotification();
             // 2. Give up audio focus
-            abandonAudioFocus();
+//            abandonAudioFocus();
         }
     }
 
@@ -354,7 +354,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     private void updateMetaData() {
         // replace with medias albumArt
-
         albumArt = utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
                 ? utilities.getTrackThumbnail(audioList.get(audioIndex).getURL())
                 : utilities.decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.audio_placeholder, 100, 100);

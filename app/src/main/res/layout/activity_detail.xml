@@ -247,9 +247,6 @@
                 android:progressTint="@color/white"
                 android:thumbTint="@color/white" />
         </LinearLayout>
-
-
     </FrameLayout>
-
 
 </android.support.design.widget.CoordinatorLayout>

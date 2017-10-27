@@ -10,6 +10,9 @@ import android.view.ViewGroup;
 
 import com.google.android.flexbox.FlexWrap;
 import com.google.android.flexbox.FlexboxLayoutManager;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.santoshkumarsingh.gxplayer.Adapters.PlaylistsRecyclerAdapter;
 import com.santoshkumarsingh.gxplayer.Interfaces.ItemOnClickListener;
 import com.santoshkumarsingh.gxplayer.Models.Playlist;
@@ -25,6 +28,8 @@ public class PlaylistFragment extends Fragment implements ItemOnClickListener {
 
     @BindView(R.id.playlist_recyclerView)
     RecyclerView recyclerView;
+    @BindView(R.id.adView)
+    AdView adView;
     PlaylistsRecyclerAdapter recyclerAdapter;
     private OnPlaylistFragmentInteractionListener mListener;
     private View view;
@@ -44,8 +49,21 @@ public class PlaylistFragment extends Fragment implements ItemOnClickListener {
         view = inflater.inflate(R.layout.fragment_playlist, container, false);
         ButterKnife.bind(this, view);
         configRecycleView(getList());
+        initAds();
         return view;
     }
+
+    private void initAds() {
+        // Initialize the Mobile Ads SDK.
+        MobileAds.initialize(getActivity(), getString(R.string.AppID));
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                .build();
+
+        // Start loading the ad in the background.
+        adView.loadAd(adRequest);
+    }
+
 
     private List<Playlist> getList() {
         List<Playlist> playlists = new ArrayList<>();

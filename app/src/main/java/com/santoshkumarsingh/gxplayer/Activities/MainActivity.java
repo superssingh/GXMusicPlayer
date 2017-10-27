@@ -140,6 +140,7 @@ public class MainActivity extends AppCompatActivity
 
     private SearchView searchView;
     private boolean thumbnailAnimation = false;
+    private int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -182,6 +183,7 @@ public class MainActivity extends AppCompatActivity
             ConnectMediaPlayer();
         }
 
+
     }
 
 
@@ -199,7 +201,6 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         Load_Audio_Data();
-
     }
 
 
@@ -256,6 +257,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void Load_Audio_Data() {
+        Toast.makeText(MainActivity.this, "ON", Toast.LENGTH_LONG).show();
         disposable1.add(getAudio()
                 .subscribeOn(Schedulers.io())
                 .doOnNext(new Consumer<Integer>() {
@@ -307,6 +309,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void ConnectMediaPlayer() {
+        Toast.makeText(MainActivity.this, "start", Toast.LENGTH_LONG).show();
         disposable.add(observable()
                 .subscribeOn(Schedulers.io())
                 .doOnNext(new Consumer<Integer>() {
@@ -322,10 +325,20 @@ public class MainActivity extends AppCompatActivity
                         setPlayPauseState();
                     }
                 })
+                .doOnNext(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        if (serviceBound) {
+                            if (playerService.ismAudioIsPlaying()) {
+                                playerService.pause();
+                                setPlayPauseState();
+                            }
+                        }
+                    }
+                })
                 .subscribeWith(new DisposableObserver<Integer>() {
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull Integer s) {
-
                     }
 
                     @Override
@@ -486,14 +499,17 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_share) {
             runShare();
         } else if (id == R.id.nav_exit) {
-            if (serviceBound || playerService.mediaPlayer != null) {
-                stopService(playerIntent);
-                playerService.onDestroy();
-                System.exit(0);
-            }
-
-            audioList.clear();
+            playerService.stopMedia();
             finish();
+
+//            playerService.stopMedia();
+//            if (serviceBound || playerService.mediaPlayer != null) {
+//                stopService(playerIntent);
+//                playerService.onDestroy();
+//                System.exit(0);
+//            }
+//            audioList.clear();
+//            finish();
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -638,15 +654,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onVideoFragmentInteraction(String videoURL) {
+    public void onVideoFragmentInteraction(String videoURL, int position) {
         if (playerService.ismAudioIsPlaying()) {
             playerService.pause();
         }
 
         play_layout.setVisibility(View.GONE);
-
         Intent intent = new Intent(MainActivity.this, FullscreenActivity.class)
-                .putExtra(getString(R.string.videoURL), videoURL);
+                .putExtra(getString(R.string.videoURL), videoURL)
+                .putExtra(getString(R.string.videoPosition), position);
         startActivity(intent);
 
     }
@@ -664,10 +680,11 @@ public class MainActivity extends AppCompatActivity
 
     private void setPlayPauseState() {
         if (playerService.mediaPlayer != null) {
-            if (!playerService.mediaPlayer.isPlaying()) {
-                playPauseFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
-            } else {
+            if (playerService.mediaPlayer.isPlaying()) {
                 playPauseFab.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
+            } else {
+                playPauseFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
+
             }
         }
     }
@@ -762,6 +779,5 @@ public class MainActivity extends AppCompatActivity
         }
 
     }
-
 
 }

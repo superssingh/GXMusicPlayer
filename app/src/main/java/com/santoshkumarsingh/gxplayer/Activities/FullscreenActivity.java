@@ -1,15 +1,19 @@
 package com.santoshkumarsingh.gxplayer.Activities;
 
 import android.annotation.SuppressLint;
+import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.MediaController;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.google.android.gms.ads.AdRequest;
@@ -17,8 +21,20 @@ import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
+import com.santoshkumarsingh.gxplayer.Models.Video;
 import com.santoshkumarsingh.gxplayer.R;
 import com.santoshkumarsingh.gxplayer.Utilities.FullScreenVideoView;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -97,22 +113,28 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
             hide();
         }
     };
+    private CompositeDisposable disposable;
+    private List<Video> videoList;
+    private int position;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen);
         Bundle bundle = getIntent().getExtras();
+        videoURL = bundle.getString(getString(R.string.videoURL));
+        position = bundle.getInt(getString(R.string.videoPosition));
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullVideoView);
-        videoURL = bundle.getString(getString(R.string.videoURL));
+
         fullScreenVideoView = new FullScreenVideoView(this);
         videoView = findViewById(R.id.fullVideoView);
-        videoPlayer(videoURL);
+        videoList = new ArrayList<>();
+        disposable = new CompositeDisposable();
+        Load_VideoFiles();
         initRewardedVideo();
 
-        // Set up the user interaction to manually show or hide the system UI.
         mContentView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -120,10 +142,74 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
             }
         });
 
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+    }
+
+    //-------get videos fromsdcard:
+    private void Load_VideoFiles() {
+        disposable = new CompositeDisposable();
+        disposable.add(getAudio()
+                .subscribeOn(Schedulers.io())
+                .doOnNext(new Consumer<List<Video>>() {
+                    @Override
+                    public void accept(List<Video> videos) throws Exception {
+                        videoList = videos;
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<List<Video>>() {
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull List<Video> videos) {
+                        videoPlayer(videoURL);
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        Log.e("Error::Home ", e.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d("OnComplete:: ", "Completed");
+                    }
+                }));
+    }
+
+    private Observable<List<Video>> getAudio() {
+        return Observable.fromCallable(new Callable<List<Video>>() {
+            @Override
+            public List<Video> call() throws Exception {
+                return loadVideo();
+            }
+        });
+    }
+
+    public List<Video> loadVideo() {
+        List<Video> videos = new ArrayList<>();
+        Uri uri = android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Video.Media.ALBUM + "!=0";
+        String sortOrder = "LOWER(" + MediaStore.Video.Media.DISPLAY_NAME + ") ASC";
+        Cursor cursor = FullscreenActivity.this.getContentResolver().query(uri, null, selection, null, sortOrder);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    String title = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
+                    String url = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
+                    String album = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.ALBUM));
+                    String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DURATION));
+
+                    Video video = new Video(title, url, album, duration);
+                    videos.add(video);
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+
+        if (videos == null) {
+            Toast.makeText(FullscreenActivity.this, R.string.file_not_found, Toast.LENGTH_LONG).show();
+        }
+
+        return videos;
     }
 
     private void initRewardedVideo() {
@@ -145,22 +231,34 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
         //Creating MediaController
         MediaController mediaController = new MediaController(this);
         mediaController.setAnchorView(videoView);
+        videoView.setMediaController(mediaController);
 
         //Setting MediaController and URI, then starting the videoView
-        videoView.setMediaController(mediaController);
+        setVideo(URL);
+        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+//                showRewardedVideo();
+                position = position == videoList.size() - 1 ? 0 : position + 1;
+                setVideo(videoList.get(position).getURL());
+            }
+        });
+
+
+        if (videoView.canSeekBackward()) {
+            position = position == 0 ? videoList.size() - 1 : position - 1;
+            setVideo(videoList.get(position).getURL());
+        }
+
+
+    }
+
+    private void setVideo(String URL) {
         videoView.setVideoURI(Uri.parse(URL));
         videoView.requestFocus();
         videoView.start();
 
-        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                showRewardedVideo();
-            }
-        });
-
     }
-
 
 
     @Override
@@ -253,4 +351,6 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
     public void onRewardedVideoAdFailedToLoad(int i) {
 
     }
+
+
 }
