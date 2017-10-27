@@ -26,7 +26,6 @@ import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
-import com.santoshkumarsingh.gxplayer.Adapters.AudioRecyclerAdapter;
 import com.santoshkumarsingh.gxplayer.Adapters.PlaylistsAdapters.FavoriteRecyclerAdapter;
 import com.santoshkumarsingh.gxplayer.Adapters.PlaylistsAdapters.InstrumentalRecyclerAdapter;
 import com.santoshkumarsingh.gxplayer.Adapters.PlaylistsAdapters.MotivationalRecyclerAdapter;
@@ -40,7 +39,6 @@ import com.santoshkumarsingh.gxplayer.Database.RealmDB.NewAudio;
 import com.santoshkumarsingh.gxplayer.Database.RealmDB.PartyAudio;
 import com.santoshkumarsingh.gxplayer.Database.RealmDB.SoulAudio;
 import com.santoshkumarsingh.gxplayer.Database.SharedPreferenceDB.StorageUtil;
-import com.santoshkumarsingh.gxplayer.Fragments.AlbumFragment;
 import com.santoshkumarsingh.gxplayer.Interfaces.PlayListOnClickListener;
 import com.santoshkumarsingh.gxplayer.Interfaces.ServiceCallback;
 import com.santoshkumarsingh.gxplayer.Models.Audio;
@@ -102,7 +100,6 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
     @BindView(R.id.playfab)
     FloatingMusicActionButton playPauseFab;
     List<Audio> audioList;
-    private AlbumFragment.OnFragmentInteractionListener mListener;
     private Realm realm = null;
     private Utilities utilities;
     private int trackPosition = 0;
@@ -111,8 +108,6 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
     private CompositeDisposable disposable;
     private StorageUtil storageUtil;
     private Animation animation;
-    private int categoryState = 3;
-    private AudioRecyclerAdapter audioRecyclerAdapter;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -134,7 +129,6 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
     private int category;
     private int keyword;
     private Toolbar toolbar;
-    private String toolbarTitle;
     private AdView mAdView;
 
 
@@ -158,7 +152,6 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         play_layout.setAnimation(animation);
         songTitle.setSelected(true);
         playerService = new MediaPlayerService();
-        getList(keyword);
 
         if (storageUtil.loadAudioIndex() == -1) {
             audioList = storageUtil.loadAudio();
@@ -168,6 +161,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
             Load_Audio_Data();
         }
 
+        getList(keyword);
         AddListeners();
         initAds();
     }
@@ -186,7 +180,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
                     @Override
                     public void accept(Integer integer) throws Exception {
                         if (storageUtil.loadAudioIndex() != -1) {
-                            categoryState = storageUtil.loadCategoryIndex();
+                            category = storageUtil.loadCategoryIndex();
                             trackPosition = storageUtil.loadAudioIndex();
                             audioList = storageUtil.loadAudio();
                             playerIntent = new Intent(FavoritesActivity.this, MediaPlayerService.class);
@@ -250,7 +244,6 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
                 } else {
                     favoriteRecyclerAdapter = new FavoriteRecyclerAdapter(this, favoriteAudios);
                     recyclerView.setAdapter(favoriteRecyclerAdapter);
-                    Audio audio = new Audio();
                 }
                 break;
             case 1:
@@ -436,7 +429,7 @@ public class FavoritesActivity extends AppCompatActivity implements ServiceCallb
         }
 
         trackPosition = audioIndex;
-        categoryState = categoryIndex;
+        category = categoryIndex;
         playPauseFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
 
     }
