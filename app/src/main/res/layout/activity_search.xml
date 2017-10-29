@@ -20,8 +20,8 @@
             android:layout_height="match_parent">
 
         </WebView>
-
     </FrameLayout>
+
 
     <com.google.android.gms.ads.AdView
         android:id="@+id/adView"

@@ -12,6 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.MediaController;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -36,6 +38,8 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
+import static android.view.View.VISIBLE;
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -58,22 +62,8 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
-    /**
-     * Touch listener to use for in-layout UI controls to delay hiding the
-     * system UI. This is to prevent the jarring behavior of controls going away
-     * while interacting with activity UI.
-     */
-    private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View view, MotionEvent motionEvent) {
-            if (AUTO_HIDE) {
-                delayedHide(AUTO_HIDE_DELAY_MILLIS);
-            }
-            return false;
-        }
-    };
-    private FullScreenVideoView fullScreenVideoView;
-    private VideoView videoView;
+    FullScreenVideoView fullScreenVideoView;
+    private FrameLayout customControls;
     private String videoURL;
     private View mContentView;
     private final Runnable mHidePart2Runnable = new Runnable() {
@@ -91,8 +81,10 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+
         }
     };
+    private VideoView videoView;
     private RewardedVideoAd mRewardedVideoAd;
     private View mControlsView;
     private final Runnable mShowPart2Runnable = new Runnable() {
@@ -103,7 +95,8 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
             if (actionBar != null) {
                 actionBar.show();
             }
-            mControlsView.setVisibility(View.VISIBLE);
+            mControlsView.setVisibility(VISIBLE);
+            customControls.setVisibility(VISIBLE);
         }
     };
     private boolean mVisible;
@@ -111,6 +104,20 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
         @Override
         public void run() {
             hide();
+        }
+    };
+    /**
+     * Touch listener to use for in-layout UI controls to delay hiding the
+     * system UI. This is to prevent the jarring behavior of controls going away
+     * while interacting with activity UI.
+     */
+    private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+            if (AUTO_HIDE) {
+                delayedHide(AUTO_HIDE_DELAY_MILLIS);
+            }
+            return false;
         }
     };
     private CompositeDisposable disposable;
@@ -127,6 +134,8 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullVideoView);
+        customControls = findViewById(R.id.custom_controls);
+        customControls.setVisibility(View.GONE);
 
         fullScreenVideoView = new FullScreenVideoView(this);
         videoView = findViewById(R.id.fullVideoView);
@@ -142,7 +151,15 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
             }
         });
 
+        mContentView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(FullscreenActivity.this, "Hi", Toast.LENGTH_LONG).show();
+            }
+        });
+
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+
     }
 
     //-------get videos fromsdcard:
@@ -231,6 +248,20 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
         //Creating MediaController
         MediaController mediaController = new MediaController(this);
         mediaController.setAnchorView(videoView);
+        mediaController.setPrevNextListeners(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                position = position == videoList.size() - 1 ? 0 : position + 1;
+                setVideo(videoList.get(position).getURL());
+            }
+        }, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                position = position == 0 ? videoList.size() - 1 : position - 1;
+                setVideo(videoList.get(position).getURL());
+            }
+        });
+
         videoView.setMediaController(mediaController);
 
         //Setting MediaController and URI, then starting the videoView
@@ -238,17 +269,10 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-//                showRewardedVideo();
                 position = position == videoList.size() - 1 ? 0 : position + 1;
                 setVideo(videoList.get(position).getURL());
             }
         });
-
-
-        if (videoView.canSeekBackward()) {
-            position = position == 0 ? videoList.size() - 1 : position - 1;
-            setVideo(videoList.get(position).getURL());
-        }
 
 
     }
@@ -277,8 +301,10 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
     private void toggle() {
         if (mVisible) {
             hide();
+            setMargins(customControls, 0, 0, -100, 0);
         } else {
             show();
+            setMargins(customControls, 0, 0, 0, 0);
         }
     }
 
@@ -291,6 +317,7 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
         mControlsView.setVisibility(View.GONE);
         mVisible = false;
 
+
         // Schedule a runnable to remove the status and navigation bar after a delay
         mHideHandler.removeCallbacks(mShowPart2Runnable);
         mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
@@ -302,11 +329,19 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
         mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         mVisible = true;
-
         // Schedule a runnable to display UI elements after a delay
         mHideHandler.removeCallbacks(mHidePart2Runnable);
         mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
     }
+
+    private void setMargins(View view, int left, int top, int right, int bottom) {
+        if (view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+            p.setMargins(left, top, right, bottom);
+            view.requestLayout();
+        }
+    }
+
 
     /**
      * Schedules a call to hide() in [delay] milliseconds, canceling any
@@ -316,6 +351,7 @@ public class FullscreenActivity extends AppCompatActivity implements RewardedVid
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
+
 
     @Override
     public void onRewardedVideoAdLoaded() {

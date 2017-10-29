@@ -3,8 +3,8 @@ package com.santoshkumarsingh.gxplayer.Activities;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -27,12 +27,13 @@ public class SearchActivity extends AppCompatActivity {
         toolbar.setTitle("Search Browser");
         toolbar.setTitleTextColor(getResources().getColor(android.R.color.background_light));
         setSupportActionBar(toolbar);
+
         Bundle bundle = getIntent().getExtras();
         keyword = bundle.getString(getString(R.string.Keyword));
         webView = findViewById(R.id.webView);
         initAds();
         String url = "https://www.google.com/search?q=" + keyword + " on youtube";
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebChromeClient(new WebChromeClient());
         webView.loadUrl(url);
 
     }
@@ -52,4 +53,15 @@ public class SearchActivity extends AppCompatActivity {
         mAdView.loadAd(adRequest);
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        webView.destroy();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        finish();
+    }
 }

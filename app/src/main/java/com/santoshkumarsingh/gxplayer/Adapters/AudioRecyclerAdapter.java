@@ -66,6 +66,24 @@ public class AudioRecyclerAdapter extends RecyclerView.Adapter<AudioRecyclerAdap
         holder.mArtist.setText(audio.getARTIST());
         holder.duration.setText(utilities.milliSecondsToTimer(duration));
 
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (songOnClickListener != null) {
+                    songOnClickListener.OnItemClicked(audioList, audioPosition);
+                }
+            }
+        });
+
+        holder.love.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                RealmContentProvider contentProvider = new RealmContentProvider();
+                contentProvider.addFavorite(view.getContext(), audio);
+            }
+        });
+
+
         int[] recorderIcons = new int[]{R.drawable.red, R.drawable.audio_placeholder,
                 R.drawable.aqua, R.drawable.orange_placehonder, R.drawable.blue};
         int[] recorderTitle = new int[]{R.string.NewAudio, R.string.PartyAudio,
@@ -87,23 +105,6 @@ public class AudioRecyclerAdapter extends RecyclerView.Adapter<AudioRecyclerAdap
             holder.bmb.addBuilder(builder);
         }
 
-
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (songOnClickListener != null) {
-                    songOnClickListener.OnItemClicked(audioList, audioPosition);
-                }
-            }
-        });
-
-        holder.love.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                RealmContentProvider contentProvider = new RealmContentProvider();
-                contentProvider.addFavorite(view.getContext(), audio);
-            }
-        });
 
         holder.bmb.setOnBoomListener(new OnBoomListener() {
             @Override

@@ -176,4 +176,7 @@ If you have any questions or suggestions about my Privacy Policy, do not hesitat
     <string name="ppolicy">Privacy Policy</string>
     <string name="credit">Credits</string>
     <string name="videoPosition">videoPosition</string>
+    <string name="previousBTN">PREVIOUS</string>
+    <string name="nextBTN">NEXT</string>
+    <string name="Volumecontroller">Volume</string>
 </resources>

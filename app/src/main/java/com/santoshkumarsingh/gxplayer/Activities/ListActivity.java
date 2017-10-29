@@ -23,7 +23,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -112,29 +111,26 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
+        toolbar = findViewById(R.id.customToolbar);
+        ButterKnife.bind(this);
         Bundle bundle = getIntent().getExtras();
         keyword = bundle.getString(getString(R.string.Keyword));
         category = bundle.getInt(getString(R.string.category));
-        toolbar = findViewById(R.id.customToolbar);
         toolbar.setTitleTextColor(getResources().getColor(android.R.color.background_light));
-        ButterKnife.bind(this);
+
         disposable = new CompositeDisposable();
         audioList = new ArrayList<>();
         utilities = new Utilities(getApplicationContext());
         storageUtil = new StorageUtil(this);
         animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
-        play_layout.setAnimation(animation);
+        play_layout.setVisibility(View.GONE);
         songTitle.setSelected(true);
         playerService = new MediaPlayerService();
-
-        if (storageUtil.loadAudioIndex() != -1) {
-            audioList = storageUtil.loadAudio();
-            trackPosition = storageUtil.loadAudioIndex();
-            Log.d("TrackPosition", audioList.get(trackPosition).getTITLE());
-            Load_Audio_Data();
-        }
-
         initAds();
+
+        Load_Audio_Data();
+        Log.d("ListAct", "Check");
+
     }
 
     private void initAds() {
@@ -239,6 +235,7 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
     public void UI_update(List<Audio> audio, int position) {
         this.audioList = audio;
         trackPosition = position;
+        play_layout.setVisibility(View.VISIBLE);
         setPlayPauseState(playerService.ismAudioIsPlaying());
 
         Bitmap bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
@@ -327,7 +324,7 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
     @Override
     protected void onResume() {
         super.onResume();
-        Load_Audio_Data();
+//        Load_Audio_Data();
     }
 
     @Override
@@ -480,33 +477,33 @@ public class ListActivity extends AppCompatActivity implements ServiceCallback, 
     }
 
 
-    private List<Audio> loadSearchedFile(String searchSongName) {
-        List<Audio> audios = new ArrayList<>();
-        Toast.makeText(this, "Hiiii", Toast.LENGTH_LONG).show();
-        Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Audio.Media.IS_MUSIC + "!=0 and " + MediaStore.Audio.Media.DISPLAY_NAME + " = '" + searchSongName + "'";
-        String sortOrder = "LOWER(" + MediaStore.Audio.Media.DISPLAY_NAME + ") ASC";
-        Cursor cursor = getContentResolver().query(uri, null, selection, null, sortOrder);
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                do {
-                    String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
-                    String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
-                    String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                    String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-                    String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                    String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-
-                    Audio audio = new Audio(id, title, artist, url, album, duration);
-                    audios.add(audio);
-
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-        }
-
-        return audios;
-    }
+//    private List<Audio> loadSearchedFile(String searchSongName) {
+//        List<Audio> audios = new ArrayList<>();
+//        Toast.makeText(this, "Hiiii", Toast.LENGTH_LONG).show();
+//        Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+//        String selection = MediaStore.Audio.Media.IS_MUSIC + "!=0 and " + MediaStore.Audio.Media.DISPLAY_NAME + " = '" + searchSongName + "'";
+//        String sortOrder = "LOWER(" + MediaStore.Audio.Media.DISPLAY_NAME + ") ASC";
+//        Cursor cursor = getContentResolver().query(uri, null, selection, null, sortOrder);
+//        if (cursor != null) {
+//            if (cursor.moveToFirst()) {
+//                do {
+//                    String id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
+//                    String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
+//                    String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+//                    String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+//                    String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+//                    String duration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+//
+//                    Audio audio = new Audio(id, title, artist, url, album, duration);
+//                    audios.add(audio);
+//
+//                } while (cursor.moveToNext());
+//            }
+//            cursor.close();
+//        }
+//
+//        return audios;
+//    }
 
 
 }

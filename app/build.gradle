@@ -18,8 +18,8 @@ android {
         applicationId "com.santoshkumarsingh.gxmusicplayer"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 10
-        versionName '1.0'
+        versionCode 13
+        versionName '1.1'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }

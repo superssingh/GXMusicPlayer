@@ -103,12 +103,12 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     ImageButton stopFab;
     @BindView(R.id.bassSeekbar)
     SeekBar bassSeekbar;
+    @BindView(R.id.volumeSeekbar)
+    SeekBar volumeSeekbar;
     @BindView(R.id.stopFrame)
     FrameLayout stopFrame;
     @BindView(R.id.d_BassBTN)
     FloatingActionButton BassBTN;
-//    @BindView(R.id.recorderLayout)
-//    LinearLayout recorderLayout;
 
     FrameLayout bassFrame;
     View view;
@@ -127,7 +127,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
     private MediaRecorder mRecorder = null;
     private MediaPlayer mPlayer = null;
     private boolean recording = false, bass = false;
-    private int bassMaxStrength = 1000;
+    private int bassMaxStrength = 1000, valumeMaxStrength = 100;
     private int category = 5;
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
@@ -155,6 +155,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
     private RippleBackground rippleBackground;
     private int[] bmbColor;
+    private float volume;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -183,6 +184,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         artist.setAnimation(animation);
         album.setAnimation(animation);
         bassSeekbar.setMax(bassMaxStrength);
+        volumeSeekbar.setMax(valumeMaxStrength);
         initRecorder();
         initBoomMemu();
         setClickedListeners();
@@ -256,11 +258,11 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             @Override
             public void onClick(View v) {
                 if (bass) {
-                    bassFrame.setVisibility(LinearLayout.GONE);
+                    bassFrame.setVisibility(GONE);
                     bass = false;
                     Log.i("clicked", "f");
                 } else {
-                    bassFrame.setVisibility(LinearLayout.VISIBLE);
+                    bassFrame.setVisibility(VISIBLE);
                     bass = true;
                     Log.i("clicked", "t");
                 }
@@ -361,6 +363,28 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             }
         });
 
+
+        volumeSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (playerService.mediaPlayer != null) {
+                    setVolume(((float) progress) / 100);
+                    timer();
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Log.i("clicked", "ll");
+            }
+        });
+
+
         d_thumbnail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -411,19 +435,24 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
             stopFrame.setVisibility(VISIBLE);
         } else if (index == 1) {
             recording = true;
+            rippleBackground.startRippleAnimation();
+            stopFab.setBackgroundResource(R.drawable.ic_mic_black_24dp);
+            stopFrame.setVisibility(VISIBLE);
+            onRecord(recording);
             if (!playerService.mediaPlayer.isPlaying()) {
                 playerService.resume();
                 setPlayPauseState();
             }
 
-            rippleBackground.startRippleAnimation();
-            onRecord(recording);
-            stopFab.setBackgroundResource(R.drawable.ic_mic_black_24dp);
-            stopFrame.setVisibility(VISIBLE);
             Toast.makeText(DetailActivity.this, "Start Recording", Toast.LENGTH_LONG).show();
 
         } else if (index == 2) {
             recording = false;
+            if (playerService.mediaPlayer.isPlaying()) {
+                playerService.pause();
+                setPlayPauseState();
+            }
+
             startPlaying();
             stopFab.setBackgroundResource(R.drawable.ic_stop_24dp);
             stopFrame.setVisibility(VISIBLE);
@@ -440,7 +469,7 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
 
 
     private void timer() {
-        new CountDownTimer(3000, 1000) {
+        new CountDownTimer(5000, 1000) {
             public void onTick(long millisUntilFinished) {
             }
 
@@ -755,7 +784,6 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         Log.i("filePath:", mFileName);
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
-
     }
 
     @Override
@@ -772,5 +800,8 @@ public class DetailActivity extends AppCompatActivity implements ServiceCallback
         }
     }
 
+    public void setVolume(float volume) {
+        playerService.mediaPlayer.setVolume(volume, volume);
+    }
 
 }

@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity
 
     private Animation animation;
     private Utilities utilities;
-    private int trackPosition = 0, categoryState = 0;
+    private int trackPosition = 0, categoryState = 0, resumePosition = 0;
     private List<Audio> audioList;
     private boolean serviceBound = false;
     private Intent playerIntent;
@@ -140,7 +140,6 @@ public class MainActivity extends AppCompatActivity
 
     private SearchView searchView;
     private boolean thumbnailAnimation = false;
-    private int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -178,9 +177,11 @@ public class MainActivity extends AppCompatActivity
 
         if (storageUtil.loadAudioIndex() != -1) {
             audioList = storageUtil.loadAudio();
-            trackPosition = storageUtil.loadAudioIndex() == -1 ? 0 : storageUtil.loadAudioIndex();
-            categoryState = storageUtil.loadCategoryIndex() == -1 ? 0 : storageUtil.loadCategoryIndex();
+            trackPosition = storageUtil.loadAudioIndex();
+            categoryState = storageUtil.loadCategoryIndex();
+            resumePosition = storageUtil.loadAudioPlayerStopped();
             ConnectMediaPlayer();
+
         }
 
 
@@ -203,7 +204,6 @@ public class MainActivity extends AppCompatActivity
         Load_Audio_Data();
     }
 
-
     private void InitializedView() {
         initTabLayout();
 
@@ -220,15 +220,17 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 if (playerService.isPlayerStop()) {
-                    playAudio(trackPosition, categoryState);
+                    playerService.setAudioList(audioList);
+                    int i = trackPosition > 0 ? trackPosition - 1 : 0;
+                    playerService.setAudioIndex(i);
+                    playerService.setActiveAudio(audioList.get(trackPosition));
+                    playerService.playMedia();
+                } else if (playerService.ismAudioIsPlaying()) {
+                    playerService.pause();
+                    setPlayPauseState();
                 } else {
-                    if (playerService.ismAudioIsPlaying()) {
-                        playerService.pause();
-                        setPlayPauseState();
-                    } else {
-                        playerService.resume();
-                        setPlayPauseState();
-                    }
+                    playerService.resume();
+                    setPlayPauseState();
                 }
             }
         });
@@ -257,7 +259,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void Load_Audio_Data() {
-        Toast.makeText(MainActivity.this, "ON", Toast.LENGTH_LONG).show();
         disposable1.add(getAudio()
                 .subscribeOn(Schedulers.io())
                 .doOnNext(new Consumer<Integer>() {
@@ -309,7 +310,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void ConnectMediaPlayer() {
-        Toast.makeText(MainActivity.this, "start", Toast.LENGTH_LONG).show();
         disposable.add(observable()
                 .subscribeOn(Schedulers.io())
                 .doOnNext(new Consumer<Integer>() {
@@ -328,12 +328,8 @@ public class MainActivity extends AppCompatActivity
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer integer) throws Exception {
-                        if (serviceBound) {
-                            if (playerService.ismAudioIsPlaying()) {
-                                playerService.pause();
-                                setPlayPauseState();
-                            }
-                        }
+                        playerService.pause();
+                        setPlayPauseState();
                     }
                 })
                 .subscribeWith(new DisposableObserver<Integer>() {
@@ -501,15 +497,6 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_exit) {
             playerService.stopMedia();
             finish();
-
-//            playerService.stopMedia();
-//            if (serviceBound || playerService.mediaPlayer != null) {
-//                stopService(playerIntent);
-//                playerService.onDestroy();
-//                System.exit(0);
-//            }
-//            audioList.clear();
-//            finish();
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -526,6 +513,7 @@ public class MainActivity extends AppCompatActivity
         this.audioList = audioList;
         this.trackPosition = trackPosition;
         setPlayPauseState();
+        play_layout.setVisibility(View.VISIBLE);
 
         Bitmap bitmap = utilities.getTrackThumbnail(audioList.get(trackPosition).getURL()) != null
                 ? utilities.getTrackThumbnail(audioList.get(trackPosition).getURL())

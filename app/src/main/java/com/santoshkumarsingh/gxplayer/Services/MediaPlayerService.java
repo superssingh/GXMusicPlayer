@@ -137,15 +137,19 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 switch (focusChange) {
                     case AudioManager.AUDIOFOCUS_GAIN:
                         Log.i(TAG, "AUDIOFOCUS_GAIN");
-                        playMedia();
-                        mediaSession.setActive(true);
+                        if (mediaPlayer != null) {
+                            pause();
+                            mediaSession.setActive(true);
+                        }
                         break;
                     case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
                         Log.i(TAG, "AUDIOFOCUS_GAIN_TRANSIENT");
-                        resume();
+                        pause();
+//                        resume();
                         break;
                     case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
                         Log.i(TAG, "AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK");
+                        pause();
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS:
                         Log.e(TAG, "AUDIOFOCUS_LOSS");
@@ -156,7 +160,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                         Log.e(TAG, "AUDIOFOCUS_LOSS_TRANSIENT");
-                        mediaPlayer.start();
+                        pause();
                         mAudioFocusGranted = true;
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
@@ -166,6 +170,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         Log.e(TAG, "AUDIOFOCUS_REQUEST_FAILED");
                         if (mediaPlayer.isPlaying()) mediaPlayer.setVolume(0.1f, 0.1f);
                         mAudioFocusGranted = true;
+                        pause();
                         break;
                     default:
                 }
@@ -261,15 +266,20 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     public void stopMedia() {
         // 1. Stop play back
-        if (mediaPlayer.isPlaying() || mediaPlayer != null) {
-            resumePosition = mediaPlayer.getCurrentPosition();
+        if (mediaPlayer == null) {
+            return;
+        } else {
+            new StorageUtil(mContext).storeAudioIndex(audioIndex);
+            new StorageUtil(mContext).storeAudioPlayerStopped(1);
             mediaPlayer.stop();
+            resumePosition = 0;
             mAudioIsPlaying = false;
             playerStop = true;
             removeNotification();
-            // 2. Give up audio focus
-//            abandonAudioFocus();
+            abandonAudioFocus();
+            forceMusicStop();
         }
+
     }
 
     public void pause() {
@@ -682,6 +692,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         return audioIndex;
     }
 
+    public void setAudioIndex(int audioIndex) {
+        this.audioIndex = audioIndex;
+    }
+
     public void setCallback(ServiceCallback callback) {
         serviceCallback = callback;
     }
@@ -759,7 +773,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
-
     private void EqualizerSetup(short value) {
         equalizer = new Equalizer(0, mediaPlayer.getAudioSessionId());
         equalizer.setEnabled(true);
@@ -788,10 +801,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public void onDestroy() {
         super.onDestroy();
         if (mediaPlayer == null) {
-            removeNotification();
         } else {
             stopMedia();
             mediaPlayer.release();
+            mediaPlayer = null;
             audioList.clear();
             activeAudio = null;
             removeAudioFocus();
@@ -804,6 +817,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             unregisterReceiver(becomingNoisyReceiver);
             unregisterReceiver(playNewAudio);
             removeNotification();
+
 
             //Forced Stop any mediaplayer
             forceMusicStop();
@@ -864,6 +878,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     public void setPlayerStop(boolean playerStop) {
         this.playerStop = playerStop;
+    }
+
+    public Audio getActiveAudio() {
+        return activeAudio;
+    }
+
+    public void setActiveAudio(Audio activeAudio) {
+        this.activeAudio = activeAudio;
     }
 
     public enum PlaybackStatus {
