@@ -137,19 +137,16 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 switch (focusChange) {
                     case AudioManager.AUDIOFOCUS_GAIN:
                         Log.i(TAG, "AUDIOFOCUS_GAIN");
-                        if (mediaPlayer != null) {
-                            pause();
-                            mediaSession.setActive(true);
-                        }
+//                        if (mediaPlayer != null) {
+//                            pause();
+//                            mediaSession.setActive(true);
+//                        }
                         break;
                     case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
                         Log.i(TAG, "AUDIOFOCUS_GAIN_TRANSIENT");
-                        pause();
-//                        resume();
                         break;
                     case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
                         Log.i(TAG, "AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK");
-                        pause();
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS:
                         Log.e(TAG, "AUDIOFOCUS_LOSS");
@@ -160,8 +157,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                         Log.e(TAG, "AUDIOFOCUS_LOSS_TRANSIENT");
-                        pause();
-                        mAudioFocusGranted = true;
+//                        pause();
+//                        mAudioFocusGranted = true;
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                         Log.e(TAG, "AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK");
@@ -170,7 +167,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         Log.e(TAG, "AUDIOFOCUS_REQUEST_FAILED");
                         if (mediaPlayer.isPlaying()) mediaPlayer.setVolume(0.1f, 0.1f);
                         mAudioFocusGranted = true;
-                        pause();
                         break;
                     default:
                 }
@@ -279,7 +275,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             abandonAudioFocus();
             forceMusicStop();
         }
-
     }
 
     public void pause() {
@@ -553,7 +548,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
         //Request audio focus
         if (!requestAudioFocus()) {
-            //Could not gain focus
             stopSelf();
         }
 
@@ -580,6 +574,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         //Starting listening for PhoneState changes
         phoneStateListener = new PhoneStateListener() {
+
             @Override
             public void onCallStateChanged(int state, String incomingNumber) {
                 switch (state) {
@@ -616,7 +611,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         registerReceiver(playNewAudio, filter);
     }
 
-    //--------------
     // Binder given to clients
     @Override
     public IBinder onBind(Intent intent) {
@@ -802,7 +796,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         super.onDestroy();
         if (mediaPlayer == null) {
         } else {
-            stopMedia();
+            mediaPlayer.stop();
             mediaPlayer.release();
             mediaPlayer = null;
             audioList.clear();
@@ -818,6 +812,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             unregisterReceiver(playNewAudio);
             removeNotification();
 
+//            new StorageUtil(mContext).clearCachedAudioPlaylist();
 
             //Forced Stop any mediaplayer
             forceMusicStop();

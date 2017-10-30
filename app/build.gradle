@@ -18,7 +18,7 @@ android {
         applicationId "com.santoshkumarsingh.gxmusicplayer"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 13
+        versionCode 14
         versionName '1.1'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -56,7 +56,6 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:26.0.0'
     compile 'com.android.support:recyclerview-v7:26.0.0'
     compile 'com.android.support:cardview-v7:26.0.0'
@@ -77,6 +76,7 @@ dependencies {
     compile 'com.google.firebase:firebase-core:11.0.4'
     compile 'com.google.firebase:firebase-ads:11.0.4'
     compile 'com.github.bumptech.glide:glide:4.2.0'
+    testCompile 'junit:junit:4.12'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.2.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 }

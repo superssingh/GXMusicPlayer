@@ -181,7 +181,6 @@ public class MainActivity extends AppCompatActivity
             categoryState = storageUtil.loadCategoryIndex();
             resumePosition = storageUtil.loadAudioPlayerStopped();
             ConnectMediaPlayer();
-
         }
 
 
@@ -277,7 +276,9 @@ public class MainActivity extends AppCompatActivity
                 .doOnNext(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer integer) throws Exception {
-                        setPlayPauseState();
+                        if (storageUtil.loadAudioIndex() != -1) {
+                            setPlayPauseState();
+                        }
                     }
                 })
                 .subscribeWith(new DisposableObserver<Integer>() {
@@ -606,9 +607,9 @@ public class MainActivity extends AppCompatActivity
             categoryState = 1;
             trackPosition = position;
             audioList = audios;
-            play_layout.setVisibility(View.VISIBLE);
             playerService.setAudioList(audioList);
             playAudio(position, categoryState);
+            play_layout.setVisibility(View.VISIBLE);
         } else {
             Toast.makeText(MainActivity.this, R.string.file_not_found, Toast.LENGTH_LONG).show();
         }

@@ -34,6 +34,8 @@ public class SearchActivity extends AppCompatActivity {
         initAds();
         String url = "https://www.google.com/search?q=" + keyword + " on youtube";
         webView.setWebChromeClient(new WebChromeClient());
+        webView.getSettings().getJavaScriptEnabled();
+        webView.getSettings().getJavaScriptCanOpenWindowsAutomatically();
         webView.loadUrl(url);
 
     }
