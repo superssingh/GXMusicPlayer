@@ -263,28 +263,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     public void stopMedia() {
-        // 1. Stop play back
+        // Stop play back
         if (mediaPlayer == null) {
             return;
         } else {
             stopSelf();
-//            onDestroy();
-//            mediaPlayer.stop();
-//            mediaPlayer.release();
-//            mediaPlayer=null;
-//            resumePosition = 0;
-//            mAudioIsPlaying = false;
-//            playerStop = true;
-//            removeNotification();
-//            abandonAudioFocus();
-//            if (mReceiverRegistered) {
-//                unregisterReceiver(mIntentReceiver);
-//            }
-
-//            forceMusicStop();
-//            if (phoneStateListener != null) {
-//                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
-//            }
         }
     }
 
