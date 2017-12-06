@@ -20,7 +20,10 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.app.NotificationCompat;
+import android.telephony.CellInfo;
 import android.telephony.PhoneStateListener;
+import android.telephony.ServiceState;
+import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -57,7 +60,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private static final int NOTIFICATION_ID = 101;
     private static MediaPlayerService sInstance = null;
     private static String SERVICE_CMD = "com.santoshkumarsingh.gxmusicplayer.ACTION_SERVICE_COMMAND";
-    //    private static String SERVICE_CMD = "com.sec.android.app.music.musicservicecommand";
     private final IBinder iBinder = new LocalBinder();
     // global variable
     public MediaPlayer mediaPlayer;
@@ -82,6 +84,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private ServiceCallback serviceCallback;
     private boolean mAudioIsPlaying = false, playerStop = false;
     private boolean mAudioFocusGranted = false;
+
     private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener;
     private boolean mReceiverRegistered = false;
     private Equalizer equalizer;
@@ -121,6 +124,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             buildNotification(PlaybackStatus.PAUSED);
         }
     };
+    private BroadcastReceiver mIntentReceiver;
 
 
     public MediaPlayerService() {
@@ -137,16 +141,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 switch (focusChange) {
                     case AudioManager.AUDIOFOCUS_GAIN:
                         Log.i(TAG, "AUDIOFOCUS_GAIN");
-//                        if (mediaPlayer != null) {
-//                            pause();
-//                            mediaSession.setActive(true);
-//                        }
+                        playMedia();
                         break;
                     case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
                         Log.i(TAG, "AUDIOFOCUS_GAIN_TRANSIENT");
+                        pause();
                         break;
                     case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
                         Log.i(TAG, "AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK");
+                        pause();
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS:
                         Log.e(TAG, "AUDIOFOCUS_LOSS");
@@ -157,8 +160,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                         Log.e(TAG, "AUDIOFOCUS_LOSS_TRANSIENT");
-//                        pause();
-//                        mAudioFocusGranted = true;
+                        pause();
+                        mAudioFocusGranted = true;
                         break;
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                         Log.e(TAG, "AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK");
@@ -235,7 +238,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
         mediaPlayer.start();
         mAudioIsPlaying = true;
-        playerStop = false;
         buildNotification(PlaybackStatus.PAUSED);
 
     }
@@ -265,15 +267,24 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         if (mediaPlayer == null) {
             return;
         } else {
-            new StorageUtil(mContext).storeAudioIndex(audioIndex);
-            new StorageUtil(mContext).storeAudioPlayerStopped(1);
-            mediaPlayer.stop();
-            resumePosition = 0;
-            mAudioIsPlaying = false;
-            playerStop = true;
-            removeNotification();
-            abandonAudioFocus();
-            forceMusicStop();
+            stopSelf();
+//            onDestroy();
+//            mediaPlayer.stop();
+//            mediaPlayer.release();
+//            mediaPlayer=null;
+//            resumePosition = 0;
+//            mAudioIsPlaying = false;
+//            playerStop = true;
+//            removeNotification();
+//            abandonAudioFocus();
+//            if (mReceiverRegistered) {
+//                unregisterReceiver(mIntentReceiver);
+//            }
+
+//            forceMusicStop();
+//            if (phoneStateListener != null) {
+//                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+//            }
         }
     }
 
@@ -307,7 +318,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         transportControls = mediaSession.getController().getTransportControls();
         //set MediaSession -> ready to receive media commands
         mediaSession.setActive(true);
-        //indicate that the MediaSession handles transport control commands
         // through its MediaSessionCompat.Callback.
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
@@ -358,17 +368,19 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     private void updateMetaData() {
-        // replace with medias albumArt
-        albumArt = utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
-                ? utilities.getTrackThumbnail(audioList.get(audioIndex).getURL())
-                : utilities.decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.audio_placeholder, 100, 100);
-        // Update the current metadata
-        mediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, activeAudio.getARTIST())
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, activeAudio.getALBUM())
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, activeAudio.getTITLE())
-                .build());
+        {
+            // replace with medias albumArt
+            albumArt = utilities.getTrackThumbnail(audioList.get(audioIndex).getURL()) != null
+                    ? utilities.getTrackThumbnail(audioList.get(audioIndex).getURL())
+                    : utilities.decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.audio_placeholder, 100, 100);
+            // Update the current metadata
+            mediaSession.setMetadata(new MediaMetadataCompat.Builder()
+                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, activeAudio.getARTIST())
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, activeAudio.getALBUM())
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, activeAudio.getTITLE())
+                    .build());
+        }
     }
 
     public void skipToNext() {
@@ -576,6 +588,76 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         phoneStateListener = new PhoneStateListener() {
 
             @Override
+            public void onServiceStateChanged(ServiceState serviceState) {
+                super.onServiceStateChanged(serviceState);
+                if (playerStop) {
+                    if (mediaPlayer != null || !isPlayerStop()) {
+                        stopMedia();
+                    }
+                }
+            }
+
+            @Override
+            public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+                super.onSignalStrengthsChanged(signalStrength);
+                if (playerStop) {
+                    if (mediaPlayer != null || !isPlayerStop()) {
+                        stopMedia();
+                    }
+                }
+            }
+
+            @Override
+            public void onDataConnectionStateChanged(int state, int networkType) {
+                super.onDataConnectionStateChanged(state, networkType);
+                if (playerStop) {
+                    if (mediaPlayer != null || !isPlayerStop()) {
+                        stopMedia();
+                    }
+                }
+            }
+
+            @Override
+            public void onCellInfoChanged(List<CellInfo> cellInfo) {
+                super.onCellInfoChanged(cellInfo);
+                if (playerStop) {
+                    if (mediaPlayer != null || !isPlayerStop()) {
+                        stopMedia();
+                    }
+                }
+            }
+
+            @Override
+            public void onDataConnectionStateChanged(int state) {
+                super.onDataConnectionStateChanged(state);
+                if (playerStop) {
+                    if (mediaPlayer != null || !isPlayerStop()) {
+                        stopMedia();
+                    }
+                }
+            }
+
+            @Override
+            public void onMessageWaitingIndicatorChanged(boolean mwi) {
+                super.onMessageWaitingIndicatorChanged(mwi);
+                if (playerStop) {
+                    if (mediaPlayer != null || !isPlayerStop()) {
+                        stopMedia();
+                    }
+                }
+            }
+
+            @Override
+            public void onDataActivity(int direction) {
+                super.onDataActivity(direction);
+                if (playerStop) {
+                    if (mediaPlayer != null || !isPlayerStop()) {
+                        stopMedia();
+                    }
+                }
+            }
+
+            @Override
             public void onCallStateChanged(int state, String incomingNumber) {
                 switch (state) {
                     //if at least one call exists or the phone is ringing
@@ -603,12 +685,16 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         // Listen for changes to the device call state.
         telephonyManager.listen(phoneStateListener,
                 PhoneStateListener.LISTEN_CALL_STATE);
+
+
     }
 
     private void register_playNewAudio() {
         //Register playNewMedia receiver
-        IntentFilter filter = new IntentFilter(MainActivity.Broadcast_PLAY_NEW_AUDIO);
-        registerReceiver(playNewAudio, filter);
+        if (!playerStop) {
+            IntentFilter filter = new IntentFilter(MainActivity.Broadcast_PLAY_NEW_AUDIO);
+            registerReceiver(playNewAudio, filter);
+        }
     }
 
     // Binder given to clients
@@ -738,7 +824,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     private void setupBroadcastReceiver() {
-        BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
+        mIntentReceiver = new BroadcastReceiver() {
             @SuppressLint("LongLogTag")
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -811,8 +897,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             unregisterReceiver(becomingNoisyReceiver);
             unregisterReceiver(playNewAudio);
             removeNotification();
-
-//            new StorageUtil(mContext).clearCachedAudioPlaylist();
 
             //Forced Stop any mediaplayer
             forceMusicStop();
