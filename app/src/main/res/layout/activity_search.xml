@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.santoshkumarsingh.gxplayer.Activities.SearchActivity">
+    tools:context="com.santoshkumarsingh.gxmediaplayer.Activities.SearchActivity">
 
     <include layout="@layout/custom_toolbar" />
 

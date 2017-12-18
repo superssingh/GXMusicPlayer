@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/white"
     android:orientation="vertical"
-    tools:context="com.santoshkumarsingh.gxplayer.Fragments.PlaylistFragment">
+    tools:context="com.santoshkumarsingh.gxmediaplayer.Fragments.PlaylistFragment">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/playlist_recyclerView"

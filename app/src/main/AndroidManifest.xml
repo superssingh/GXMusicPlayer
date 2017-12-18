@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.santoshkumarsingh.gxplayer">
+    package="com.santoshkumarsingh.gxmediaplayer">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -24,7 +24,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".Activities.MainActivity"
+            android:name="com.santoshkumarsingh.gxmediaplayer.Activities.MainActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
@@ -42,20 +42,20 @@
         </activity>
 
         <service
-            android:name=".Services.MediaPlayerService"
-            tools:ignore="InnerclassSeparator" />
+            android:name="com.santoshkumarsingh.gxmediaplayer.Services.MediaPlayerService"
+            tools:ignore="InnerclassSeparator"></service>
 
         <activity
-            android:name=".Activities.DetailActivity"
+            android:name="com.santoshkumarsingh.gxmediaplayer.Activities.DetailActivity"
             android:configChanges="orientation|screenSize"
             tools:ignore="InnerclassSeparator" />
-        <activity android:name=".Activities.ListActivity" />
+        <activity android:name="com.santoshkumarsingh.gxmediaplayer.Activities.ListActivity" />
         <activity
-            android:name=".Activities.FullscreenActivity"
+            android:name="com.santoshkumarsingh.gxmediaplayer.Activities.FullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen"
             android:theme="@style/FullscreenTheme" />
-        <activity android:name=".Activities.SearchActivity" />
+        <activity android:name="com.santoshkumarsingh.gxmediaplayer.Activities.SearchActivity" />
 
         <!-- This meta-data tag is required to use Google Play Services. -->
         <meta-data
@@ -67,7 +67,9 @@
             android:name="com.google.android.gms.ads.AdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:theme="@android:style/Theme.Translucent" />
-        <activity android:name=".Activities.FavoritesActivity"></activity>
+        <activity android:name="com.santoshkumarsingh.gxmediaplayer.Activities.FavoritesActivity"></activity>
+
+
     </application>
 
 </manifest>

@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/credit"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/blue"
+    android:background="@color/white"
     android:orientation="vertical"
-    android:visibility="gone">
+    android:paddingBottom="10dp"
+    android:visibility="gone"
+    app:elevation="4dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/aqua"
+        android:background="@color/blue"
         android:elevation="4dp"
         android:padding="16dp"
         android:text="Credits"
         android:textColor="@color/cardview_light_background"
-        android:textSize="18dp" />
+        android:textSize="18dp"
+        app:elevation="4dp" />
 
 
     <LinearLayout
@@ -28,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Developer"
-            android:textColor="@color/cardview_light_background"
+            android:textColor="@color/blue"
             android:textSize="14dp" />
 
         <TextView
@@ -37,7 +41,7 @@
             android:layout_weight="1"
             android:paddingLeft="16dp"
             android:text="@string/developer"
-            android:textColor="@color/cardview_light_background"
+            android:textColor="@color/blue"
             android:textSize="14dp" />
 
     </LinearLayout>
@@ -52,7 +56,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Other\nLibraries"
-            android:textColor="@color/cardview_light_background"
+            android:textColor="@color/blue"
             android:textSize="14dp" />
 
         <TextView
@@ -61,7 +65,7 @@
             android:layout_weight="1"
             android:paddingLeft="16dp"
             android:text="@string/other_credits1"
-            android:textColor="@color/cardview_light_background"
+            android:textColor="@color/blue"
             android:textSize="14dp" />
 
     </LinearLayout>
@@ -71,9 +75,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
-        android:background="@color/aqua"
+        android:background="@color/blue"
         android:text="Close"
         android:textColor="@color/white"
-        android:textSize="14dp" />
+        android:textSize="14dp"
+        android:textStyle="bold" />
 
 </LinearLayout>

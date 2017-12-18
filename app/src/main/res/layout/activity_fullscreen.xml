@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#363636"
-    tools:context="com.santoshkumarsingh.gxplayer.Activities.FullscreenActivity">
+    tools:context="com.santoshkumarsingh.gxmediaplayer.Activities.FullscreenActivity">
 
     <TextView
         android:id="@+id/fullscreen_content"
@@ -16,45 +16,11 @@
         android:textSize="50sp"
         android:textStyle="bold" />
 
-    <com.santoshkumarsingh.gxplayer.Utilities.FullScreenVideoView
+    <com.santoshkumarsingh.gxmediaplayer.Utilities.FullScreenVideoView
         android:id="@+id/fullVideoView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:keepScreenOn="true" />
-
-    <FrameLayout
-        android:id="@+id/custom_controls"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end|right"
-        android:layout_marginBottom="90dp"
-        android:layout_marginRight="0dp">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <!--<android.support.design.widget.FloatingActionButton-->
-            <!--android:id="@+id/previous_button"-->
-            <!--android:layout_width="50dp"-->
-            <!--android:layout_height="50dp"-->
-            <!--android:backgroundTint="@color/green"-->
-            <!--app:rippleColor="@color/cardview_dark_background"-->
-            <!--android:src="@drawable/ic_skip_previous_black_24dp"-->
-            <!--/>-->
-
-            <!--<android.support.design.widget.FloatingActionButton-->
-            <!--android:id="@+id/next_button"-->
-            <!--android:layout_width="50dp"-->
-            <!--android:layout_height="50dp"-->
-            <!--android:backgroundTint="@color/green"-->
-            <!--app:rippleColor="@color/cardview_dark_background"-->
-            <!--android:src="@drawable/ic_skip_next_black_24dp"/>-->
-
-        </LinearLayout>
-    </FrameLayout>
-
 
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
@@ -83,6 +49,13 @@
                 android:text="" />
 
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:backgroundTint="@color/blackTransparent"
+            android:src="@drawable/ic_arrow_back_black_24dp" />
     </FrameLayout>
 
 </FrameLayout>

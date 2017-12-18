@@ -33,7 +33,8 @@
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:layout_gravity="center"
-                    android:background="@drawable/background_round" />
+                    android:background="@drawable/background_round"
+                    android:contentDescription="stopImage" />
 
                 <ImageButton
                     android:id="@+id/stopFab"
@@ -41,6 +42,7 @@
                     android:layout_height="70dp"
                     android:layout_gravity="center"
                     android:background="@drawable/ic_mic_black_24dp"
+                    android:contentDescription="stopFab"
                     app:elevation="8dp" />
 
             </FrameLayout>

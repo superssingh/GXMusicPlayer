@@ -15,7 +15,6 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-
             <ImageView
                 android:id="@+id/V_Thumbnail"
                 android:layout_width="70dp"

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/blackTransparent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/red_theme"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@color/red"
+            android:text="Red"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/green_theme"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@color/green"
+            android:text="Green"
+            android:textStyle="bold" />
+
+
+        <Button
+            android:id="@+id/blue_theme"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@color/aqua"
+            android:text="Blue"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/pink_theme"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@color/pink"
+            android:text="Pink"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/orange_theme"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@color/orange"
+            android:text="Orange"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/black_theme"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@color/black"
+            android:text="Black"
+            android:textStyle="bold" />
+
+
+    </LinearLayout>
+
+
+</LinearLayout>

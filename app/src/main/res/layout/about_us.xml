@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/aboutUs"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/blue"
+    android:background="@color/cardview_light_background"
     android:orientation="vertical"
     android:visibility="gone">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/aqua"
+        android:background="@color/blue"
         android:padding="16dp"
         android:text="About Us"
         android:textColor="@color/cardview_light_background"
-        android:textSize="18dp" />
+        android:textSize="18dp"
+        app:elevation="4dp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/blue"
         android:padding="16dp"
         android:text="@string/aboutus"
-        android:textColor="@color/cardview_light_background"
+        android:textColor="@color/cardview_dark_background"
         android:textSize="14dp" />
 
     <TextView
@@ -32,7 +33,7 @@
         android:paddingEnd="16dp"
         android:paddingLeft="16dp"
         android:text="@string/rights"
-        android:textColor="@color/cardview_light_background"
+        android:textColor="@color/cardview_dark_background"
         android:textSize="14dp" />
 
     <Button
@@ -40,9 +41,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
-        android:background="@color/aqua"
+        android:background="@color/blue"
         android:text="Close"
         android:textColor="@color/white"
-        android:textSize="14dp" />
+        android:textSize="14dp"
+        android:textStyle="bold" />
 
 </LinearLayout>
