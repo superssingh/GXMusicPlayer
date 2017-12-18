@@ -2,7 +2,7 @@
 
  GXPlayer is a multimedia player that allows you to listen audio, watch videos and record your karaoke with or without music. In addition, it helps you to search your desired music from the browser.
  
- ###Features:
+ ### Features:
  * Elegant UI Design
  * Awesome sound quality for audio
  * Autofit fullscreen video feature
@@ -12,7 +12,7 @@
  * Favorite music video online search feature
  * Bass Booster for Bass control
 
-###UI Images:
+### UI Images:
 * Starting with Audio Tab
 
 ![](snapshots/1.png)
